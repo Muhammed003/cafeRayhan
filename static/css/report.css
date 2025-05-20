@@ -1,0 +1,120 @@
+.box-md{
+    display: flex;
+}
+a{
+    text-decoration: none;
+}
+.report_list{
+    width: 100%;
+    padding: 5px;
+}
+
+.waitress_filter{
+    width: 100%;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid #aaa;
+
+}
+.waitress_report_active{
+    width: 100%;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    background: #333;
+    color: #fff;
+    border: 1px solid #fff;
+    outline: 1px solid #333;
+}
+.header-main{
+    background: #CDB900;
+    padding: 10px;
+    width: 100%;
+    font-size: 1.2em;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+}
+@media (max-width: 768px) {
+.box-md{
+    display: block;
+}
+.report_list .all_waitress{
+    display: none;
+}
+
+
+}
+
+@media print {
+    .report_note-book{
+        border: 1px solid #333;
+        padding: 5px;
+
+    }
+    body{
+    font-size: 0.8em;
+    color: #000 !important;
+    }
+
+    .box-md{
+        display: flex;
+    }
+    .report_list .all_waitress{
+        display: block;
+    }
+
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    text-align: left;
+}
+
+.btn {
+    margin-top: 20px;
+}
+
+form {
+    margin: 0 auto;
+}
+
+.text-shadow-dark {
+    text-shadow: -1px 1px 0 #111, 1px 1px 0 #333, 1px -1px 0 #000, -1px -1px 0 #222;
+}
+.unusual-radius{
+    position: relative;
+}
+.unusual-radius:before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "";
+    border: 21px solid transparent;
+    border-left-color: #fff;
+}
+.unusual-radius:after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    content: "";
+    border: 21px solid transparent;
+    border-right-color: #fff;
+}

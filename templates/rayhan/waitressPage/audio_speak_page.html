@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech</title>
+</head>
+<body>
+    <audio id="audio" autoplay>
+        Ваш браузер не поддерживает элемент audio.
+    </audio>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var text = "Добро пожаловать на страницу для озвучивания текста!"; // Здесь можно установить любой текст
+
+            // Отправляем текст на сервер автоматически при загрузке страницы
+            $.get("{% url 'generate_feedback' 'greetings' %}", { text: text }, function(data) {
+                if (data.audio_url) {
+                    // Обновляем источник для аудио
+                    $('#audio').attr('src', data.audio_url);
+                    $('#audio')[0].play(); // Автоматически воспроизводим
+                }
+            });
+        });
+    </script>
+</body>
+</html>

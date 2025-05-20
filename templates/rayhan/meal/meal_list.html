@@ -1,0 +1,168 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Блюды
+</div>
+<a href="{% url 'add-meal' %}" class="cursor-pointer mx-3"><i class="fa-regular fa-square-plus"></i></a>
+
+<a href="{% url 'add-comments-meal' %}" class="cursor-pointer mx-3" id=""><i class="fa-solid fa-comments"></i></a>
+<div class="cursor-pointer mx-3" id="search_button"><i class="fa-solid fa-search"></i></div>
+
+{% endblock header %}
+
+{% block content %}
+<style>
+
+</style>
+
+<section id="content-meals">
+    <div class="container pt-2 fs-3">
+        <div class="container" id="displayBlock">
+            <div id="unsearched_block">
+                {% regroup list_of_meals|dictsort:"group_item.name" by group_item.name as objects_by_name %}
+                {% for group in objects_by_name %}
+                <div class="bg-danger w-100 text-center group_item_style fs-1 text-white text-shadow-dark mb-2">{{group.grouper}}</div>
+                {% for meal in group.list %}
+                <div class="d-flex justify-content-between  bg-dark">
+                    <div class=" p-2 text-white text-center ">{{meal.name}}</div>
+                    <a href="{% url 'edit-meal' meal.id %}" class="bg-primary p-2 text-white text-center"><i class="fa-solid fa-edit"></i></a>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Контейнер</div>
+                    <div class="w-50 p-1 text-center">{{meal.type}}</div>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Группа</div>
+                    <div class="w-50 p-1 text-center">{{meal.filter_by}}</div>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Цена</div>
+                    <div class="w-50 p-1 text-center">{{meal.price}}</div>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Коментарии</div>
+                    <div class="w-50 fs-6 d-flex flex-wrap p-1 text-danger">
+                        {% for comment in meal.comments.all %}
+                        <div class="d-flex w-100">
+                            <div class="px-2 w-75 my-1">{{comment.name}}</div>
+                            <a href="{% url 'edit-comments-meal' comment.id %}" class="px-2 w-25 my-1"><i class="fa-solid fa-edit"></i></a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Активно</div>
+                    <div class="w-50 p-1 text-center">{% if meal.is_active %} Да {% else %} Нет {% endif %}</div>
+                </div>
+                <div class="d-flex fs-4 bg-light border rounded  m-1">
+                    <div class="w-50 p-1 bg-success text-white">Количества для 1 человека</div>
+                    <div class="w-50 p-1 text-center">{{meal.quantity_of_a_person}}</div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="d-none" id="search_block">
+                <form class="d-flex my-3" role="search">
+                    <input class="form-control me-2" type="search" id="searchInput" placeholder="Поиск" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit"><i class="fa-solid fa-search"></i></button>
+                </form>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var searchButton = document.getElementById('search_button');
+        var displayBlock = document.getElementById('displayBlock');
+
+        searchButton.addEventListener('click', function() {
+            var unsearchedBlock = document.getElementById('unsearched_block');
+            var searchBlock = document.getElementById('search_block');
+
+            unsearchedBlock.classList.toggle('d-none');
+            searchBlock.classList.toggle('d-none');
+
+            if (searchBlock.classList.contains('d-none')) {
+                // Display the original icon when the search block is hidden
+                searchButton.innerHTML = '<i class="fa-solid fa-search"></i>';
+            } else {
+                // Display the "x" mark icon when the search block is visible
+                searchButton.innerHTML = '<i class="fa-solid fa-times"></i>';
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var searchInput = document.getElementById('searchInput');
+        var searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', function() {
+            var query = searchInput.value;
+            if (query) {
+                fetch(`search/?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous results
+                    searchResults.innerHTML = '';
+                    // Display new results
+                    data.forEach(meal => {
+                       searchResults.innerHTML += `
+                            <div class="d-flex justify-content-between bg-dark">
+                                <div class="p-2 text-white text-center">${meal.name}</div>
+                                <a href="" class="bg-primary p-2 text-white text-center"><i class="fa-solid fa-edit"></i></a>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Контейнер</div>
+                                <div class="w-50 p-1 text-center">${meal.container}</div>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Группа</div>
+                                <div class="w-50 p-1 text-center">${meal.group}</div>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Цена</div>
+                                <div class="w-50 p-1 text-center">${meal.price}</div>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Комментарии</div>
+                                <div class="w-50 fs-6 d-flex flex-wrap p-1 text-danger">
+                                    ${meal.comments.map(comment => `
+                                        <div class="d-flex w-100">
+                                            <div class="px-2 w-75 my-1">${comment.name}</div>
+                                            <a href="" class="px-2 w-25 my-1"><i class="fa-solid fa-edit"></i></a>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Активно</div>
+                                <div class="w-50 p-1 text-center">${meal.is_active ? 'Да' : 'Нет'}</div>
+                            </div>
+                            <div class="d-flex fs-4 bg-light border rounded  m-1">
+                                <div class="w-50 p-1 bg-success text-white">Количества для 1 человека</div>
+                                <div class="w-50 p-1 text-center">${meal.quantity_of_a_person}</div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching search results:', error);
+                });
+            } else {
+                // Clear search results when the search input is empty
+                searchResults.innerHTML = 'Нет такого блюда ...';
+            }
+        });
+    });
+</script>
+{% endblock scripts %}

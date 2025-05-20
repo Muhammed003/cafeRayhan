@@ -1,0 +1,112 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+
+
+{% block header %}
+
+<a href="{% url 'waitress-kitchen' %}"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    {% if request.user.rate > 9.7 %} <span>👑</span> {% endif %} {{ request.user.username }}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+<div class="button-menu cursor-pointer"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+{% endblock header %}
+
+{% block content %}
+<section id="content-tables">
+    <div class="content-tables__box">
+        <div class="container mt-2">
+            <h3 class="text-center border-bottom p-2">Номер стола</h3>
+            <div class="row tables"></div>
+        </div>
+    </div>
+</section>
+
+<section id="people">
+    <div class="box-radio">
+        <h3 class="text-center text-warning p-2 bg-dark fs-2">
+            <span class="float-start back-to-desk">
+                <i class="fa fa-angle-left text-white"></i>
+            </span>
+            <span class="choosed-desk"></span>-стол
+        </h3>
+        <h2 class="text-center border-bottom p-2">Сколько человек</h2>
+        <div class="people-quantity"></div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block scripts %}
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', (event) => {
+    // Initialize JavaScript arrays and variables
+    const busy_desks_box = [];
+    const busy_desks_box_others = [];
+    const busy_desks_box_usernames = [];
+    const assigned_desks = {{ assigned_desks|safe }};  // Fetch the assigned desks from the context
+    let box_radio = document.querySelector('.box-radio');
+    let back_to_desk = document.querySelector('.back-to-desk');
+    // Populate the busy_desks_box and other arrays from the context
+    {% for desk in busy_desks %}
+        {% ifchanged desk.number_of_desk %}
+            {% if request.user == desk.author %}
+                busy_desks_box.push({{ desk.number_of_desk }});
+            {% else %}
+                busy_desks_box_others.push({{ desk.number_of_desk }});
+                busy_desks_box_usernames.push('{{ desk.author.username }}');
+            {% endif %}
+        {% endifchanged %}
+    {% endfor %}
+
+    let tables = document.querySelector('.tables');
+    let people_quantity = document.querySelector('.people-quantity');
+    const quantity_of_tables = {{ desk.number }};  // Total number of desks
+    const quantity_of_chair = 10;  // Number of chairs per desk
+
+    // Function to render tables
+    for (let i = 1; i <= quantity_of_tables; i++) {
+        if (busy_desks_box.includes(i)) {
+            let a_href = "{% url 'edit-order-waitress' pk=909877 %}".replace(909877, i);
+            tables.innerHTML += `<a href="${a_href}" class="col p-2"><div class="bg-danger text-dark blocked-desk" id="${i}">${i}</div></a>`;
+        } else if (busy_desks_box_others.includes(i)) {
+            const username = busy_desks_box_usernames[busy_desks_box_others.indexOf(i)];
+            tables.innerHTML += `<div class="col p-2"><div class="alien-desk available-desk my-bg-1" id="${i}" data-username="${username}">${i}</div></div>`;
+        } else if (assigned_desks.includes(i)) {
+            tables.innerHTML += `<div class="col p-2"><div class="assigned-table" id="${i}">${i}</div></div>`;
+        } else {
+            tables.innerHTML += `<div class="col p-2"><div class="inner-table available-desk" id="${i}">${i}</div></div>`;
+        }
+    }
+
+    // Handle clicks on assigned desks
+    document.querySelectorAll(".assigned-table").forEach(div => {
+        div.onclick = function() {
+          box_radio.style.display = "block";
+            people_quantity.innerHTML = "";  // Clear previous content
+            for (let i = 1; i <= quantity_of_chair; i++) {
+                people_quantity.innerHTML += `<a href="{% url 'new-order-meal' %}?desk=${this.id}&&people=${i}" id="${i}" class="btn btn-outline-success btn-block w-100 fs-3 mb-2">${i} человек</a>`;
+            }
+            document.querySelector('.choosed-desk').innerHTML = this.id;  // Display selected desk
+            people_quantity.style.display = "block";  // Show the number of people section
+        };
+    });
+
+    // Disable desks that the user does not have access to (blocked desks)
+    document.querySelectorAll(".alien-desk").forEach(div => {
+        div.onclick = function() {
+            console.log(`Clicked alien desk: ${this.dataset.username}`);  // Debugging statement
+            alert(`Вы не можете использовать этот стол. Он уже занят пользователем ${this.dataset.username}.`);
+        };
+    });
+
+    // Hide the number of people section when clicking the back button
+    document.querySelector('.back-to-desk').onclick = function() {
+        box_radio.style.display = "none";
+    };
+});
+</script>
+{% endblock scripts %}

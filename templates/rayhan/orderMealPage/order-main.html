@@ -1,0 +1,355 @@
+<section id="order-section">
+    <div class="p-2">
+        <div class="d-flex fs-6 bg-light text-white rounded filter_buttons flex-wrap justify-content-between">
+            <div class="slide" id="all">Все</div>
+            <div class="slide" id="Молочные блюда">🥛</div>
+            <div class="slide" id="Первые блюда">1</div>
+            <div class="slide" id="Второе блюда">2</div>
+            <div class="slide" id="Салаты">🥗</div>
+            <div class="slide" id="Напитки">☕</div>
+            <div class="slide" id="Дополнительно">✳</div>
+            <div class="slide" id="Шашлыки">🍢</div>
+            <div class="slide" id="Самсы">🍞</div>
+        </div>
+
+    </div>
+<div class="content-block-meals">
+        {% regroup list_of_meals|dictsort:"group_item.name" by group_item.name as objects_by_name %}
+            {% for group in objects_by_name %}
+
+            <div class="fs-5 fw-bold text-danger border-bottom mt-3 px-2">{{group.grouper}}</div>
+                {% for item in group.list %}
+                {% if item.name not in stop_list %}
+                        <div class="d-flex p-2 {{item.id}} {{item.filter_by}}" id="meal_block_{{item.id}}">
+                            <div class="w-50  fs-5">{{item.name}}</div>
+                            <div class="w-25">
+                               <div class="number-input">
+                                   <input type="hidden" name="name_meal" id="name_meal_{{item.id}}" value="{{item.name}}">
+                                   <input type="hidden" name="id_meal" id="id_meal_{{item.id}}" value="{{item.id}}">
+                                   <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" id="button_minus_{{item.id}}"></button>
+                                   {% if item.name == "Лепёшка" %}
+                                   <input class="text-center rounded bg-info  border-0 border-bottom w-100 quantity" id="quantity_{{item.id}}"
+                                         value="1" min="0" step="0.5" name="quantity" type="number" autocomplete="off">
+                                   {% else %}
+
+                                   {% if item.name in meals_in_stock %}
+                                       {% for meal_in_stock_is in item.instock_meal.all %}
+                                           <input class="text-center rounded bg-info  border-0 border-bottom w-100 quantity" id="quantity_{{item.id}}"
+                                             value="1" min="1" name="quantity" readonly max="{{meal_in_stock_is.quantity}}" type="number" autocomplete="off">
+                                       {% endfor %}
+                                   {% else %}
+                                     <input class="text-center rounded bg-info  border-0 border-bottom w-100 quantity" id="quantity_{{item.id}}"
+                                             value="1" min="1" name="quantity"  type="number" autocomplete="off">
+                                   {% endif %}
+
+
+                                   {% endif %}
+                                   <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus" id="button_plus_{{item.id}}"></button>
+                               </div>
+                            </div>
+                            <div class="w-25 text-center"><button class="button-add btn btn-sm btn-warning btn_after_remove_{{item.id}}" id="{{item.id}}"><i class="fa-solid fa-share-from-square"></i> </button></div>
+                        </div>
+
+
+                        <div class="d-flex text-small {{item.id}} {{item.filter_by}}">
+                            {% for comment in item.comments.all %}
+                                <label>
+                                    <input class="input-checkbox_{{item.id}}" type="checkbox" value="{{comment.name}}"/>
+                                    <span>
+                                        {{comment.name}}
+                                    </span>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+                    {% else %}
+                    <div class="d-flex p-2 stop_list  {{item.id}} {{item.filter_by}}">
+                        <div class="w-50  fs-4 text-secondary">{{item.name}}</div>
+                        <div class="w-25 bg-danger"></div>
+                        <div class="w-25 text-center bg-danger"></div>
+                    </div>
+                {% endif %}
+
+                {% endfor %}
+        {% endfor %}
+</div>
+</section>
+<section id="content-meals">
+    <div class="meal-box d-flex flex-column">
+
+    </div>
+</section>
+{% block scripts %}
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script>
+  let mydict_quantity_meal = {}
+  let mealQuantitiesToAddStop = {};
+  {% if meals_in_stock %}
+  {% for meals in list_of_meals %}
+    {% for meal_in_stock_is in meals.instock_meal.all %}
+   mydict_quantity_meal["{{meal_in_stock_is.name_related_meal}}"] = "{{meal_in_stock_is.quantity}}"
+    {% endfor %}
+  {% endfor %}
+  {% endif %}
+
+        var button_menu = document.querySelector('.button_box_new_order');
+        var xmark = document.querySelector('.button-menu-x');
+        var box_new_order = document.querySelector('.box_new_order')
+
+        button_menu.onclick = function(){
+            box_new_order.classList.toggle('right_position_box_new_order');
+        }
+        xmark.onclick = function(){
+            box_new_order.classList.remove('right_position_box_new_order');
+        }
+
+        document.querySelectorAll(".button-add").forEach(button =>
+            button.onclick = function() {
+            name =  document.querySelector('#name_meal_'+this.id).value
+            id_meal =  document.querySelector('#id_meal_'+this.id).value
+            quantity =  document.querySelector('#quantity_'+this.id).value
+            meal_block = document.querySelector('#meal_block_'+this.id)
+            button.style.setProperty('background', '#198754', 'important');
+            button.style.setProperty('color', '#fff', 'important');
+            mealQuantitiesToAddStop[name] = (mealQuantitiesToAddStop[name] || 0) + parseInt(quantity);
+            console.log(mealQuantitiesToAddStop)
+            if (mealQuantitiesToAddStop[name] >= mydict_quantity_meal[name]){
+                button.disabled = true;
+            }
+            if (name=="Лепёшка"){
+             document.querySelector('.ordered-meals').innerHTML += '<div id="inner_ordered_meals_'+this.id+'"><div class="d-flex p-2">'+
+                            '<div class="w-50">'+name+'</div>'+
+                            '<div class="w-25">'+
+                                   '<input class="text-center rounded   border-0 border-bottom w-100"'+
+                                   'value="'+id_meal+'" min="1" name="id_meals" type="hidden">'+
+                               '<div class="number-input">'+
+                                   '<button type="button" onclick="this.parentNode.querySelector('+"'input[type=number]'"+').stepDown()" ></button>'+
+                                   '<input class="text-center rounded   border-0 border-bottom w-100"'+
+                                         'value="'+quantity+'" min="0.5" step="0.5" name="quantity" type="number">'+
+                                   '<button type="button" onclick="this.parentNode.querySelector('+"'input[type=number]'"+').stepUp()" class="plus"></button>'+
+                                '</div>'+
+                            '</div>'+
+                            '<div class="w-25 text-center"><input type="button" class="remove_item_button text-center rounded  border-0 border-bottom w-75" id="'+this.id+'" value="x"></div>'+
+                        '</div>'+
+                            `
+                            <div class="comments d-flex justify-content-around" id="comments_`+this.id+`">
+                            <span  id="comment_input_`+this.id+`"></span>
+                            </div>
+                        </div>`;
+            }
+            else{
+            let input_mode = ""
+
+            if(name in mydict_quantity_meal){
+                input_mode = `<input class="text-center rounded   border-0 border-bottom w-100"
+                value="`+quantity+`" readonly min="1" max="`+mydict_quantity_meal[name]+`" name="quantity" type="number">`;
+            }
+
+            else{
+                input_mode = `<input class="text-center rounded   border-0 border-bottom w-100"
+                value="`+quantity+`" min="1" name="quantity" type="number">`;
+            }
+
+
+            document.querySelector('.ordered-meals').innerHTML += '<div id="inner_ordered_meals_'+this.id+'"><div class="d-flex p-2">'+
+                            '<div class="w-50">'+name+'</div>'+
+                            '<div class="w-25">'+`<input class="text-center rounded   border-0 border-bottom w-100"
+                value="`+id_meal+`" min="1" name="id_meals" type="hidden">`+
+                               '<div class="number-input">'+
+                                   '<button type="button" onclick="this.parentNode.querySelector('+"'input[type=number]'"+').stepDown()" ></button>'+input_mode+'<button type="button" onclick="this.parentNode.querySelector('+"'input[type=number]'"+').stepUp()" class="plus"></button>'+
+                                '</div>'+
+                            '</div>'+
+                            '<div class="w-25 text-center"><input type="button" class="remove_item_button text-center rounded  border-0 border-bottom w-75" id="'+this.id+'" value="x"></div>'+
+                        '</div>'+
+                            `
+                            <div class="comments d-flex justify-content-around" id="comments_`+this.id+`">
+                            <span  id="comment_input_`+this.id+`"></span>
+                            </div>
+                        </div>`;
+
+            }
+
+             checkBox = document.querySelectorAll('.input-checkbox_'+this.id);
+             comments = document.querySelector('#comments_'+this.id);
+
+             let input_comment = '';
+            if (checkBox.length != 0){
+                comments.id = 'comments_new_'+this.id
+                for (var i = 0; i < checkBox.length; i++) {
+                 let add_value_checkbox = [];
+                    if (checkBox[i].checked == true){
+                        checkBox_value = checkBox[i].value;
+                        add_value_checkbox.push(checkBox[i].value);
+                        comments.innerHTML += `
+                                    <div class="text-primary">
+                                    <span class="text-danger px-1"><i class="fa-solid fa-xmark"></i></span><input type="hidden" id="comment_`+this.id+`" name="comments" value="`+add_value_checkbox+`"/>`+checkBox_value+`</div>
+                                `;
+                        checkBox[i].checked = false;
+                     }
+                    else{
+                        comments.innerHTML += `
+                            <div class="text-primary">
+                            <input type="hidden" id="comment_`+this.id+`" name="comments" value=""/>
+                            </div>
+                        `;
+
+                    }
+                }
+                const allChildren = comments.getElementsByTagName('input');
+                let list_of_comment = []
+                if (allChildren.length > 1){
+                    for (var c = 0; c < allChildren.length; c++) {
+                        list_of_comment.push(allChildren[c].value)
+                    }
+                }
+                if (allChildren.length > 1){
+                    allChildren[0].value = list_of_comment.toString();
+                    for (var i = allChildren.length - 1; i > 0; i--) {
+                        allChildren[i].parentNode.removeChild(allChildren[i]);
+                    }
+                }
+                    button.innerHTML = document.querySelectorAll('#inner_ordered_meals_'+this.id).length;
+                }
+            else{
+                button.innerHTML = '<i class="fa-solid fa-check"></i>';
+                let input_to_change = document.getElementById("quantity_"+button.id);
+                let button_minus = document.getElementById("button_minus_"+button.id);
+                let button_plus = document.getElementById("button_plus_"+button.id);
+                button_plus.style.display = "none";
+                button_minus.style.display  = "none";
+                input_to_change.disabled = 'True';
+
+                button.disabled = 'True';
+                comments.innerHTML = `<input type="hidden" name="comments" value=""/>`;
+
+            }
+
+
+
+
+
+
+
+
+
+
+                     document.querySelectorAll(".remove_item_button").forEach(input =>
+                input.onclick = function(d) {
+
+                quantity_to_remove = document.querySelector('#inner_ordered_meals_' + d.target.id).querySelector('input[type=number]').value
+
+
+                document.querySelector('#inner_ordered_meals_'+d.target.id).remove();
+                button =  document.querySelector('.btn_after_remove_'+d.target.id)
+                button.style.setProperty('background', '#ffc107', 'important');
+                    button.removeAttribute("disabled");
+
+                let input_to_change = document.getElementById("quantity_"+button.id);
+                let button_minus = document.getElementById("button_minus_"+button.id);
+                let button_plus = document.getElementById("button_plus_"+button.id);
+                button_plus.style.display = "block";
+                button_minus.style.display  = "block";
+                input_to_change.removeAttribute("disabled");
+                mealQuantitiesToAddStop[name] = (mealQuantitiesToAddStop[name]) - parseInt(quantity_to_remove);
+                button.innerHTML = '<i class="fa-solid fa-plus"></i>';
+            })
+
+
+        }
+        )
+
+         var send_order = document.getElementById('send_order');
+         var wait_block = document.querySelector('.wait-block');
+              send_order.addEventListener("click", function(e) {
+                wait_block.classList.remove("d-none")
+              })
+
+
+</script>
+<script type="text/javascript" defer>
+$(window).scroll(function() {
+  if ($(window).scrollTop() > 60) {
+    $(".header-main").css({
+      'display': 'none',
+    }),
+    $(".block-position-fixed-menu").css({
+      'display': 'flex',
+    })
+    ;
+  } else {
+   $(".header-main").css({
+      'display': 'flex',
+    }),
+    $(".block-position-fixed-menu").css({
+      'display': 'none',
+    })
+  }
+});
+
+let stop_list = document.querySelectorAll('.stop_list')
+for (var i = 0; i < stop_list.length; i++) {
+    try{
+        if (localStorage.getItem("stop_list") === "on"){
+         stop_list[i].remove();
+        }
+
+    }catch(err){}
+}
+
+var el = document.querySelectorAll('.filter_buttons div');
+for (let i = 0; i < el.length; i++) {
+  el[i].onclick = function() {
+  my_divs = document.querySelectorAll('.content-block-meals > div');
+  for (let x = 0; x < my_divs.length; x++) {
+  if (my_divs[x].className.includes(this.id)) {
+    my_divs[x].style.setProperty('display', 'flex', 'important');
+  }
+  else if (this.id == "all"){
+    my_divs[x].style.setProperty('display', 'flex', 'important');
+  }
+
+  else{
+  my_divs[x].style.setProperty('display', 'none', 'important');
+  }
+}
+    var c = 0;
+    while (c < el.length) {
+      el[c++].className = 'slide';
+    }
+    el[i].className = 'slide active';
+  };
+}
+document.querySelectorAll(".plus").forEach(button => {
+    button.onclick = function() {
+        // Get the associated input field
+        var inputField = button.parentNode.querySelector('input[type="number"]');
+
+        // Get the maximum quantity allowed for this meal
+        var maxQuantity = parseFloat(inputField.getAttribute("max"));
+
+        // Get the current quantity
+        var currentQuantity = parseFloat(inputField.value);
+
+        // Check if the current quantity is less than the maximum limit
+        if (currentQuantity === maxQuantity) {
+            // Apply the red color to the input field
+            inputField.style.color = "red";
+
+            // Add animation class to the input field
+            inputField.classList.add("animation-class");
+
+            // Remove the animation class after a delay
+            setTimeout(function() {
+                inputField.classList.remove("animation-class");
+            }, 300); // Change the delay time as needed
+
+            // Perform the stepUp action
+            inputField.stepUp();
+        }
+        else{
+        inputField.stepUp();
+        }
+    };
+});
+</script>
+{% endblock scripts %}

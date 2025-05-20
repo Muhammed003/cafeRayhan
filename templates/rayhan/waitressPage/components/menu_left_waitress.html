@@ -1,0 +1,72 @@
+
+<button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+  <i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="offcanvas offcanvas-start  text-bg-dark" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header ">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">{% if request.user.rate == 10 %}<span class="pe-2">👑</span> {% endif %} {{request.user.username}}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body">
+      <div id="blockContainer"></div>
+  </div>
+</div>
+
+
+{% block scripts %}
+<script>
+const data = [
+  {
+    items: [
+      { icon: 'fa-solid fa-clipboard-list', name: 'История расходов', link: "/waitress/consumptions/history/" },
+      { icon: 'fa-solid fa-circle-dot', name: 'Лепёшка', link: "/bread/" },
+      { icon: 'fa-solid fa-user', name: 'Профиль', link: "/waitress/profile/" },
+      { icon: 'fa-solid fa-credit-card', name: 'Баланс с карты', link: "/waitress/balance_in_card/" },
+      { icon: 'fa-brands fa-app-store', name: 'Список приложение', link: "/waitress/programs/" },
+    ],
+  },
+
+];
+
+// Function to create a single block item
+let my_block = `
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="block__item d-flex p-2 fs-5 border-bottom text-danger btn  w-100" type="submit">
+        <div class="block__inner_item__icon me-4"><i class="fa-solid fa-right-from-bracket"></i></div>
+        <div class="block__inner_item__name">Выйти</div>
+      </button>
+    </form>`;
+function createBlockItem(icon, name, link) {
+  const itemClass = name === 'Выйти' ? 'text-danger' : ' text-white';
+  console.log(itemClass)
+  return `
+    <a href="${link}" class='block__item d-flex p-2 fs-5 border-bottom ${itemClass}'>
+      <div class="block__inner_item__icon me-4"><i class="${icon}"></i></div>
+      <div class="block__inner_item__name">${name}</div>
+    </a>
+  `;
+}
+
+// Function to create the entire block
+function createBlock(data) {
+  const blockContainer = document.getElementById('blockContainer');
+  let html = '';
+  for (const block of data) {
+    html += `
+      <div class="block">`;
+    for (const item of block.items) {
+      html += createBlockItem(item.icon, item.name, item.link);
+    }
+    html+=my_block;
+    html += `</div>`;
+  }
+  blockContainer.innerHTML = html;
+}
+
+// Call the function to generate the blocks
+createBlock(data);
+</script>
+{% endblock %}

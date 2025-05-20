@@ -1,0 +1,51 @@
+{% extends '../main/base_waitress.html' %}
+
+{% load static %}
+
+{% block header %}
+<a href="{% url 'waitress-kitchen' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+    <div class="mx-auto">
+       С собой счет
+    </div>
+<div type="button" class="button_box_new_order" id="button_top"><i class="fa-solid fa-bars"></i></div>
+
+{% endblock header %}
+
+{% block content %}
+<section id="info" class="section-info-bar">
+    <div class="container pt-2">
+        <div class="border-bottom border-5 border-dark">
+            <a href="{% url 'order-takeaway' %}" class="fs-3 my-2 text-center rounded p-3 a-link-1  w-100 d-block">С собой заказать</a>
+        </div>
+        {% if bills %}
+        <div class="container pt-2">
+            {% for bill in bills %}
+                <div class="d-flex fs-3 my-2 border rounded justify-content-between bg-light">
+                    <a href="{% url 'bill-takeaway' bill.number_of_order bill.code_bill  %}" class="d-flex fs-3 bg-light w-75 me-5">
+                        <div class="bg-success px-3 py-2 text-white rounded-start">Соб</div>
+                        <div class="px-3 py-2">{{bill.create_date|date:"H:i"}}</div>
+                        <div class="bg-warning px-3 py-2 text-dark ">{{bill.code_bill}}</div>
+                    </a>
+                    <a href="{% url 'edit-order-takeaway' bill.number_of_order bill.code_bill %}" class=" bg-primary text-white px-3 py-2"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="jumbotron d-flex" style="background-image: url({% static 'account/r.png' %}); min-height: 80vh;">
+              <div class="container mt-2 align-items-center d-flex mb-5 pb-5">
+                  <h1  class="display-3 fs-3 mb-4 w-100 text-danger text-shadow">Пока нет заказов</h1>
+              </div>
+            </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock content %}
+{% block scripts %}
+
+{% endblock scripts %}
+<!--        document.querySelectorAll(".remove_item_button").forEach(button =>-->
+<!--            button.onclick = function(d) {-->
+<!--                document.querySelector('#meal_block_'+d.target.id).style.setProperty('display', 'flex', 'important');-->
+<!--                document.querySelector('#inner_ordered_meals_'+d.target.id).style.setProperty('display', 'none', 'important');-->
+<!--            })-->

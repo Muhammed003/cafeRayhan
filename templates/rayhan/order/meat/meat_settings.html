@@ -1,0 +1,78 @@
+{% extends "../../main/base.html" %}
+{% block header %}
+<a href="{% url 'settings_list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Настройки
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+    <!-- Form to Add a New Meat -->
+    <div class="mb-4">
+        <button class="btn btn-primary p-2 my-2 d-block" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+          <i class="fa-solid fa-plus"></i> Добавить новый блюдо
+        </button>
+        {% include './meat_add_settings.html' %}
+    </div>
+
+    <!-- List of Meats with Edit and Delete Options -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Вес</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for meat in meats %}
+            <tr>
+                <td>{{ meat.name }}</td>
+                <td>{{ meat.weight }}</td>
+                <td>
+                    <!-- Edit Button Trigger Modal -->
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ meat.id }}">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+
+                    <!-- Delete Form -->
+                    <form method="post" action="" style="display:inline-block;">
+                        {% csrf_token %}
+                        <input type="hidden" name="meat_id" value="{{ meat.id }}">
+                        <button type="submit" name="action" value="delete" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+
+            <!-- Modal for Editing Meat -->
+            <div class="modal fade" id="editModal{{ meat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ meat.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel{{ meat.id }}">Изменить мясо</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="">
+                                {% csrf_token %}
+                                <input type="hidden" name="meat_id" value="{{ meat.id }}">
+                                <div class="mb-3">
+                                    <label for="name{{ meat.id }}" class="form-label">Имя</label>
+                                    <input type="text" class="form-control" id="name{{ meat.id }}" name="name" value="{{ meat.name }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="weight{{ meat.id }}" class="form-label">Вес</label>
+                                    <input type="number" class="form-control" id="weight{{ meat.id }}" name="weight" value="{{ meat.weight }}">
+                                </div>
+                                <button type="submit" name="action" value="edit" class="btn btn-primary">Сохранить изменение</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+{% include '../waitressPage/components/menu_left_waitress.html' %}
+{% with name_of_page='Расходы' link='main' %}
+  {% include '../waitressPage/components/name_page.html'   %}
+{% endwith %}
+
+
+{% include '../waitressPage/components/dropdown_menu.html' %}
+
+{% endblock header %}
+{% block content %}
+<section id="menu ">
+    <div class="container pt-2">
+  {% include './consumptions/consumptions_add.html'   %}
+  {% include './consumptions/consumptions_list.html'   %}
+  {% include './consumptions/consumptions_edit.html'   %}
+
+
+    </div>
+</section>
+<!-- <div class="form-check form-switch">-->
+<!--                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>-->
+<!--                </div>-->
+
+
+{% endblock content %}
+
+{% block footer %}
+{% include '../waitressPage/components/footer_waitress.html' %}
+{% endblock footer %}
+

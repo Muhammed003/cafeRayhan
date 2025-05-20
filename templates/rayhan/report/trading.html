@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly All Balance Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+        canvas {
+            max-width: 800px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="monthlyReportChart"></canvas>
+
+      <script>
+        // Get the trading balance data from Django context
+        const reports = {{ trading_balance|safe }}; // Use Django template tag to inject data
+    console.log(reports);
+        // Extracting dates and all_balance values
+        const dates = reports.map(report => report.create_date_str);
+        const allBalances = reports.map(report => report.all_balance);
+
+        // Creating the bar chart
+        const ctx = document.getElementById('monthlyReportChart').getContext('2d');
+        const monthlyReportChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Все отчёты',
+                    data: allBalances,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Все отчёты сумма'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

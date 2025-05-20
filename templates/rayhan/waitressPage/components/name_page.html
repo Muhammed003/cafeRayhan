@@ -1,0 +1,29 @@
+
+<a href="{% url 'waitress-list-items' %}" class="p-1 ps-2"><i class="fa-solid fa-house"></i></a>
+<div class="w-50 text-center p-1">{{name_of_page}}</div>
+<button type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop33" aria-controls="offcanvasTop33" class="btn text-center position-relative">
+    {% if quantity_rating_meal %}
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+        {{quantity_rating_meal}}
+        <span class="visually-hidden">сообщения</span>
+    </span>
+    {% endif %}
+    <i class="fa-solid fa-trophy"></i>
+</button>
+
+<div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop33" aria-labelledby="offcanvasTopLabel33">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasTopLabel">Рейтинговый блюды</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+      {% if rating_meal_for_waitress %}
+      {% for item in rating_meal_for_waitress %}
+        <div class="d-flex justify-content-between border rounded p-2 mb-2">
+            <div class="text-dark">{{item.name_related_meal}}</div>
+            <div>{{item.quantity}}</div>
+        </div>
+      {% endfor %}
+      {% endif %}
+  </div>
+</div>

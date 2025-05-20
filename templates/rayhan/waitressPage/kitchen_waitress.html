@@ -1,0 +1,118 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+
+{% block header %}
+{% include './components/menu_left_waitress.html' %}
+
+{% with name_of_page='Кухня' link='main' %}
+   {% include './components/name_page.html'   %}
+{% endwith %}
+{% include './components/dropdown_menu.html' %}
+{% endblock header %}
+
+{% block content %}
+
+<section id="content-meals" class="pb-5 mb-5">
+      <div class="my_font" id="my_body">
+         <div class="item user-select-none" id="here">
+            {% regroup order_meals by number_of_order as objects_by_name %}
+            {% for group in objects_by_name %}
+                <div class="history  position-relative m-2 my_history_color_{{group.grouper}} " id="{{group.grouper}}">
+                    {% for item in group.list %}
+                        <div>
+                            {% ifchanged item.number_of_order and item.author %}
+                            <a href="#" class="position-absolute top-0 end-0  {% if item.author.rate >= 10 %} inner-my-font {% endif %} text-white px-3  p-2 border-start px-2 bg-success">{{group.grouper }}</a>
+                            <div class="d-flex {% if item.author.rate >= 10 %} {{item.author.theme_order}} text-white {% else  %} bg-info {% endif %} justify-content-between pe-5 me-3 div_id cursor-pointer {% if item.author.rate >= 10 %} inner-my-font {% endif %}" id="{{group.grouper}}">
+                                    <div class="p-2">{{item.author.username}} </div>
+                                    <div class="p-2">{{item.whenpublished}}</div>
+                                    {% if  item.number_of_desk == 0%}
+                                    <div class="p-2 text-danger">Саб</div>
+                                    {% else %}
+                                        <div class="p-2">{{item.number_of_desk}}</div>
+                                    {% endif %}
+                            <textarea class="d-none accordion-textarea textarea_{{group.grouper}}" id="{{group.grouper}}">
+                                {{item.author.username}}.
+                                 {% for s in group.list %}
+                                    {{s.name}}
+                                    {{s.get_int_quantity}}
+                                    {{s.get_comments}}.
+                                {% endfor %}
+                            </textarea>
+                            </div>
+                            {% endifchanged %}
+                            {% if  item.number_of_desk == 0%}
+                                <div class="d-flex {% if item.author.rate >= 10 %} inner-my-font {% endif %} justify-content-between w-100 my-1 border {% if item.author.rate >= 10 %} border-info {% else  %} border {% endif %} rounded border-2  bg-primary text-white w-100 my_tea_none">
+                            {% else %}
+                                 <div class="d-flex {% if item.author.rate >= 10 %} inner-my-font {% endif %} justify-content-between w-100 my-1 border {% if item.author.rate >= 10 %} border-info {% else  %} border {% endif %} rounded border-2  bg-light w-100 my_tea_none">
+                            {% endif %}
+                                 {% if item.order_is_edited and not item.takeaway_food %}
+                                <div class="px-2 w-50  bg-order-edited text-white text-shadow-dark">{{item.name}}</div>
+                                <div class="px-2 bg-order-edited fw-bold text-white text-shadow-dark">{{item.get_int_quantity}}</div>
+                                <div class="px-2 bg-primary text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"> </div>
+                                 {% elif item.takeaway_food %}
+                                <div class="px-2 w-50  bg-primary text-white text-shadow-dark">{{item.name}}</div>
+                                <div class="px-2 bg-primary fw-bold text-white text-shadow-dark">{{item.get_int_quantity}}</div>
+                                     {% if item.waiting_takeaway_food%}
+                                <div class="px-2 bg-primary fw-bold text-white text-shadow-dark"><i class="fa-solid fa-clock"></i></div>
+                                    {% endif %}
+                                <div class="px-2 bg-primary text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"></div>
+                                 {% else %}
+                                <div class="px-2 w-50">{{item.name}}</div>
+                                <div class="px-2">{{item.get_int_quantity}}</div>
+                                <div class="px-2 bg-primary text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"></div>
+                                 {% endif %}
+                                 </div>
+                                    <div class="fs-6 text-danger px-2">{{item.comments}}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+
+
+        </div>
+    </div>
+      </div>
+</section>
+<div id="samsa">
+
+</div>
+{% endblock content %}
+{% block scripts %}
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+<script type="module" defer>
+    import 'https://cdn.skypack.dev/core-js/actual/array/group-by';
+    import 'https://cdn.skypack.dev/core-js/actual/array/group-by-to-map';
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.min.js"></script>
+<!--var resp = audio.play();-->
+
+<!--if (resp!== undefined) {-->
+<!--resp.then(_ => {-->
+<!--    // autoplay starts!-->
+<!--}).catch(error => {-->
+<!--   console.log(error)-->
+<!--});-->
+<!--}-->
+<script>
+</script>
+
+
+
+
+
+
+
+<!--     data.sort(function(a, b) {-->
+<!--    return new Date(a.create_date) - new Date(b.create_date);-->
+<!--});-->
+
+<!--    _.values(groups)-->
+<!--              .forEach(arr => arr.sort((a, b) => moment(b.create_date) - moment(a.create_date)));-->
+
+{% endblock scripts %}
+
+{% block footer %}
+{% include './components/footer_waitress.html' %}
+{% endblock footer %}

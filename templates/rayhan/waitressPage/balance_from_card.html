@@ -1,0 +1,40 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-angle-left"></i> </a>
+{% with name_of_page='Баланс с карты' link='main' %}
+  {% include '../waitressPage/components/name_page.html'   %}
+{% endwith %}
+
+
+{% endblock header %}
+{% block content %}
+<div class="container mt-2">
+    {% if waitress_paid_with_card %}
+        <div class="text-center display-2 fw-bold">Общий</div>
+        <div class="text-center display-3 fw-bold text-danger">{{waitress_paid_with_card}}</div>
+        <div class="text-center display-2 fw-bold">Сумма</div>
+        <div class="text-center display-3 fw-bold text-danger">{{waitress_service.total_summa}}</div>
+
+        <div class="text-center display-2 fw-bold">Услуга</div>
+        <div class="text-center display-3 fw-bold text-danger">{{waitress_service.total_waitress_service}}</div>
+    {% endif %}
+    <hr>
+    <div class="p-2 fs-4 text-center bg-info">История транзакции</div>
+    <div class="d-flex bg-dark text-white justify-content-between" >
+        <div class="border-end w-25 p-1 text-center">№ заказа</div>
+        <div class="border-end w-25 p-1 text-center">стол</div>
+        <div class="w-25  p-1 text-center border-end">сумма</div>
+        <div class="w-25  p-1 text-center">услуга</div>
+    </div>
+    {% for item in waitress_paid_info %}
+         <div class="d-flex bg-dark text-white justify-content-between" >
+            <div class="border-end w-25 p-1 text-center">{{item.number_of_order}}</div>
+            <div class="border-end w-25 p-1 text-center">{{item.number_of_desk}}</div>
+            <div class="w-25  p-1 text-center border-end">{{item.summa}}</div>
+            <div class="w-25  p-1 text-center border-end">{{item.waitress_service}}</div>
+         </div>
+    {% endfor %}
+
+</div>
+{% endblock content %}

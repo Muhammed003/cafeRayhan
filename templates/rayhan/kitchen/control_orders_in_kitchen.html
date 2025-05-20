@@ -1,0 +1,33 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block title %} История кухня {% endblock title %}
+
+{% block link_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/control_orders.css' %}">
+{% endblock link_style %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <a href="{% url 'control-orders-in-kitchen' %}" class="mx-auto text-dark">
+        История кухня
+    </a>
+{% endblock header %}
+
+
+
+{% block content %}
+<div class="order-main mt-2">
+    {% include './components/filtering_block.html'   %}
+    <div class="user-select-none w-75" id="orders-here">
+        {% include './components/control_order_items.html'   %}
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="module" src="{% static 'javascript/control_orders.js' %}"></script>
+{% endblock scripts %}
+
+

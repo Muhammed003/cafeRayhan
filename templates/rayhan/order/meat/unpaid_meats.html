@@ -1,0 +1,68 @@
+{% extends "../../main/base.html" %}
+
+{% block header %}
+<a href="{% url 'butcher-main' %}" class="button-menu">
+    <i class="fa-solid fa-angle-left"></i>
+</a>
+<div class="mx-auto">История мясо</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container my-4">
+    <h3 class="text-center mb-4">История заказов мяса</h3>
+    {% if not meat_history_all %}
+    <h4 class="text-success">Нет не оплаченные мясо заказов !</h4>
+    {% endif %}
+    {% regroup meat_history_all by create_date as meat_history_group %}
+    {% for meat_group in meat_history_group %}
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="bg-dark w-75 text-white p-2 fs-4 text-center rounded">{{ meat_group.grouper }}</div>
+             <a href="{% url 'pay-orders' meat_group.grouper  %}" class="btn btn-success w-50 text-center p-2 fs-4 mx-1 rounded-end" id="pay">Оплачено</a>
+    </div>
+    <div class="my-2 p-1" data-group-date="{{ meat_group.grouper }}">
+        {% for meat in meat_group.list %}
+        <div class="d-flex border justify-content-between border-bottom-0 border-dark border-2 p-2">
+            <div class="fs-5 w-50 px-2">{{ meat.name }}</div>
+            <div class="fs-5 px-2">{{ meat.weight|floatformat:1 }}</div>
+            <div class="fs-5 w-25 text-end text-primary px-2 summa-value">{{ meat.summa }}</div>
+            <!-- Add a hidden attribute for is_paid -->
+            <div class="is-paid" data-paid="{{ meat.is_paid }}"></div>
+        </div>
+        {% endfor %}
+        <div class="d-flex bg-info justify-content-between border border-dark border-2 p-1">
+            <div class="fs-5 w-50 px-2">Общая сумма:</div>
+            <div class="total_sum fs-5 w-50 text-end px-2"></div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Select all date groups
+        const groups = document.querySelectorAll("[data-group-date]");
+
+        groups.forEach(group => {
+            let totalSum = 0;
+            let allPaid = true; // Flag to track payment status
+            // Find all `summa` values in this group
+            const sumValues = group.querySelectorAll(".summa-value");
+            sumValues.forEach(sumElement => {
+                totalSum += parseFloat(sumElement.textContent) || 0; // Convert to float and add
+            });
+
+            // Check payment status for the group
+
+
+            // Update the icon based on the payment status
+
+            // Update the total sum in the corresponding element
+            const totalSumElement = group.querySelector(".total_sum");
+            totalSumElement.textContent = totalSum.toLocaleString(); // Format with commas
+        });
+    });
+</script>
+{% endblock scripts %}

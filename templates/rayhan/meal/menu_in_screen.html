@@ -1,0 +1,49 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block style %}
+.menu{
+    background: url("{% static 'images/menu/menu_bg.jpg' %}");
+    height: 100vh;
+    text-align: center;
+    color: #fff;
+}
+{% endblock style %}
+{% block header %}
+ <a href="{% url 'main' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+<div class="w-100  me-2">
+  <div class="text-center">
+  Меню
+  </div>
+</div>
+<div></div>
+
+{% endblock header %}
+
+{% block content %}
+    <div class="menu">
+        <h3 class="text-center p-2">▁ ▂ ▄ ▅ ▆  Райхан кафе  ▆ ▅ ▄ ▂ ▁ </h3>
+         {% regroup list_of_meals|dictsort:"menu_item.filter_by.id" by menu_item.filter_by.name as objects_by_name %}
+         {% for group in objects_by_name %}
+            <div class="meal_info p-2">
+                <h4 class="">{{group.grouper}}</h4>
+                {% for meal in group.list %}
+                  <div class="meals_block d-flex justify-content-between border-bottom border-dark p-1">
+                        <div class="meal_name">{{meal.menu_item.name}}</div>
+                        <div class="meal_price">{{meal.menu_item.price}}</div>
+                  </div>
+                {% endfor %}
+             </div>
+        {% endfor %}
+    </div>
+{% endblock content %}
+
+
+
+
+{% block scripts %}
+
+{% endblock scripts %}
+

@@ -1,0 +1,84 @@
+<div class="offcanvas offcanvas-start bg-left-menu text-white" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Меню</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+      <form method="post" action="" id="settingsForm">
+          {% csrf_token %}
+         {% for item in settings_kitchen %}
+            <div class="d-flex justify-content-between mb-3">
+                <h5 class="title">{{ item.name }}</h5>
+                <div class="submit">
+                    <div class="toggles">
+                        <div class="toggle-border">
+                         <input type="hidden" name="settings_{{ forloop.counter }}" value="off" />
+                         <input
+                            type="checkbox"
+                            id="item_{{ forloop.counter }}"
+                            name="settings_{{ forloop.counter }}"
+                            value="on"
+                            {% if item.is_active %} checked {% endif %}
+                         />
+
+                            <label for="item_{{ forloop.counter }}">
+                                <div class="handle"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </form>
+      <div class="d-flex justify-content-between mb-3">
+                <h5 class="title">Звук</h5>
+                <div class="submit">
+                    <div class="toggles">
+                        <div class="toggle-border">
+                            <input type="hidden" name="sound_order" value="off" />
+                            <input
+                                type="checkbox"
+                                id="sound_order"
+                                value="on"
+                                {% if item.is_active %} checked {% endif %}
+                            />
+
+                            <label for="sound_order">
+                                <div class="handle"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+      </div>
+
+
+  </div>
+</div>
+<script>
+    document.querySelectorAll('#settingsForm input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            document.getElementById('settingsForm').submit();
+        });
+    });
+       document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('sound_order');
+
+        // Load the saved state from localStorage
+        const savedState = localStorage.getItem('sound_order');
+        if (savedState === 'true') {
+            toggle.checked = true;
+        } else {
+            toggle.checked = false;
+        }
+
+        // Event listener to update localStorage when toggled
+            toggle.addEventListener('change', function () {
+            const isChecked = toggle.checked;
+            localStorage.setItem('sound_order', isChecked);
+
+            // Also update hidden input value if needed
+            const hiddenInput = document.querySelector('input[name="sound_order"]');
+            hiddenInput.value = isChecked ? 'on' : 'off';
+        });
+    });
+</script>

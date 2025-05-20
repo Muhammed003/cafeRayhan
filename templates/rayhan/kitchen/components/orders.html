@@ -1,0 +1,79 @@
+{% load static %}
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/style_order.css' %}">
+{% endblock style %}
+
+<div class="order-main mt-2">
+    <div class="user-select-none" id="orders-here">
+        {% regroup order_meals by number_of_order as objects_by_number_of_order %}
+        {% for group in objects_by_number_of_order %}
+            <div class="order-controller position-relative m-2" id="{{ group.grouper }}">
+                {% for item in group.list %}
+                <div class="order-items px-2">
+                    {% ifchanged item.number_of_order and item.author %}
+                    <div class="header-order bg-info mb-2">
+                        <div class="text-start" id="username">{{ item.author.username }}</div>
+                        <div id="time">{{ item.whenpublished }}</div>
+                        <div id="number_of_order">{{ item.number_of_order }}</div>
+                        {% if item.number_of_desk == 0 %}
+                            {% if name_of_page == "samsa_kebab" %}
+                                <button
+                                   class="bg-secondary text-shadow-dark text-white link_order_header" disabled>Саб</button>
+                            {% else %}
+                                <a href="{% url 'order-done-group' item.number_of_desk name_of_page %}"
+                                   class="bg-success text-shadow-dark text-white link_order_header">Саб</a>
+                            {% endif %}
+
+
+                        {% else %}
+                            {% if name_of_page == "samsa_kebab" or name_of_page == "tea-order"  %}
+                            <button
+                               class="link_order_header bg-secondary text-shadow-dark text-white px-3" disabled>{{ item.number_of_desk }}</button>
+                            {% else %}
+
+                            <a href="{% url 'order-done-group' item.number_of_desk name_of_page %}"
+                               class="link_order_header bg-success text-shadow-dark text-white px-3">{{ item.number_of_desk }}</a>
+                            {% endif %}
+                        {% endif %}
+
+                    </div>
+                     <textarea class="d-none speak-textarea textarea_{{ group.grouper }}" id="{{ group.grouper }}">
+                        {{ item.author.username }}.
+                        {% for s in group.list %}
+                        {{ s.name }} {{ s.get_int_quantity }} {{ s.get_comments }}
+                        {% endfor %}
+                    </textarea>
+                    {% endifchanged %}
+
+                    <div class="body-order my-1 d-flex justify-content-between border border-2 rounded">
+                        {% if item.order_is_edited and not item.takeaway_food %}
+                        <div class="name-meal p-1 w-50 bg-order-edited text-white">{{ item.name }}</div>
+                        {% elif item.takeaway_food %}
+                        <div class="bg-primary p-1 w-50 text-white">{{ item.name }}</div>
+                        {% else %}
+                        <div class="name-meal p-1 w-50">{{ item.name }}</div>
+                        {% endif %}
+                        <div class="quantity_of_meal p-1 d-flex align-items-center">{{ item.get_int_quantity }}</div>
+                        <a href="{% url 'order-done-by-one' item.id name_of_page %}"
+                           class="bg-primary p-2 px-3 rounded-end border-start d-flex align-items-center text-white">
+                           <i class="fa fa-check"></i>
+                        </a>
+                    </div>
+                    <div class="fs-6 text-danger px-2">{{ item.comments }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% block scripts %}
+<script type="module" src="{% static 'javascript/speechUtils.js' %}"></script>
+<script>
+    const audioSrc = "{% static 'audio/new_order.mp3' %}";
+</script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+<script type="module" src="{% static 'javascript/js_order.js' %}"></script>
+{% endblock scripts %}

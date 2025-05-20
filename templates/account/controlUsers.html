@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users List</title>
+    <!-- Link Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+    <style>
+        .header-main{
+            background: #CDB900;
+            padding: 10px;
+            width: 100%;
+            font-size: 1.2em;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+        }
+        .user-card {
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .user-card:hover {
+            transform: scale(1.05);
+        }
+        .user-image {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+        .user-info {
+            margin-left: 20px;
+        }
+        .rating-badge {
+            background-color: gold;
+            border-radius: 5px;
+            padding: 5px 10px;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .user-card {
+                text-align: center;
+            }
+            .user-info {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header-main">
+    <a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+    <div class="mx-auto">
+        Управление пользователями
+    </div>
+   <a href="{% url 'add-user' %}" class="cursor-pointer mx-3 text-dark"><i class="fa-regular fa-square-plus"></i></a>
+</div>
+<div class="container mt-5">
+    <h1 class="text-center">Список пользователей</h1>
+    <div class="row">
+        {% for user in users %}
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="user-card p-3 bg-light">
+                <div class="d-flex align-items-center">
+                    <img src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}/static/images/default_profile.png{% endif %}" class="user-image" alt="Profile Image">
+                    <div class="user-info">
+                        <h5>{{ user.username }}</h5>
+                        <p><strong>Звание:</strong> {{ user.get_roles_display }}</p>
+                        <p><strong>Эл. почта:</strong> {{ user.email }}</p>
+                        <p><strong>Телефон номер:</strong> {{ user.phone_number }}</p>
+                        <p><strong>Баланс:</strong> {{ user.balance_of_user }} сом</p>
+                        <p><strong>Трофеи:</strong> {{ user.trophies }}</p>
+                        <p><strong>Наименование рейтинга:</strong> {{ user.get_type_rating_display }}</p>
+                        <p class="rating-badge">Рейтинг: {{ user.rate }}</p>
+                        <div class="delete w-50 d-inline-block text-right"><a href="{% url 'password_change' user.id %}" class="text-decoration-none">
+                                            <i class="fa fa-edit px-2 py-1 mr-1"></i> Изменить</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Причина удаления заказа</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <form method="post" action="{% url 'delete_order' %}" id="deleteOrderForm">
+            {% csrf_token %}
+            <input type="hidden" name="meal_id" id="deleteMealIdInput">
+            <input type="hidden" name="deletion_reason" id="deletionReasonInput">
+          </form>
+          <div class="m-2 my-4 w-100">
+            <input type="radio" class="btn-check deletion-reason" name="options-outlined" id="not_in_stock" autocomplete="off" value="not_in_stock">
+            <label class="btn btn-outline-primary w-100" for="not_in_stock">Нет блюда на кухне</label><br>
+          </div>
+          <div class="m-2 my-4 w-100">
+            <input type="radio" class="btn-check deletion-reason" name="options-outlined" id="error_waitress" autocomplete="off" value="error_waitress">
+            <label class="btn btn-outline-primary w-100" for="error_waitress">Ошибка официанта</label><br>
+          </div>
+          <div class="m-2 my-4 w-100">
+            <input type="radio" class="btn-check deletion-reason" name="options-outlined" id="returned_meal" autocomplete="off" value="returned_meal">
+            <label class="btn btn-outline-primary w-100" for="returned_meal">Возврат блюда</label><br>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <!-- Update delete button code -->
+            <button type="button" class="btn px-2 bg-danger ms-auto text-white" onclick="submitDeleteForm()">
+                Удалить
+            </button>
+        </div>
+    </div>
+  </div>
+</div>

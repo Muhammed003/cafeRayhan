@@ -1,0 +1,120 @@
+{% extends '../main/base.html' %}
+
+{% block header %}
+<a href="{% url 'group-stop-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Добавление на группу
+</div>
+{% endblock header %}
+
+{% block content %}
+  <style>
+    /* Custom styles for the form */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-label {
+      font-weight: bold;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+    }
+
+    .form-control {
+      border-radius: 4px;
+      padding: 12px;
+      font-size: 1rem;
+    }
+
+    .form-control:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .text-danger {
+      font-size: 0.875rem;
+      margin-top: 5px;
+    }
+
+    .text-center {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .d-flex {
+      justify-content: flex-end;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+  </style>
+
+  <div class="container my-5">
+    <h2 class="text-center mb-4">Добавить элемент в список исключений</h2>
+    <form method="post" class="card">
+      {% csrf_token %}
+
+      <div class="card-body">
+        <!-- Field for Item Name -->
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}" class="form-label">Название элемента</label>
+          <select name="{{ form.name.name }}" id="{{ form.name.id_for_label }}" class="form-control">
+            {% for choice in form.name.field.choices %}
+              <option value="{{ choice.0 }}" {% if choice.0 == form.name.value %}selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+          </select>
+          {% if form.name.errors %}
+            <div class="text-danger">
+              {% for error in form.name.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Field for Related Meal -->
+        <div class="form-group">
+          <label for="{{ form.name_related_meal.id_for_label }}" class="form-label">Связанное блюдо</label>
+          <select name="{{ form.name_related_meal.name }}" id="{{ form.name_related_meal.id_for_label }}" class="form-control">
+            {% for choice in form.name_related_meal.field.choices %}
+              <option value="{{ choice.0 }}" {% if choice.0 == form.name_related_meal.value %}selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+          </select>
+          {% if form.name_related_meal.errors %}
+            <div class="text-danger">
+              {% for error in form.name_related_meal.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Hidden create_date Field (no need for user input) -->
+        <div class="d-none">
+          {{ form.create_date }}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-flex">
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div  class="mx-auto text-dark">
+        Закрытые
+    </div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="container mt-2">
+        {% regroup waitress by create_date|date:"F" as sorted_waitress %}
+        {% for group in  sorted_waitress %}
+        <div class="bg-danger p-2 text-center text-white">{{group.grouper}}</div>
+            {% for item in  group.list %}
+                {% ifchanged item.create_date %}
+                    {% if item.create_date in count_meals_list %}
+                        <div class="d-flex m-1 border rounded">
+                            <div class="  p-2">{{item.create_date|date:"d-m-Y"}}</div>
+                            <a href="{% url 'close-not-ended-reports' item.create_date|date:'Y-m-d' %}" class="ms-auto p-2 text-center bg-success  text-white rounded-end">Завершить</a>
+                         </div>
+                    {% endif %}
+                {% endifchanged %}
+            {% endfor%}
+        {% endfor%}
+
+    </div>
+</section>
+
+
+
+
+
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+</script>
+{% endblock scripts %}

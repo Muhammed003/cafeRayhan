@@ -1,0 +1,228 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+    <div class="mx-auto">
+        Отчёт лист
+    </div>
+<div></div>
+</div>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container">
+    <div class="report_note-book">
+        <header class="d-flex justify-content-between">
+            <div class="p-2  w-50 border-end">
+                <div class="text-center">Лепёшка</div>
+                {% for item in breads %}
+                <div class="border-bottom border-dark d-flex p-1"><span class="w-50">{{item.name}}</span>  <div class="border rounded text-center form-control-sm w-50">
+                    {{item.summa}}</div> </div>
+                {% endfor %}
+            </div>
+            <div class="p-2  w-50 border-end">
+                <div class="text-center">Самса</div>
+                <div class="border-bottom border-dark d-flex p-1"><span class="w-50">Мясо</span>  <div class="border rounded text-center form-control-sm w-50">{{samsa_control.samsa_meat}}</div> </div>
+                <div class="d-flex border-bottom border-dark p-1"><span class="w-50">Картошка</span> <div class="border rounded text-center form-control-sm w-50">{{samsa_control.samsa_potato}}</div> </div>
+                <div class="d-flex border-bottom border-dark p-1"><span class="w-50">Зарплата</span> <div class="border rounded text-center form-control-sm w-50">{{samsa_control.salary}}</div> </div>
+                <div class="d-flex border-bottom border-dark p-1">
+                    <span class="w-50">Отчёт</span>
+                {% if samsa_result >= 0 %}
+                    <div class="border-start text-center w-50 bg-danger p-1 text-white">{{samsa_result}}</div>
+                 {% elif  samsa_result <= 0 %}
+                    <div class="border-start text-center w-50 bg-success p-1 text-white"><i class="fa-solid fa-check"></i></div>
+                 {% else%}
+                    <div class="border-start text-center w-50 bg-secondary p-1 text-white"><i class="fa-solid fa-clock"></i></div>
+                 {% endif %}
+                </div>
+
+            </div>
+        </header>
+        <h6 class="text-center border-bottom border-top p-1 pt-3">{% now "d.m.Y" %}</h6>
+        <div class="d-flex w-100 border border">
+               {% regroup data by id as sorted_list %}
+                {% for group in sorted_list  %}
+                {% for item in group.list  %}
+                <div class="waitress_filter" id="{{item.id}}">{{item}}</div>
+                {% endfor %}
+                {% endfor %}
+
+        </div>
+        <div class="box-md w-100">
+
+
+            {% regroup data by id as sorted_data %}
+                {% for group in sorted_data  %}
+                <div class="report_list">
+                    {% for item in group.list  %}
+                    <div class="all_waitress   {{group.grouper}}">
+                        <form method="POST" autocomplete="off">
+                            {% csrf_token %}
+                             <input type="hidden" name="user_id" value="{{group.grouper}}">
+                                <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Кухня</div>
+                                    <div class="w-50 text-center"><input type="number" readonly class="w-100 border-0 text-center" name="kitchen" value="{{item.kitchen}}"></div>
+                                </div>
+                                 <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Самса</div>
+                                    <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="samsa" value="{{item.samsa}}"></div>
+                                </div>
+                                 <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Самса к</div>
+                                    <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="samsa_potato" value="{{item.samsa_potato}}"></div>
+                                </div>
+                                 <div class="d-flex border my-1">
+                                    <div class="w-50  ps-1 border-end border-dark">Шашлык</div>
+                                    <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="kebab" value="{{item.kebab}}"></div>
+                                </div>
+                                 <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Нан</div>
+                                    <div class="w-25 text-center"><input type="number" class="w-100 border-0 text-center" name="bread" value="{{item.bread}}"></div>
+                                 {% if bread_waitress %}
+                                  {% for bread_item_in in bread_waitress %}
+                                     {% if group.grouper == bread_item_in.waitress_bread_type_id %}
+
+                                         {% if  item.bread == bread_item_in.quantity %}
+    <!--                                                                  {{bread_item_in.quantity}}-->
+
+                                        <div class="w-25 border-start border-dark text-white  text-center bg-success">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
+                                         {% elif item.bread < bread_item_in.quantity %}
+                                             <div class="w-25 border-start border-dark bg-danger  text-center text-white">{{bread_item_in.quantity}}</div>
+                                        {% elif item.bread > bread_item_in.quantity %}
+                                             <div class="w-25 border-start border-dark bg-success text-white  text-center text-white">{{bread_item_in.quantity}}</div>
+                                        {% endif %}
+                                     {% endif %}
+                                     {% endfor %}
+                                 {% else %}
+                                  <div class="w-25 border-start border-dark bg-secondary text-white  text-center text-white"></div>
+                                 {% endif %}
+                                </div>
+                                 <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Чай</div>
+                                    <div class="w-50 text-center"><input type="number" readonly class="w-100 border-0 text-center" name="tea" value="{{item.tea}}"></div>
+                                </div>
+                               <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Шербет</div>
+                                    <div class="w-50 text-center"><input type="number" readonly class="w-100 border-0 text-center" name="sherbet" value="{{item.sherbet}}"></div>
+                                </div>
+                             <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">Напитки</div>
+                                    <div class="w-50 text-center"><input type="number" readonly class="w-100 border-0 text-center" name="drinks" value="{{item.drinks}}"></div>
+                                </div>
+                                 <div class="d-flex border my-1 mb-2">
+                                    <div class="w-50  px-1 border-end border-dark bg-dark text-white">Общий</div>
+                                    <div class="w-50 text-center bg-light">{{item.balance}}</div>
+                                </div>
+                                    <div class="text-center fw-bold">Расходы</div>
+                                     {% for consumption in item.consumption_waitress.all  %}
+                                    <div class="d-flex border my-1">
+                                        <div class="w-50  px-1 border-end border-dark">{{consumption.name}}</div>
+                                        <div class="w-50 text-center">{{consumption.summa}}</div>
+                                    </div>
+                                    {% endfor %}
+                                     <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-dark text-white">Общий</div>
+                                            <div class="w-50 text-center">{{item.consumption}}</div>
+                                     </div>
+                                     <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-success text-white">Итого</div>
+                                            <div class="w-50 text-center">{{item.sum_all_of_fields}}</div>
+                                     </div>
+                                    <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-warning text-dark">С собой</div>
+                                            <div class="w-50 text-center">{{item.takeaway_food}}</div>
+                                     </div>
+                                    <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-info text-dark">Баланс с карты</div>
+                                            <div class="w-50 text-center">{{item.paid_with_card}}</div>
+                                     </div>
+                                    <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-warning text-dark">Заблокирована</div>
+                                            <div class="w-50 text-center">{{item.quantity_of_blocked}}</div>
+                                     </div>
+                                    <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-warning text-dark">Людей не доб.</div>
+                                            <div class="w-50 text-center">{{item.error_peoples}}</div>
+                                     </div>
+                                    <div class="d-flex border my-1">
+                                            <div class="w-50  px-1 border-end border-dark bg-warning text-dark">Услуга</div>
+                                            <div class="w-50 text-center">{{item.waiter_service}}</div>
+                                     </div>
+                            <button class="btn btn-sm btn-info btn-block w-100"> Изменить</button>
+                        </form>
+
+                        </div>
+                    {% endfor %}
+
+
+                </div>
+
+                {% endfor %}
+        </div>
+
+
+
+
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+
+var el = document.querySelectorAll('.waitress_filter');
+console.log(el)
+let my_divs = document.querySelectorAll('.report_list .all_waitress');
+
+
+
+for (let i = 0; i < el.length; i++) {
+  el[i].onclick = function() {
+
+  for (let x = 0; x < my_divs.length; x++) {
+  if (my_divs[x].className.includes(this.id)) {
+    my_divs[x].style.setProperty('display', 'block', 'important');
+  }
+  else{
+  my_divs[x].style.setProperty('display', 'none', 'important');
+  }
+}
+    var c = 0;
+    while (c < el.length) {
+      el[c++].className = 'waitress_filter';
+    }
+    el[i].className = 'waitress_report waitress_report_active';
+  };
+}
+{% if request.GET.waitress %}
+    let edited_div = {{request.GET.waitress}}
+      for (let x = 0; x < my_divs.length; x++) {
+  if (my_divs[x].className.includes(edited_div)) {
+    my_divs[x].style.setProperty('display', 'block', 'important');
+  }
+  else{
+  my_divs[x].style.setProperty('display', 'none', 'important');
+  }
+}
+for (let x = 0; x < el.length; x++) {
+if (edited_div==el[x].id){
+    el[x].className = 'waitress_report waitress_report_active';
+}
+}
+
+{% else %}
+    el[0].className = 'waitress_report waitress_report_active';
+     my_divs[0].style.setProperty('display', 'block', 'important');
+{% endif %}
+</script>
+{% endblock scripts %}

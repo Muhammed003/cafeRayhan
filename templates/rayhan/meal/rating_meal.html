@@ -1,0 +1,120 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block link_style %}
+<link href="{% static 'css/select_style.css' %}" rel="stylesheet" type="text/css">
+{% endblock link_style %}
+
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+    <div class="mx-auto">
+        Рейтинговая блюд
+    </div>
+<div></div>
+
+{% endblock header %}
+
+{% block content %}
+<style>
+
+
+
+
+
+</style>
+<section id="rating_meal">
+    <div class="container pt-2">
+       {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div  class="{% if message.tags %} alert alert-danger {% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+                <form method="POST" class="border-bottom border-4 border-white mb-3">
+                    {% csrf_token %}
+                    <div class="w-100 d-flex ">
+
+                        <select class="form-control selectpicker" required  name="name_related_meal" id="select-country" data-live-search="true">
+                            <option  selected value="" disabled>Выберите</option>
+                            {% for item in meals_in_menu %}
+                            <option data-tokens="{{item.name}}" value="{{item.id}}">{{item.name}}</option>
+                            {% endfor %}
+                        </select>
+
+                        <div class="number-input w-50">
+                                   <button class="" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
+                                   <input class="text-center rounded bg-success fs-5  border-0 w-100 quantity" id="quantity_{{item.id}}"
+                                         value="1" min="0" step="1" name="quantity" type="number" autocomplete="off">
+                                   <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus"></button>
+                       </div>
+
+                    </div>
+
+                    <button class="btn btn-info my-2 btn-block w-100 mt-3" name="add_quantity_to_rating"> Сохранить</button>
+            </form>
+
+            {% for meal in meals %}
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between m-2  rounded">
+                    <input name="id" type="hidden" value="{{meal.id}}">
+                   <div class="fs-2 bg-dark rounded-start d-flex justify-content-start px-2 align-items-center">{% if  meal.is_active %}<i class="fa-solid fa-check text-success"></i> {% else %} <i class="fa-solid fa-xmark text-danger"></i> {% endif %}</div>
+                    <div class="w-50 fs-2 border rounded-start d-flex justify-content-start ps-2 align-items-center text-dark">{{meal.name_related_meal}}</div>
+                    <div class="number-input w-50">
+                                   <button class="d-flex align-items-center h-100 " type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
+                                   <input class="text-center rounded bg-success fs-5  border-0 w-100 quantity" id=""
+                                         value="{{meal.quantity}}" min="0" step="1" name="quantity" type="number" autocomplete="off">
+                                   <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="d-flex align-items-center h-100 plus"></button>
+                       </div>
+                    <button name="edit_quantity" class="bg-primary fs-2 px-2 py-1 rounded"><i class="fa-solid fa-edit"></i> </button>
+                </div>
+                </form>
+
+            {% endfor %}
+    </div>
+</section>
+<!-- <div class="form-check form-switch">-->
+<!--                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>-->
+<!--                </div>-->
+<div class="select2-field select2-field--floating-label" style="margin-bottom: 40px">
+
+    </div>
+
+{% endblock content %}
+
+{% block scripts %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css" rel="stylesheet" />
+
+<script>
+
+</script>
+{% endblock scripts %}
+<!--Для программного обеспечения, особенно в контексте оценки качества или уровня доступа, могут использоваться различные имена и обозначения для уровней рейтинга. Вот некоторые из них:-->
+
+<!--Базовый/Начальный уровень (Basic/Entry Level): Обычно относится к начальному уровню доступа или функциональности программы. Может обозначаться как "Basic", "Entry Level", "Starter" и т. д.-->
+
+<!--Бронзовый (Bronze): Этот уровень может указывать на низкий уровень привилегий или ограниченные функции программы. Может быть первым уровнем в иерархии рейтинга.-->
+
+<!--Серебряный (Silver): Уровень выше базового, но ниже золотого. Обычно предоставляет больше возможностей или привилегий, чем бронзовый уровень.-->
+
+<!--Золотой (Gold): Уровень, предоставляющий максимальные привилегии или возможности в программе. Обычно является самым высоким уровнем рейтинга.-->
+
+<!--Премиум (Premium): Этот уровень может указывать на дополнительные функции или услуги, которые доступны за дополнительную плату или на более высоком уровне подписки.-->
+
+<!--Элитный (Elite): Обозначает самый высокий или эксклюзивный уровень доступа или статуса в программе. Обычно предоставляет доступ к специальным функциям или услугам.-->
+
+<!--VIP: Этот термин используется для обозначения особого статуса или привилегий, которые могут быть предоставлены определенным пользователям программы.-->
+
+<!--Профессиональный (Professional): Уровень, предназначенный для более опытных пользователей или тех, кто нуждается в расширенных функциях программы.-->
+
+<!--Экономичный (Economy): Может относиться к более доступному варианту программы с ограниченным набором функций, но по более низкой цене.-->
+
+

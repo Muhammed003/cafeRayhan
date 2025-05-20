@@ -1,0 +1,10 @@
+<div class="button-menu-right cursor-pointer"></div>
+<div class="dropdown">
+  <a class="btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </a>
+
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item   btn " href="{% url 'end-work' %}" onclick="return confirm('Вы уверены что хотите закрыть смену?')"><i class="fa-solid fa-lock text-danger "></i> Закрытые смену</a></li>
+  </ul>
+</div>

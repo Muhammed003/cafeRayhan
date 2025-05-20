@@ -1,0 +1,758 @@
+from datetime import datetime, timedelta
+from django.db.models.functions import TruncHour
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Sum, Prefetch, Q, F, ExpressionWrapper, Max, FloatField
+from django.db.models.functions import TruncDay, TruncMonth
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import TemplateView
+from django.views.generic import ListView, CreateView
+from django.utils import timezone
+from apps.account.mixins import RoleRequiredMixin
+from apps.account.models import CustomUser
+from apps.rayhan.bread.models import WaitressBread, BreadComing
+from apps.rayhan.mealList.models import MealsInMenu, MealsToShow, MealRecipes
+from apps.rayhan.report.forms import AssignDesksForm, DeskAssignmentForm
+from apps.rayhan.report.models import DeskAssignment, SaveEveryDaysReport, CountMeals
+from apps.rayhan.samsa_kebab.models import Samsa, SamsaConsumption
+from apps.rayhan.waitressPage.models import Waitress, ConsumptionWaitress, OrderMeal, RatingControlWaitress, \
+    SettingModel
+from django.db.models.functions import Cast
+from django.db.models import CharField
+from django.http import JsonResponse
+
+from config import settings
+from .auto_mode_tax import login_and_fetch_data  # Импортируйте вашу функцию
+from decouple import config
+from decimal import Decimal
+
+russian_month_names = {
+            1: 'января',
+            2: 'февраля',
+            3: 'марта',
+            4: 'апреля',
+            5: 'мая',
+            6: 'июня',
+            7: 'июля',
+            8: 'августа',
+            9: 'сентября',
+            10: 'октября',
+            11: 'ноября',
+            12: 'декабря',
+        }
+
+
+# Create your views here.
+class ReportNoteBook(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/report_note_book.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if Samsa.objects.filter(create_date=datetime.now().date()).exists():
+            context["samsa_control"] = Samsa.objects.get(create_date=datetime.now().date())
+        else:
+            context["samsa_control"] = 0
+
+        if Waitress.objects.filter(create_date=datetime.now().date()).exists():
+            context["data"] = Waitress.objects.filter(create_date=datetime.now().date()).prefetch_related(
+            Prefetch('consumption_waitress', queryset=ConsumptionWaitress.objects.filter(create_date=datetime.now().date())))
+
+            context["summa_consumption"] = ConsumptionWaitress.objects.filter(create_date=datetime.now().date()).extra(
+            select={'author': 'user'}).values('author') \
+            .annotate(summa=Sum('summa'))
+
+            context["samsa"] = Waitress.objects.filter(create_date=datetime.now().date()).extra(
+                select={'create_date': 'create_date'}).values('create_date') \
+                .annotate(summa=Sum('samsa') + Sum('samsa_potato'))[0].get("summa")
+
+            if Samsa.objects.filter(create_date=datetime.now().date()).exists():
+                consumption_result = []
+                if SamsaConsumption.objects.filter(create_date=datetime.now().date()).exists():
+                    data_samsa_consumption = SamsaConsumption.objects.filter(create_date=datetime.now().date())
+                    for item in data_samsa_consumption:
+                        consumption_result.append(item.sum_of_samsa_consumption)
+
+                context["samsa_result"] = (context["samsa_control"].sum_of_samsa_meat +
+                                           context["samsa_control"].sum_of_samsa_potato -
+                                           context["samsa_control"].salary-context["samsa"]-sum(consumption_result))
+            if BreadComing.objects.filter(create_date__date=datetime.now().date()).exists():
+                context["breads"] = BreadComing.objects.filter(create_date__date=datetime.now().date()).extra(
+                select={'name': 'name'}).values('name') \
+                .annotate(summa=Sum('quantity'))
+
+            if WaitressBread.objects.filter(create_date=datetime.now().date()).exists():
+                context["bread_waitress"] = WaitressBread.objects.filter(create_date=datetime.now().date()).extra(
+                select={'author': 'author'}).values("waitress_bread_type_id") \
+                .annotate(quantity=Sum('quantity') * 30)
+        if not Waitress.objects.filter(create_date=datetime.now().date(), shift=True).exists():
+            meals = OrderMeal.objects.filter(create_date__date=datetime.now().date()).annotate(
+                day=TruncDay('create_date')).values('day').annotate(
+                summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
+                '-day')
+            # count_meals = CountMeals.objects.filter(create_date=datetime.now().date())
+            context["editing_count_meal"] = False
+            context["s"] = 0
+            # for item in count_meals:
+            #     for meal in meals:
+            #         for key, val in meal.items():
+            #             if key == "name":
+            #                 if item.name == meal['name']:
+            #                     if meal['summa'] != item.quantity:
+            #                         context["editing_count_meal"] = False
+            #             elif item.name != meal['name']:
+            #                 if not CountMeals.objects.filter(name=meal['name'],
+            #                                                  create_date=datetime.now().date()).exists():
+            #                     context["editing_count_meal"] = False
+            # if not context["editing_count_meal"]:
+            #     context["count_meal"] = CountMeals.objects.filter(create_date=datetime.now().date())
+            #     context["info_list_report"] = SaveEveryDaysReport.objects.filter(create_date=datetime.now().date())
+
+                        # CountMeals.objects.create(author=self.request.user, name=meal['name'], quantity=meal['summa'],
+                        #                           create_date=datetime.now().date())
+            # context["count_meal"] = CountMeals.objects.filter(create_date=datetime.now().date())
+
+        return context
+
+    def post(self, request):
+        user_id = request.POST.get('user_id')
+        waitress = Waitress.objects.get(id=user_id, create_date=datetime.now().date())
+
+        waitress.kitchen = request.POST.get('kitchen')
+        waitress.samsa = request.POST.get('samsa')
+        waitress.samsa_potato = request.POST.get('samsa_potato')
+        waitress.kebab = request.POST.get('kebab')
+        waitress.bread = request.POST.get('bread')
+        waitress.tea = request.POST.get('tea')
+        waitress.sherbet = request.POST.get('sherbet')
+        waitress.drinks = request.POST.get('drinks')
+        waitress.balance = (int(waitress.kitchen) + int(waitress.samsa) + int(waitress.samsa_potato) +
+                            int(waitress.kebab) + int(waitress.bread) + int(waitress.tea) + int(waitress.sherbet) + int(waitress.drinks) )
+
+        waitress.save()
+        messages.success(request, 'Вы успешно изменили')
+        return HttpResponseRedirect(f".?waitress={user_id}")
+
+class RequestToCloseShiftWaitress(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/request_to_close_shift.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if Waitress.objects.filter(create_date=datetime.now().date(), shift=True, wanted_to_close_shift=True).exists():
+            context["waitress_request"] = Waitress.objects.filter(create_date=datetime.now().date(), shift=True, wanted_to_close_shift=True)
+        return context
+
+
+class RequestShiftDetailView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/shift-detail-waitress.html'
+
+    def get(self, request, pk, **kwargs):
+        self.pk = pk
+        return super().get(request, pk, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = datetime.now().date()
+        waitress_query = Waitress.objects.filter(id=self.pk, create_date=today, shift=True, wanted_to_close_shift=True)
+
+        if waitress_query.exists():
+            waitress_instance = waitress_query[0]  # Use slicing instead of .first()
+            consumption_waitress_query = ConsumptionWaitress.objects.filter(user=waitress_instance, create_date=today)
+
+            context["data"] = waitress_query.prefetch_related(
+                Prefetch('consumption_waitress', queryset=consumption_waitress_query))
+            context["summa_consumption"] = consumption_waitress_query.values('user').annotate(summa=Sum('summa'))
+            if WaitressBread.objects.filter(waitress_bread_type_id=self.pk,create_date=datetime.now().date()).exists():
+                from django.db.models import IntegerField
+                context["bread_waitress"] = WaitressBread.objects.filter(
+                    waitress_bread_type_id=self.pk,
+                    create_date=datetime.now().date()
+                ).annotate(
+                    quantity_multiplied=F('quantity') * 30
+                ).values(
+                    "waitress_bread_type_id"
+                ).annotate(
+                    quantity=ExpressionWrapper(
+                        F('quantity_multiplied'),
+                        output_field=IntegerField()
+                    )
+                )
+
+            # context.update({
+            #     "kitchen": aggregated_data.get('kitchen_sum', 0),
+            #     "samsa": aggregated_data.get('samsa_sum', 0),
+            #     "kebab": aggregated_data.get('kebab_sum', 0),
+            #     "all_balance": aggregated_data.get('balance_sum', 0),
+            #     "breads": BreadComing.objects.filter(create_date=today).values('name').annotate(summa=Sum('quantity')),
+            #     "bread_waitress": WaitressBread.objects.filter(waitress_bread_type_id=self.pk, create_date=today)
+            #     .values("waitress_bread_type_id").annotate(quantity=Sum('quantity') * 30)
+            # })
+        return context
+
+    def post(self, request, pk):
+        today = datetime.now().date()
+        user_id = request.POST.get('user_id')
+        user = CustomUser.objects.get(id=user_id)
+        waitress = Waitress.objects.get(user=user_id, create_date=today)
+
+        # if not waitress.waitress_is_edited:
+        #     samsa_is_edited = int(waitress.samsa) != int(request.POST.get('samsa')) or int(
+        #         waitress.samsa_potato) != int(request.POST.get('samsa_potato'))
+        #     kebab_is_edited = int(waitress.kebab) != int(request.POST.get('kebab'))
+        #     bread_is_edited = int(waitress.bread) != int(request.POST.get('bread'))
+        #     sherbet_is_edited = int(waitress.sherbet) != int(request.POST.get('sherbet'))
+            #
+            # if not any([samsa_is_edited, kebab_is_edited, bread_is_edited, sherbet_is_edited]):
+            #     user.rate += 0.3
+            #     RatingControlWaitress.objects.create(
+            #         author=self.request.user,
+            #         user=user.username,
+            #         reason="Все отчёт правильно",
+            #         quantity=0.4,
+            #         create_date=today,
+            #         type="плюс"
+            #     )
+            # else:
+            #     user.rate -= 0.3
+            #     RatingControlWaitress.objects.create(
+            #         author=self.request.user,
+            #         user=user.username,
+            #         reason="Все отчёт неправильно",
+            #         quantity=0.3,
+            #         create_date=today,
+            #         type="минус"
+            #     )
+            #
+            # if user.rate > 10:
+            #     user.rate = 10
+            # user.rate = round(user.rate, 1)
+            # user.save()
+            # waitress.waitress_is_edited = True
+
+        waitress.kitchen = request.POST.get('kitchen')
+        waitress.samsa = request.POST.get('samsa')
+        waitress.samsa_potato = request.POST.get('samsa_potato')
+        waitress.kebab = request.POST.get('kebab')
+        waitress.bread = request.POST.get('bread')
+        waitress.tea = request.POST.get('tea')
+        waitress.sherbet = request.POST.get('sherbet')
+        waitress.drinks = request.POST.get('drinks')
+        waitress.balance = sum(map(int, [waitress.kitchen, waitress.samsa, waitress.samsa_potato, waitress.kebab,
+                                         waitress.bread, waitress.tea, waitress.sherbet, waitress.drinks]))
+        waitress.save()
+        messages.success(request, 'Вы успешно изменили')
+        return HttpResponseRedirect(".")
+
+
+
+
+class EndRequestShiftDetailView(RoleRequiredMixin, View):
+
+    def get(self, request, pk, **kwargs):
+        current_date = datetime.now().date()
+
+        # Get Waitress object for the given ID and date, or return 404 if not found
+        waitress = get_object_or_404(Waitress, id=pk, create_date=current_date)
+        user = waitress.user
+
+        # Calculate max_balance and max_takeaway_food
+        max_balance_info = Waitress.objects.filter(create_date=current_date).aggregate(Max('balance'))
+        max_balance = max_balance_info['balance__max']
+
+        max_takeaway_food_info = Waitress.objects.filter(create_date=current_date).aggregate(Max('takeaway_food'))
+        max_takeaway_food = max_takeaway_food_info['takeaway_food__max']
+
+        # Update user's rate if necessary
+        # if waitress.balance == max_balance:
+        #     self.update_user_rate(user, "Лучшая сумма скопления", 0.2)
+
+        if waitress.takeaway_food == max_takeaway_food:
+            self.update_user_rate(user, "Лучшая сумма скопления с собой", 0.2)
+
+        # Update waitress object and user's balance
+        waitress.shift = False
+        waitress.wanted_to_close_shift = False
+        waitress.save()
+        return HttpResponseRedirect(reverse_lazy("request-close-shift"))
+
+    def update_user_rate(self, user, reason, quantity):
+        if not RatingControlWaitress.objects.filter(
+                author=self.request.user,
+                user=user.username,
+                reason=reason,
+                create_date=datetime.now().date()
+        ).exists():
+            user.rate += Decimal(str(quantity))  # Convert quantity to Decimal
+            user.rate = min(user.rate, Decimal('10'))  # Ensure rate doesn't exceed 10
+            user.save()
+            RatingControlWaitress.objects.create(
+                author=self.request.user,
+                user=user.username,
+                reason=reason,
+                quantity=quantity,
+                create_date=datetime.now().date(),
+                type="плюс"
+            )
+
+
+
+
+class DebtsWaitressByMonth(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/debts/debts_waitress_by_month.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        consumption_waitress = (
+            ConsumptionWaitress.objects
+            .filter(is_paid=False)
+            .annotate(month=TruncMonth('create_date'))
+            .order_by('month')
+            .values('user__user_id__username', 'month')
+        )
+
+        # Process data for the template
+
+        grouped_data = {}
+        for entry in consumption_waitress:
+            username = entry['user__user_id__username']
+            month = entry['month'].strftime('%m - %Y')  # Format: MM - YYYY
+            month_parts = month.split(' - ')
+            month_number = int(month_parts[0])
+            russian_month = russian_month_names.get(month_number, 'Unknown')
+            formatted_month = f"{russian_month} - {month_parts[1]}"
+
+            if formatted_month not in grouped_data:
+                grouped_data[formatted_month] = []
+            if username not in grouped_data[formatted_month]:
+                grouped_data[formatted_month].append(username)
+
+        context = {'grouped_data': grouped_data}
+        return context
+
+
+class DebtsByMonthDetailView(RoleRequiredMixin, TemplateView, View):
+    template_name = 'rayhan/report/debts/debts_waitress_by_month_detail.html'
+
+    def get(self, request, pk, **kwargs):
+        self.pk = pk
+        self.username = self.request.GET.get("username")
+        return super(DebtsByMonthDetailView, self).get(request, pk, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.username = self.request.GET.get("username")
+        self.pk = self.kwargs['pk']
+
+        # Split the month name and year
+        russian_month, year = [part.strip() for part in self.pk.split('-')]
+
+        # Get the month number from the Russian month name
+        month_number = next((key for key, value in russian_month_names.items() if value == russian_month), None)
+        if month_number is None:
+            # Handle if the Russian month name is not recognized
+            pass
+
+        formatted_month = f"{russian_month} - {year}"
+
+        context["date_history"] = formatted_month
+        context["username"] = self.username
+
+        # Filter consumption_waitress objects based on the year, month, and username
+        context['consumption_waitress'] = ConsumptionWaitress.objects.filter(
+            Q(create_date__year=year, create_date__month=month_number),
+            user__user__username=self.username,
+            is_paid=False
+        ).order_by("create_date")
+
+        return context
+
+    def post(self, request, pk):
+        debt_item = request.POST.get("debt_item")
+        summa = request.POST.get("summa")
+        consumption = ConsumptionWaitress.objects.get(id=debt_item)
+        consumption.summa = summa
+        consumption.save()
+
+        return HttpResponseRedirect(f".")
+
+
+class DebtPaidByMonth(RoleRequiredMixin, View):
+
+    def get(self, request, pk, **kwargs):
+        filter_value = request.GET.get("filter")  # Should be in YYYY-MM-DD format
+        username = request.GET.get("username")
+        consumption = ConsumptionWaitress.objects.get(id=pk)
+        consumption.is_paid = True
+        consumption.save()
+
+        # Perform any necessary actions on the 'consumption' object here
+        # For example, set 'is_paid' to True
+
+        # Extract year and month from the filter value
+        year, month, _ = filter_value.split('-')
+
+        # Construct the URL for the DebtsByMonthDetailView with the Russian month name
+        russian_month = russian_month_names[int(month)]
+        redirect_url = f"/report/debts/waitress/month/detail/{russian_month} - {year}/?username={username}"
+
+        return HttpResponseRedirect(redirect_url)
+
+
+
+class AssignDesksView(View):
+    def get(self, request):
+        form = AssignDesksForm()
+        return render(request, 'rayhan/report/distribute_desks.html', {'form': form})
+
+    def post(self, request):
+        form = AssignDesksForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('divide_desks')
+        return render(request, 'rayhan/report/distribute_desks.html', {'form': form})
+
+
+class DeskAssignmentListView(ListView):
+    model = DeskAssignment
+    template_name = 'rayhan/report/desk_assignment_list.html'
+    context_object_name = 'assignments'
+
+# CreateView to create new assignments
+class DeskAssignmentCreateView(CreateView):
+    model = DeskAssignment
+    form_class = DeskAssignmentForm
+    template_name = 'rayhan/report/desk_assignment_form.html'
+    success_url = reverse_lazy('desk-assignment-list')
+
+    def form_valid(self, form):
+        # You can add additional validation logic here if needed
+        return super().form_valid(form)
+
+class SaleDayView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/sale_day.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Filter once for today's Waitress data
+        today = datetime.now().date()
+        today_waitresses = Waitress.objects.filter(create_date=today)
+
+        # Check if there are any waitresses for today
+        if today_waitresses.exists():
+            context["data"] = True
+
+            # Calculate kitchen, balance, samsa, and kebab totals
+            waitress_totals = today_waitresses.aggregate(
+                kitchen_sum=Sum('kitchen'),
+                balance_sum=Sum('balance'),
+                samsa_sum=Sum('samsa') + Sum('samsa_potato'),
+                kebab_sum=Sum('kebab')
+            )
+            context["kitchen"] = waitress_totals.get("kitchen_sum", 0)
+            context["all_balance"] = waitress_totals.get("balance_sum", 0)
+            context["samsa"] = waitress_totals.get("samsa_sum", 0)
+            context["kebab"] = waitress_totals.get("kebab_sum", 0)
+
+            # Calculate not closed orders
+            not_closed_orders = OrderMeal.objects.filter(
+                create_date__date=today,
+                is_paid=False
+            ).values('number_of_order').annotate(order_sum=Sum('price')).order_by("number_of_order")
+            context["count_not_closed_orders"] = sum(order['order_sum'] for order in not_closed_orders)
+
+            # Fetch MealsInMenu for specific groups
+            kitchen_meals = MealsInMenu.objects.filter(group_item__name="Кухня").values_list('name', flat=True)
+            samsa_meals = MealsInMenu.objects.filter(group_item__name="Самсы").values_list('name', flat=True)
+            shashlyk_meals = MealsInMenu.objects.filter(group_item__name="Шашлыки").values_list('name', flat=True)
+
+            # Helper function to calculate not closed orders by meal group
+            def calculate_meal_group_sum(meal_names):
+                return OrderMeal.objects.filter(
+                    name__in=meal_names,
+                    create_date__date=today,
+                    is_paid=False
+                ).aggregate(group_sum=Sum('price'))['group_sum'] or 0
+
+            # Get totals for each group
+            context["count_not_closed_orders_kitchen"] = calculate_meal_group_sum(kitchen_meals)
+            context["count_not_closed_orders_samsa"] = calculate_meal_group_sum(samsa_meals)
+            context["count_not_closed_orders_shashlyk"] = calculate_meal_group_sum(shashlyk_meals)
+            context["sum_people"] = sum([int(item.waiter_service / 15) for item in today_waitresses])
+            if SaveEveryDaysReport.objects.all().exists():
+                ten_days_ago = timezone.now() - timedelta(days=10)
+                last_10_days_reports = SaveEveryDaysReport.objects.filter(create_date__gte=ten_days_ago).annotate(
+                    create_date_str=Cast('create_date', CharField())
+                ).values('create_date_str', 'all_balance').order_by("create_date_str")
+                for report in last_10_days_reports:
+                    report['create_date_str'] = report['create_date_str'].split(" ")[0]  # Get only the date part
+
+                # Convert queryset to list of dicts
+                context["trading_balance"] = list(last_10_days_reports)
+                context["history_days_report"] = SaveEveryDaysReport.objects.all().order_by("-create_date")
+
+        else:
+            if SaveEveryDaysReport.objects.all().exists():
+                ten_days_ago = timezone.now() - timedelta(days=10)
+                last_10_days_reports = SaveEveryDaysReport.objects.filter(create_date__gte=ten_days_ago).annotate(
+                    create_date_str=Cast('create_date', CharField())
+                ).values('create_date_str', 'all_balance').order_by("create_date_str")
+                for report in last_10_days_reports:
+                    report['create_date_str'] = report['create_date_str'].split(" ")[0]  # Get only the date part
+
+                # Convert queryset to list of dicts
+                context["trading_balance"] = list(last_10_days_reports)
+                context["history_days_report"] = SaveEveryDaysReport.objects.all().order_by("-create_date")
+
+
+        return context
+
+class HistoryBillIsPaidView(RoleRequiredMixin, TemplateView, View):
+    template_name = "rayhan/report/history_bill_is_paid.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["list_of_orders"] = OrderMeal.objects.filter(is_paid=True,
+                                                             create_date__date=datetime.now().date()).order_by(
+            "-number_of_order").order_by("-id")
+        return context
+
+
+class NotEndedReportView(RoleRequiredMixin, TemplateView):
+        template_name = 'rayhan/report/not_ended_reports.html'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["waitress"] = Waitress.objects.filter().order_by("-create_date")
+            create_dates = []
+            for item in context["waitress"]:
+                if item.create_date not in create_dates:
+                    create_dates.append(item.create_date)
+            count_meals_list = []
+            for mydate in create_dates:
+                if not CountMeals.objects.filter(create_date=mydate).exists():
+                    if mydate != datetime.now().date():
+                        count_meals_list.append(mydate)
+            context["count_meals_list"] = count_meals_list
+            return context
+
+class CloseNotEndedReports(LoginRequiredMixin, View):
+    def get(self, request, pk, **kwargs):
+        end_date = datetime.strptime(pk, '%Y-%m-%d').date()
+        if not CountMeals.objects.filter(create_date=end_date).exists():
+            meals = OrderMeal.objects.filter(create_date__date=end_date).annotate(
+                day=TruncDay('create_date')).values('day').annotate(
+                summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
+                '-day')
+            for meal in meals:
+                for key, val in meal.items():
+                    if key == "name":
+                        CountMeals.objects.create(author=self.request.user, name=meal['name'], quantity=meal['summa'],
+                                                  create_date=end_date)
+            # day_before = str((end_date - timedelta(days=1)))
+            # price_laghman = MealsInMenu.objects.get(name="Лагман").price
+            # price_laghman_07 = MealsInMenu.objects.get(name="Лагман 0,7").price
+            # price_laghman_05 = MealsInMenu.objects.get(name="Лагман 0,5").price
+            # if CountMeals.objects.filter(name="Лагман", create_date=end_date).exists():
+            #     laghman_data = CountMeals.objects.get(name="Лагман",
+            #                                           create_date=end_date).quantity * price_laghman
+            # else:
+            #     laghman_data = 0
+            # if CountMeals.objects.filter(name="Лагман 0,7", create_date=end_date).exists():
+            #     laghman_07_data = CountMeals.objects.get(name="Лагман 0,7",
+            #                                              create_date=end_date).quantity * price_laghman_07
+            # else:
+            #     laghman_07_data = 0
+            # if CountMeals.objects.filter(name="Лагман 0,5", create_date=end_date).exists():
+            #     laghman_05_data = CountMeals.objects.get(name="Лагман 0,5",
+            #                                              create_date=end_date).quantity * price_laghman_05
+            # else:
+            #     laghman_05_data = 0
+            # todays_quantity_laghman = (laghman_data + laghman_07_data + laghman_05_data) / price_laghman_07
+            # if CountMeals.objects.filter(name="Жаровня", create_date=datetime.now().date()).exists():
+            #     today_jarovniy = CountMeals.objects.get(name="Жаровня", create_date=datetime.now().date()).quantity
+            # else:
+            #     today_jarovniy = 0
+
+            # if HistoryOrderMeatCafe.objects.filter(create_date=day_before).exists():
+            #     meat_cow = HistoryOrderMeatCafe.objects.get(create_date=day_before, name="Лагман")
+            #     if LaghmanCuttingMeat.objects.filter(create_date=day_before).exists():
+            #         meat_sheep = LaghmanCuttingMeat.objects.get(create_date=day_before)
+            #         meat_sheep = meat_sheep.laghman
+            #     else:
+            #         meat_sheep = 0
+            #     summa_meats = meat_cow.weight + meat_sheep
+            #     laghman_sht = SettingModel.objects.get(name="Лагман").number
+            #     weight_laghman_meat = 1000 / laghman_sht
+            #     used_meat = todays_quantity_laghman * round(weight_laghman_meat, 2) / 1000
+            #     in_stock = (float(summa_meats) - float(used_meat) - float((today_jarovniy * 200) / 1000))
+            #     LaghmanRestMeat.objects.create(meat_was=summa_meats, used=used_meat, in_stock=in_stock,
+            #                                    laghman_quantity=todays_quantity_laghman,
+            #                                    jarovniy=(today_jarovniy * 200 / 1000),
+            #                                    create_date=end_date)
+        kitchen = Waitress.objects.filter(create_date=end_date).extra(
+            select={'create_date': 'create_date'}).values('create_date') \
+            .annotate(summa=Sum('kitchen'))[0].get("summa")
+
+        all_balance = Waitress.objects.filter(create_date=end_date).extra(
+            select={'create_date': 'create_date'}).values('create_date') \
+            .annotate(summa=Sum('balance'))[0].get("summa")
+
+        samsa = Waitress.objects.filter(create_date=end_date).extra(
+            select={'create_date': 'create_date'}).values('create_date') \
+            .annotate(summa=Sum('samsa') + Sum('samsa_potato'))[0].get("summa")
+
+        kebab = Waitress.objects.filter(create_date=end_date).extra(
+            select={'create_date': 'create_date'}).values('create_date') \
+            .annotate(summa=Sum('kebab'))[0].get("summa")
+        if Samsa.objects.filter(create_date=end_date).exists():
+            consumption_result = []
+            if SamsaConsumption.objects.filter(create_date=end_date).exists():
+                data_samsa_consumption = SamsaConsumption.objects.filter(create_date=end_date)
+                for item in data_samsa_consumption:
+                    consumption_result.append(item.sum_of_samsa_consumption)
+            if Samsa.objects.filter(create_date=end_date).exists():
+                samsa_control = Samsa.objects.get(create_date=end_date)
+            else:
+                samsa_control = 0
+            samsa_result = (samsa_control.sum_of_samsa_meat +
+                            samsa_control.sum_of_samsa_potato - samsa)
+        else:
+            samsa_result = 0
+            samsa = 0
+        if not SaveEveryDaysReport.objects.filter(create_date=end_date).exists():
+            SaveEveryDaysReport.objects.create(all_balance=int(all_balance + samsa_result), kitchen=int(kitchen),
+                                               samsa=samsa, kebab=kebab, create_date=end_date)
+        else:
+            report = SaveEveryDaysReport.objects.get(create_date=end_date)
+            report.all_balance = int(all_balance + samsa_result)
+            report.kitchen = kitchen
+            report.samsa = samsa
+            report.kebab = kebab
+            report.save()
+
+        return HttpResponseRedirect(reverse_lazy("not_ended_report"))
+
+class ReportByHourView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/report_by_hour.html'
+
+    def get(self, request, *args, **kwargs):
+        today = datetime.now()
+
+        # Default start and end times as strings
+        default_start_time = today.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        default_end_time = today.replace(hour=23, minute=59, second=59, microsecond=0).isoformat()
+
+        # Get start and end times from the request, falling back to defaults
+        start_time = request.GET.get('start_time', default_start_time)
+        end_time = request.GET.get('end_time', default_end_time)
+
+        try:
+            # Convert start_time and end_time to datetime objects
+            start_time = datetime.fromisoformat(start_time)
+            end_time = datetime.fromisoformat(end_time)
+        except ValueError:
+            # Fallback in case of invalid input
+            start_time = datetime.fromisoformat(default_start_time)
+            end_time = datetime.fromisoformat(default_end_time)
+
+        # Format end_time for input without seconds
+        end_time_display = end_time.strftime('%Y-%m-%dT%H:%M')
+
+        # Query for hourly sales
+        hourly_sales = (
+            OrderMeal.objects.filter(
+                create_date__date=today.date(),
+                create_date__gte=start_time,
+                create_date__lte=end_time
+            )
+            .annotate(hour=TruncHour('create_date'))
+            .values('hour')
+            .annotate(total_price=Sum('price'))
+            .order_by('hour')
+        )
+
+        # Pass context to the template
+        context = {
+            'hourly_sales': hourly_sales,
+            'start_time': start_time.isoformat(),
+            'end_time': end_time_display,  # End time formatted for the input
+        }
+        return render(request, self.template_name, context)
+
+
+
+class TaxAutoDataView(TemplateView):
+    template_name = 'rayhan/report/tax_automatization.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Получаем логин и пароль из настроек или переменных окружения
+        username = settings.SALYK_USERNAME
+        password = settings.SALYK_PASSWORD
+
+        try:
+            # Получаем данные с помощью функции
+            data = login_and_fetch_data(username, password)
+            context['data'] = data
+
+        except Exception as e:
+            context['error'] = str(e)
+
+        return context
+
+
+class InComeView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/income.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Получение заказов на текущую дату
+        meals_count = OrderMeal.objects.filter(create_date__date=datetime.now().date()).annotate(
+            day=TruncDay('create_date')
+        ).values('day', 'name', 'quantity', 'is_paid').order_by('-day')
+
+        # Словарь для хранения результатов
+        result_data = []
+
+        # Перебор заказов
+        for item in meals_count:
+            name_item = item.get("name")
+            meal_count_item = int(item.get("quantity"))
+            is_paid = item.get("is_paid")
+
+            try:
+                # Получение данных блюда из меню
+                meal_data = MealsInMenu.objects.get(name=name_item)
+
+                # Расчет дохода
+                revenue = meal_count_item * meal_data.price
+
+                # Расчет расходов
+                meal_recipes = MealRecipes.objects.filter(meal__menu_item__name=name_item)
+                total_expenses = sum(
+                    recipe.weight * recipe.name_product.price for recipe in meal_recipes
+                )
+
+                # Расчет прибыли
+                profit = revenue - total_expenses
+
+                # Добавление в результат
+                result_data.append({
+                    'name': name_item,
+                    'quantity': meal_count_item,
+                    'revenue': revenue,
+                    'expenses': total_expenses,
+                    'profit': profit,
+                    'is_paid': is_paid,
+                })
+
+            except MealsInMenu.DoesNotExist:
+                # Если блюдо не найдено в меню
+                continue
+
+        context['meals_report'] = result_data
+        return context

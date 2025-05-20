@@ -1,0 +1,37 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <a href="{% url 'main' %}" class="mx-auto text-dark">
+        Запрос на открытые смену
+    </a>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="p-2 margin-bottom-170">
+        {% for waiter in waitress %}
+        <h2 class="text-center"></h2>
+        <div class="fs-3 bg-dark text-white text-center group_item_style"><span>{{waiter.user.username}}</span> Хочеть открыть смену</div>
+        <a   href="{% url 'confirm-shift-to-start' waiter.id %}" class="w-75 mx-auto my-5 text-center rounded border border-dark d-block fs-3 bg-success text-white">Разрешить</a>
+
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+
+<script>
+
+</script>
+{% endblock scripts %}

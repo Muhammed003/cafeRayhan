@@ -1,0 +1,18 @@
+{% extends '../main/base.html' %}
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Управление отчётами продуктов
+</div>
+{% endblock header %}
+{% block content %}
+<div class="bg-light">
+    <div class="container pt-2">
+        <a href="{% url 'product-price' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
+        <a href="{% url 'meal-recipes' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🧾🧾 </span>Рецепты</a>
+        <a href="{% url 'meat_order' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
+        <a href="{% url 'meat_order' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
+    </div>
+</div>
+
+{% endblock %}

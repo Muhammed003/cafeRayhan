@@ -1,0 +1,73 @@
+{% extends '../main/base.html' %}
+{% block style %}
+.custom-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.custom-form label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.custom-form input,
+.custom-form textarea,
+.custom-form select {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    width: 100%;
+}
+
+.custom-form input:focus,
+.custom-form textarea:focus,
+.custom-form select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.card-body {
+    background-color: #f8f9fa;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.25rem;
+    font-size: 1.125rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.ms-3 {
+    margin-left: 1rem;
+}
+
+{% endblock style %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Изменить комментарии </h2>
+                    <form method="POST" class="custom-form">
+                        {% csrf_token %}
+                        {{ form.as_p|safe }}
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">Изменить</button>
+                            <a href="{% url 'meal-list' %}" class="btn btn-secondary btn-lg ms-3">Отменить</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Налог
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+    <h3 class="text-danger text-center">Выручка</h3>
+        <h4 class="text-center"> {{data}}</h4>
+    <!-- Displaying the total revenue -->
+
+</div>
+{% endblock content %}
+
+{% block position %}
+{% endblock position %}

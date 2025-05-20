@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+<head>
+    <title>Райхан кафе войти</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--===============================================================================================-->
+    <link href="{% static 'account/image/png' %}" rel="stylesheet" type="text/css">
+    <!--===============================================================================================-->
+    <!--===============================================================================================-->
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/fonts/iconic/css/material-design-iconic-font.min.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/vendor/animate/animate.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/vendor/css-hamburgers/hamburgers.min.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/vendor/animsition/css/animsition.min.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/vendor/select2/select2.min.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/vendor/daterangepicker/daterangepicker.css' %}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'account/css/util.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'account/css/main.css' %}">
+
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="{% static 'vendor/bootstrap-5.2.0/css/bootstrap.min.css' %}">
+    <!--===============================================================================================-->
+</head>
+<body>
+
+<div class="limiter">
+    <div class="container-login100" >
+        <div class="wrap-login100">
+            <form id="login-form" class="login100-form validate-form" autocomplete="off" method="POST">
+                {% csrf_token %}
+                <span class="login100-form-logo">
+                    <img src="{% static 'account/r.png' %}" width="100%">
+                </span>
+
+                <span class="login100-form-title p-b-34 p-t-27">
+                    Войти
+                </span>
+                <input style="opacity: 0;position: absolute;">
+                <input type="password" style="opacity: 0;position: absolute;">
+
+                <div class="wrap-input100 validate-input" data-validate="Введите номер телефона">
+                    <input class="input100" type="text" name="phone_number" id="phone_number" placeholder="Введите номер телефона" autocomplete="off">
+                    <span class="focus-input100" data-placeholder="&#xf207;"></span>
+                </div>
+                <div class="wrap-input100 validate-input" data-validate="Введите пароль">
+                    <input class="input100" type="password" name="password" id="password" placeholder="Введите пароль" autocomplete="off"/>
+                    <span class="focus-input100" data-placeholder="&#xf191;"></span>
+                     <div class="show-password-container">
+                         <i class="fa fa-eye" id="togglePassword"></i>
+                    </div>
+                </div>
+					<div class="alert alert-danger d-none" role="alert" id="password-error"></div>
+
+                <div class="contact100-form-checkbox">
+                    <input class="input-checkbox100" id="remember_me" type="checkbox" name="remember_me">
+                    <label class="label-checkbox100" for="remember_me">
+                        Запомнить меня
+                    </label>
+                </div>
+
+                <div class="container-login100-form-btn">
+                    <button class="login100-form-btn">
+                        Войти
+                    </button>
+                </div>
+
+                <div class="text-center p-t-90">
+                    <a class="txt1" href="#">
+                        Забыл пароль ?
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="dropDownSelect1"></div>
+
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/jquery/jquery-3.2.1.min.js' %}"></script>
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/animsition/js/animsition.min.js' %}"></script>
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/bootstrap/js/popper.js' %}"></script>
+<script src="{% static 'account/vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/select2/select2.min.js' %}"></script>
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/daterangepicker/moment.min.js' %}"></script>
+<script src="{% static 'account/vendor/daterangepicker/daterangepicker.js' %}"></script>
+<!--===============================================================================================-->
+<script src="{% static 'account/vendor/countdowntime/countdowntime.js' %}"></script>
+<!--===============================================================================================-->
+
+<script>
+
+document.getElementById('phone_number').addEventListener('input', function() {
+    var phoneNumber = this.value;
+    var numericPhoneNumber = phoneNumber.replace(/\D/g, '');
+    // Check if the number starts with 996
+    if (!numericPhoneNumber.startsWith('996')) {
+        // Add 996 to the beginning of the number
+        numericPhoneNumber = '996' + numericPhoneNumber;
+    }
+    // Limit the number to 9 digits after adding the prefix
+    var limitedPhoneNumber = numericPhoneNumber.substring(0, 12); // +996 and 9 digits
+    // Format the number with spaces if needed (e.g., +996 123 456 789)
+    var formattedPhoneNumber = limitedPhoneNumber.replace(/(\d{3})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
+    // Update the input field value
+    this.value = formattedPhoneNumber.trim();
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    var password = this.value;
+    if (!validatePassword(password)) {
+    document.getElementById("password-error").classList.remove("d-none");
+
+        document.getElementById("password-error").innerHTML =
+            'Пароль должен содержать как минимум 8 символов, включая минимум одну строчную букву, одну заглавную букву и одну цифру';
+    } else {
+        document.getElementById("password-error").classList.add("d-none");
+    }
+});
+
+function validatePassword(password) {
+    // Check if password is not empty and meets the required criteria
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password);
+}
+
+function validatePhoneNumber(phoneNumber) {
+    // Regular expression for Russian phone numbers (10 digits)
+    var phoneRegex = /^\d{9}$/;
+    return phoneRegex.test(phoneNumber);
+}
+const icon = document.getElementById('togglePassword');
+let password = document.getElementById('password');
+
+icon.addEventListener('click', function() {
+  if(password.type === "password") {
+    password.type = "text";
+    icon.classList.add("fa-eye-slash");
+    icon.classList.remove("fa-eye");
+  }
+  else {
+    password.type = "password";
+    icon.classList.add("fa-eye");
+    icon.classList.remove("fa-eye-slash");
+  }
+});
+</script>
+
+</body>
+</html>

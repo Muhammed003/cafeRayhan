@@ -1,0 +1,166 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'request-close-shift' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Закрытые смену
+        {% if messages %}
+            {% for message in messages %}
+                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="p-2 margin-bottom-170">
+        <div class="text-center fw-bold border-bottom border-dark border-2 mb-2">{% now "d.m.Y" %}</div>
+        <div class="d-flex w-100 border border">
+           {% regroup data by user as sorted_list %}
+            {% for group in sorted_list  %}
+            <div class="waitress_filter" id="{{group.grouper.id}}">{{group.grouper.username}}</div>
+            {% endfor %}
+
+        </div>
+            {% regroup data by user as sorted_data %}
+            {% for group in sorted_data  %}
+            <div class="m-1 report_list">
+                {% for item in group.list  %}
+                <div class="all_waitress   {{group.grouper.id}}">
+                    <form method="POST" autocomplete="off">
+                        {% csrf_token %}
+                         <input type="hidden" name="user_id" value="{{group.grouper.id}}">
+                            <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Кухня</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="kitchen" value="{{item.kitchen}}"></div>
+                            </div>
+                             <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Самса</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="samsa" value="{{item.samsa}}"></div>
+                            </div>
+                             <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Самса к</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="samsa_potato" value="{{item.samsa_potato}}"></div>
+                            </div>
+                             <div class="d-flex border my-1">
+                                <div class="w-50  ps-1 border-end border-dark">Шашлык</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="kebab" value="{{item.kebab}}"></div>
+                            </div>
+                             <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Нан</div>
+                                <div class="w-25 text-center"><input type="number" class="w-100 border-0 text-center" name="bread" value="{{item.bread}}"></div>
+                             {% if bread_waitress %}
+                              {% for bread_item_in in bread_waitress %}
+
+                                     {% if  item.bread == bread_item_in.quantity %}
+<!--                                                                  {{bread_item_in.quantity}}-->
+
+                                    <div class="w-25 border-start border-dark text-white  text-center bg-success">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                     {% elif item.bread < bread_item_in.quantity %}
+                                         <div class="w-25 border-start border-dark bg-danger  text-center text-white">{{bread_item_in.quantity}}</div>
+                                    {% elif item.bread > bread_item_in.quantity %}
+                                         <div class="w-25 border-start border-dark bg-success text-white  text-center text-white">{{bread_item_in.quantity}}</div>
+                                    {% endif %}
+                                 {% endfor %}
+                             {% else %}
+                              <div class="w-25 border-start border-dark bg-secondary text-white  text-center text-white"></div>
+                             {% endif %}
+                            </div>
+                             <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Чай</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="tea" value="{{item.tea}}"></div>
+                            </div>
+                         <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Шербет</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="sherbet" value="{{item.sherbet}}"></div>
+                            </div>
+                        <div class="d-flex border my-1">
+                                <div class="w-50  px-1 border-end border-dark">Напитки</div>
+                                <div class="w-50 text-center"><input type="number" class="w-100 border-0 text-center" name="drinks" value="{{item.drinks}}"></div>
+                            </div>
+                             <div class="d-flex border my-1 mb-2">
+                                <div class="w-50  px-1 border-end border-dark bg-dark text-white">Общий</div>
+                                <div class="w-50 text-center bg-light">{{item.balance}}</div>
+                            </div>
+                                <div class="text-center fw-bold">Расходы</div>
+                                 {% for consumption in item.consumption_waitress.all  %}
+                                <div class="d-flex border my-1">
+                                    <div class="w-50  px-1 border-end border-dark">{{consumption.name}}</div>
+                                    <div class="w-50 text-center">{{consumption.summa}}</div>
+                                </div>
+                                {% endfor %}
+                                 <div class="d-flex border my-1">
+                                        <div class="w-50  px-1 border-end border-dark bg-dark text-white">Общий</div>
+                                        <div class="w-50 text-center">{{item.consumption}}</div>
+                                 </div>
+                                 <div class="d-flex border my-1">
+                                        <div class="w-50  px-1 border-end border-dark bg-success text-white">Итого</div>
+                                        <div class="w-50 text-center">{{item.sum_all_of_fields}}</div>
+                                 </div>
+                        <button class="btn btn-sm btn-info btn-block w-100"> Изменить</button>
+                    </form>
+
+                	</div>
+                {% if  item.bread == bread_waitress.0.quantity %}
+                 <a href="{% url 'end-shift-waitress' item.id  %}" class="btn btn-sm btn-success mt-5 p-2 btn-block w-100"> Закрыть смену</a>
+
+                {% else %}
+                <button class="btn btn-sm btn-success mt-5 p-2 btn-block w-100" disabled> Нельзя</button>
+                {% endif %}
+                {% endfor %}
+
+
+            </div>
+
+            {% endfor %}
+
+    </div>
+
+
+</section>
+
+
+
+
+
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+
+var el = document.querySelectorAll('.waitress_filter');
+console.log(el)
+let my_divs = document.querySelectorAll('.report_list .all_waitress');
+for (let i = 0; i < el.length; i++) {
+  el[i].onclick = function() {
+
+  for (let x = 0; x < my_divs.length; x++) {
+  if (my_divs[x].className.includes(this.id)) {
+    my_divs[x].style.setProperty('display', 'block', 'important');
+  }
+  else{
+  my_divs[x].style.setProperty('display', 'none', 'important');
+  }
+}
+    var c = 0;
+    while (c < el.length) {
+      el[c++].className = 'waitress_filter';
+    }
+    el[i].className = 'waitress_report waitress_report_active';
+  };
+}
+     el[0].className = 'waitress_report waitress_report_active';
+     my_divs[0].style.setProperty('display', 'block', 'important');
+
+</script>
+{% endblock scripts %}

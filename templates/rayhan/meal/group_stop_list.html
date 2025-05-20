@@ -1,0 +1,241 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block title %}
+Стоп лист
+{% endblock title %}
+
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Группа стоп листов
+</div>
+<div class=""><a href="{% url 'add-group-stop-list' %}" class="button-menu text-dark border border-dark p-1 mx-1 rounded"><i class="fa-solid fa-plus-circle"></i>  </a></div>
+<div class=""><a href="{% url 'add-item-stop-list' %}" class="button-menu text-dark border border-dark p-1 mx-1 rounded"><i class="fa-solid fa-list"></i>  </a></div>
+{% endblock header %}
+
+{% block style %}
+<style>
+.mid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rocker {
+    display: inline-block;
+    position: relative;
+    font-size: 2em;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    color: #888;
+    width: 7em;
+    height: 4em;
+    overflow: hidden;
+    border-bottom: 0.5em solid #eee;
+}
+
+.rocker-small {
+    font-size: 0.4em;
+    margin: 0;
+}
+
+.rocker::before {
+    content: "";
+    position: absolute;
+    top: 0.5em;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #999;
+    border: 0.5em solid #eee;
+    border-bottom: 0;
+}
+
+.rocker input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-left,
+.switch-right {
+    cursor: pointer;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.5em;
+    width: 3em;
+    transition: 0.2s;
+}
+
+.switch-left {
+    height: 2.4em;
+    width: 2.75em;
+    left: 0.85em;
+    bottom: 0.4em;
+    background-color: #ddd;
+    transform: rotate(15deg) skewX(15deg);
+}
+
+.switch-right {
+    right: 0.5em;
+    bottom: 0;
+    background-color: #bd5757;
+    color: #fff;
+}
+
+.switch-left::before,
+.switch-right::before {
+    content: "";
+    position: absolute;
+    width: 0.4em;
+    height: 2.45em;
+    bottom: -0.45em;
+    background-color: #ccc;
+    transform: skewY(-65deg);
+}
+
+.switch-left::before {
+    left: -0.4em;
+}
+
+.switch-right::before {
+    right: -0.375em;
+    background-color: transparent;
+    transform: skewY(65deg);
+}
+
+input:checked + .switch-left {
+    background-color: #0084d0;
+    color: #fff;
+    bottom: 0px;
+    left: 0.5em;
+    height: 2.5em;
+    width: 3em;
+    transform: rotate(0deg) skewX(0deg);
+}
+
+input:checked + .switch-left::before {
+    background-color: transparent;
+    width: 3.0833em;
+}
+
+input:checked + .switch-left + .switch-right {
+    background-color: #ddd;
+    color: #888;
+    bottom: 0.4em;
+    right: 0.8em;
+    height: 2.4em;
+    width: 2.75em;
+    transform: rotate(-15deg) skewX(-15deg);
+}
+
+input:checked + .switch-left + .switch-right::before {
+    background-color: #ccc;
+}
+
+/* Keyboard Users */
+input:focus + .switch-left {
+    color: #333;
+}
+
+input:checked:focus + .switch-left {
+    color: #fff;
+}
+
+input:focus + .switch-left + .switch-right {
+    color: #fff;
+}
+
+input:checked:focus + .switch-left + .switch-right {
+    color: #333;
+}
+
+@media (min-width: 768px) {
+    .meal-block {
+        column-count: 3;
+        height: 83vh;
+        column-gap: 10px;
+        column-rule: 3px dashed #333;
+        column-fill: auto;
+    }
+}
+</style>
+{% endblock style %}
+
+{% block content %}
+<section id="menu">
+    <div class="container-fluid pt-2">
+        <div class="meal-block" id="stop-list-block">
+            {% regroup data_of_group_item by name as sorted_data_of_group_item %}
+            {% for group in sorted_data_of_group_item %}
+            <form method="POST" enctype="multipart/form-data" id="post-form">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between fs-4 border border-4 p-2 rounded-top border-bottom-0" id="{{group.id}}">
+                    <div class="w-75">{{group.grouper}}</div>
+                    <div class="form-check form-switch">
+                        <div class="mid">
+                            <label class="rocker rocker-small">
+                                <input type="hidden" name="name_meal" value="{{group.grouper}}">
+                                {% if group.grouper in stop_list %}
+                                <input type="checkbox" name="meals" value="off" data-meal-off-id="{{group.id}}" onChange="this.form.submit()" />
+                                {% else %}
+                                <input type="checkbox" name="meals" value="on" data-meal-id="{{group.id}}" onChange="this.form.submit()" checked/>
+                                {% endif %}
+                                <span class="switch-left">On</span>
+                                <span class="switch-right">Off</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-4 border-top-0 p-2 rounded-bottom">
+                    {% for item in group.list %}
+                    <div class="d-flex justify-content-between">
+                        <div>{{item.name_related_meal}}</div>
+                        <div class="form-check form-switch">
+                            <div class="mid">
+                                <label class="rocker rocker-small">
+                                    {% if item.name in stop_list %}
+                                    <input type="checkbox" disabled name="meals" value="off" data-meal-off-id="{{item.id}}" onChange="this.form.submit()" />
+                                    {% else %}
+                                    <input type="checkbox" disabled name="meals" value="on" data-meal-id="{{item.id}}" onChange="this.form.submit()" checked/>
+                                    {% endif %}
+                                    <span class="switch-left">On</span>
+                                    <span class="switch-right">Off</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Робот</strong>
+            <small>сейчас</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <!-- Toast content -->
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+<script>
+// Define the meals array in JavaScript
+const meals = [{% for meal in meals %}{"name": "{{ meal.name }}", "id": "{{ meal.id }}"},{% endfor %}];
+</script>
+<script src="{% static 'javascript/voice_control.js' %}"></script>
+{% endblock scripts %}

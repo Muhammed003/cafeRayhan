@@ -1,0 +1,35 @@
+{% extends '../../main/base_report.html' %}
+{% load static %}
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Долги за месяц
+        {% if messages %}
+            {% for message in messages %}
+                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+<section id="menu">
+    <div class="container pt-2 fs-3">
+        {% for month, usernames in grouped_data.items %}
+            <div class="d-block w-100 bg-danger text-white text-shadow-dark m-1 rounded p-3 text-center">
+                {{ month }}
+            </div>
+            {% for username in usernames %}
+                <a href="{% url 'debts_by_month_detail'  month %}?username={{ username }}" class="d-block w-100 bg-success text-white text-shadow-dark m-1 rounded p-3">{{ username }}</a>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+</script>
+{% endblock scripts %}

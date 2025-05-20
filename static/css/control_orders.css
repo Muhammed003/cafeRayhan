@@ -1,0 +1,93 @@
+.order-main {
+   display: flex;
+}
+
+.header-order {
+    display: flex;
+    justify-content: between;
+}
+
+.header-order div:first-child {
+    width: 35%;
+}
+
+.header-order div:nth-child(2) {
+    width: 25%;
+}
+
+.header-order > div, .link_order_header {
+    width: 20%;
+    text-align: center;
+    padding: 6px;
+    display:block;
+}
+input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.number-input {
+  border: 0;
+  display: flex;
+  background: #efefef;
+  width: 100%;
+}
+
+.number-input,
+.number-input * {
+  box-sizing: border-box;
+}
+
+.number-input button {
+  outline:none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 2rem;
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+  padding: 5px;
+}
+
+.number-input button:before,
+.number-input button:after {
+  display: inline-block;
+  position: absolute;
+  content: '';
+  width: 0.5rem;
+  height: 2px;
+  background-color: #000;
+  transform: translate(-50%, -50%);
+
+}
+.number-input button.plus:after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.number-input input[type=number] {
+ font-family: sans-serif;
+}
+
+@media (max-width: 768px) {
+    .order-main{
+    display:block;
+    }
+    .order-main .user-select-none{
+        width: 100% !important;
+    }
+    .order-main .filtering-block{
+        width: 100% !important;
+        height: 300px;
+        overflow: auto
+    }
+}
