@@ -89,7 +89,7 @@ class ReportNoteBook(RoleRequiredMixin, TemplateView):
             if WaitressBread.objects.filter(create_date=datetime.now().date()).exists():
                 context["bread_waitress"] = WaitressBread.objects.filter(create_date=datetime.now().date()).extra(
                 select={'author': 'author'}).values("waitress_bread_type_id") \
-                .annotate(quantity=Sum('quantity') * 35)
+                .annotate(quantity=Sum('quantity') * 30)
         if not Waitress.objects.filter(create_date=datetime.now().date(), shift=True).exists():
             meals = OrderMeal.objects.filter(create_date__date=datetime.now().date()).annotate(
                 day=TruncDay('create_date')).values('day').annotate(
@@ -173,7 +173,7 @@ class RequestShiftDetailView(RoleRequiredMixin, TemplateView):
                     waitress_bread_type_id=self.pk,
                     create_date=datetime.now().date()
                 ).annotate(
-                    quantity_multiplied=F('quantity') * 35
+                    quantity_multiplied=F('quantity') * 30
                 ).values(
                     "waitress_bread_type_id"
                 ).annotate(
@@ -945,7 +945,7 @@ class ReportYesterdayView(RoleRequiredMixin, TemplateView):
                 total_bread=Sum("quantity"))["total_bread"] or 0
 
             # Calculate the result
-            result = (total_sum - bread_price) + (sum_bread*35)
+            result = (total_sum - bread_price) + (sum_bread*30)
 
             waitress_data.append({
                 "waitress": waitress,
@@ -1020,7 +1020,7 @@ class HistoryDetailReportView(RoleRequiredMixin, LoginRequiredMixin, TemplateVie
             if WaitressBread.objects.filter(create_date=my_date).exists():
                 context["bread_waitress"] = WaitressBread.objects.filter(create_date=my_date).extra(
                     select={'author': 'author'}).values("waitress_bread_type_id") \
-                    .annotate(quantity=Sum('quantity') * 35)
+                    .annotate(quantity=Sum('quantity') * 30)
         if not Waitress.objects.filter(create_date=my_date, shift=True).exists():
             meals = OrderMeal.objects.filter(create_date__date=my_date).annotate(
                 day=TruncDay('create_date')).values('day').annotate(
