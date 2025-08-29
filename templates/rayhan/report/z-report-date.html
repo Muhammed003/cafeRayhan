@@ -1,0 +1,45 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        История z отчет
+    </div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="container pt-2">
+        {% regroup list_of_history by create_date|date:"F" as objects_by_create_date %}
+        {% for group in objects_by_create_date %}
+
+        <div class="fw-bold bg-success border rounded p-2 text-center text-white">{{group.grouper}}</div>
+        {% regroup group.list by create_date|date:"d-m-Y"   as group_list %}
+        {% for item in group_list %}
+        <div></div>
+        <a href="{% url 'z-report-detail' item.grouper %}" class="fw-bold d-block bg-light m-2  border rounded p-2 text-center border-dark">{{item.grouper}}</a>
+        {% endfor %}
+    {% endfor %}
+    </div>
+</section>
+
+
+{% block position %}
+
+
+
+{% endblock position %}
+
+
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+
+</script>
+{% endblock scripts %}

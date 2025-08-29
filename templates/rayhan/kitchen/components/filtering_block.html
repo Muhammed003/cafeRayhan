@@ -1,0 +1,40 @@
+<div class="filtering-block w-25">
+    <h3 class="text-center">Фильтрация</h3>
+       <div class="p-1 all_orders_filter">
+            <button class="btn btn-warning w-100" data-filter="all" data-value="all">Все заказы</button>
+        </div>
+    <div class="d-flex justify-content-between">
+        <div class="number_of_order_filter w-25 border-end  border-3 border-dark m-1 p-1">
+            <h5 class="text-center"><i class="fa-solid fa-hashtag"></i></h5>
+            {% for order in list_of_orders %}
+                {% ifchanged order.number_of_order %}
+                    <button class="btn btn-dark w-100 my-1" data-filter="number_of_order" data-value="{{ order.number_of_order }}">{{ order.number_of_order }}</button>
+                {% endifchanged %}
+            {% endfor %}
+        </div>
+
+        <div class="number_of_desk_filter w-25  border-end  border-3 border-dark m-1 p-1">
+            <h5 class="text-center"><i class="fa-solid fa-couch"></i></h5>
+            {% for order in list_of_orders %}
+                {% ifchanged order.number_of_desk %}
+                    {% if  order.number_of_desk == 0 %}
+                        <button class="btn btn-dark my-1" data-filter="number_of_desk" data-value="0"><i class="fa-solid fa-car"></i></button>
+                    {% else %}
+                        <button class="btn btn-dark my-1" data-filter="number_of_desk" data-value="{{ order.number_of_desk }}">{{ order.number_of_desk }}</button>
+                    {% endif %}
+                {% endifchanged %}
+            {% endfor %}
+        </div>
+
+        <div class="username_filter w-50  border-end  border-3 border-dark m-1 p-1">
+            <h5 class="text-center"><i class="fa-solid fa-user"></i></h5>
+            {% for order in list_of_orders %}
+                {% ifchanged order.author.username %}
+                    <button class="btn btn-dark w-100 my-1" data-filter="username" data-value="{{ order.author.username }}">{{ order.author.username }}</button>
+                {% endifchanged %}
+            {% endfor %}
+        </div>
+
+        <!-- Add other filters/buttons here if needed -->
+    </div>
+</div>

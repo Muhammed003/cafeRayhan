@@ -1,0 +1,28 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+      Торт отчёт
+    </div>
+{% endblock header %}
+
+
+
+{% block content %}
+{% for item in waitress %}
+  <div class="d-flex m-2 border rounded border-2 border-dark">
+    <div class="w-50 bg-warning  p-2 rounded-start">{{item.user.username}}</div>
+    <div class="w-50 bg-light   p-2 rounded-end text-center">{{item.cakes}}</div>
+  </div>
+{% endfor %}
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="module" src="{% static 'javascript/control_orders.js' %}"></script>
+{% endblock scripts %}
+
+

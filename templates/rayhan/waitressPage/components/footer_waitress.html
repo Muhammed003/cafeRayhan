@@ -1,0 +1,70 @@
+<!-- Footer Section -->
+<div class="box_footer">
+    <div class="footer__menu footer_set_rotate">
+        {% if desks_type  %}
+        <a href="{% url 'desks' %}" class="footer__block__icon">
+            <span><i class="fa-solid fa-couch"></i></span>
+        </a>
+        {% else %}
+             <a href="{% url 'desks_simple' %}" class="footer__block__icon">
+                <span><i class="fa-solid fa-couch"></i></span>
+             </a>
+        {% endif %}
+        <a href="{% url 'take-away-page' %}" class="footer__block__icon">
+            <span><i class="fa-solid fa-truck"></i></span>
+        </a>
+        {% if busy_number_of_desk %}
+        <a href="#" class="footer__block__icon_1000">
+            <span><i class="fa-solid fa-shop"></i></span>
+        </a>
+        {% else %}
+         <a href="{% url 'new-order-meal' %}?desk=1000&&people=0" class="footer__block__icon">
+            <span><i class="fa-solid fa-shop"></i></span>
+        </a>
+        {% endif %}
+    </div>
+    <div class="footer">
+        <a href="{% url 'waitress-kitchen' %}" class="text-center {% if request.path == '/waitress/kitchen/' %}active{% endif %}">
+            <div class="footer__block__icon"><i class="fa-solid fa-kitchen-set"></i></div>
+            <div>Заказы</div>
+        </a>
+        <a href="{% url 'order-bill' 'active' %}" class="text-center {% if request.path == '/waitress/bill/active/' %}active{% endif %}">
+            <div class="footer__block__icon"><i class="fa-solid fa-receipt"></i></div>
+            <div>Счёт</div>
+        </a>
+        <a id="button_order" class="{% if  waitress.is_blocked %} btn disabled {% endif%}" tabindex="-1" role="button" aria-disabled="true" >
+            {% if  waitress.is_blocked %}
+            <div class="d-flex justify-content-center align-items-center"></div>
+                {{remaining_time}}
+            {% else %}
+                <div class="footer__block__icon"> <i class="fa-solid fa-clover"></i></div>
+            {% endif %}
+        </a>
+        <a href="{% url 'order-bill' 'history' %}" class="text-center {% if request.path == '/waitress/bill/history/' %}active{% endif %}">
+            <div class="footer__block__icon"><i class="fa-solid fa-history"></i></div>
+            <div>История</div>
+        </a>
+        <a href="{% url 'consumptions-waitress' %}" class="text-center {% if request.path == '/waitress/consumptions/' %}active{% endif %}">
+            <div class="footer__block__icon"><i class="fa-solid fa-money-check"></i></div>
+            <div>Расходы</div>
+        </a>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.getElementById('button_order').addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent event bubbling
+        var menu = document.querySelector('.footer__menu');
+        var box_footer = document.querySelector('.box_footer');
+        if (menu.classList.contains('footer_set_rotate')) {
+            menu.classList.remove('footer_set_rotate');
+            menu.classList.add('footer_none_rotate');
+        } else {
+            menu.classList.remove('footer_none_rotate');
+            menu.classList.add('footer_set_rotate');
+        }
+    });
+
+</script>
+{% endblock scripts %}

@@ -1,0 +1,18 @@
+<div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasTopLabel">Количества блюд заказов</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body "  id="meal-quantities">
+      <div class="meal-quantity-top">
+         {% for meal in meal_quantities %}
+          <div class="d-flex m-1 border border-1 rounded">
+            <div class="p-1 w-75">{{ meal.name }}</div>
+            <div class="p-1 w-25 bg-dark text-white border-start text-center rounded-end">
+              {{ meal.total_quantity|floatformat:0 }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+  </div>
+</div>

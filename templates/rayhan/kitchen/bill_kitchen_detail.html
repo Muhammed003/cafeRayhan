@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}{% endblock title %} Кафе </title>
+    <meta name="description" content="Roxy">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.2.0/css/bootstrap.min.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400|Work+Sans:300,400,700" rel="stylesheet">
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/waitress_page.css' %}" rel="stylesheet" type="text/css">
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            width: 80mm; /* Printer width */
+            height: 100%;
+            background-color: #fff;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10mm;
+        }
+
+        .header img {
+            max-width: 80%;
+            margin-bottom: 5mm;
+        }
+
+        .header h4, .header h5, .header h6 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        #content {
+            padding: 5mm;
+        }
+
+        .content-item {
+            margin: 3mm 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .content-item div {
+            font-size: 1em;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .total {
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15mm;
+        }
+
+        .print-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 1em;
+            margin-top: 10mm;
+            text-align: center;
+        }
+
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            .print-button {
+                display: none;
+            }
+            body {
+                padding: 0;
+                width: 80mm;
+                height: auto;
+            }
+            #content {
+                padding: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<section class="header">
+    <h4 class="fw-bold text-uppercase text-center">
+         <a href="{% url 'bills-all-kitchen' %}" />
+          <img src="{% static 'account/r.png' %}" alt="Кафе Райхан Logo" height="100">
+         </a>
+
+    </h4>
+    <h4 class="fw-bold text-uppercase">КАФЕ КАРАВАН</h4>
+    <h5 class="text-uppercase">Предварительный</h5>
+    <h6 class="text-uppercase">Код чека: № <span class="px-2 border-bottom border-dark">{{code_bill}}</span></h6>
+</section>
+
+<section id="content">
+    <div class="d-flex justify-content-between">
+        <div>Дата: {{info_data.create_date|date:"d.m.Y"}}</div>
+        <div>Время: {{info_data.create_date|date:"H:i:s"}}</div>
+    </div>
+    <div>Место: Стол № {{info_data.number_of_desk}}</div>
+    <div>Официант:  {{info_data.author.username}}</div>
+    <h6 class="text-center my-3">Наименование блюд и товаров</h6>
+
+    {% for order in orders %}
+    <div class="content-item">
+        <div>{{ forloop.counter }}.</div>
+        <div class="w-50 ps-1">{{order.name}}</div>
+        <div class="w-25">{{order.quantity}}
+            {% for item in meals_in_menu %}
+                {% if order.name == item.name %}
+                    *<span class="p-2">{{item.price}}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="w-25 text-end">= {{order.price}}</div>
+    </div>
+    {% endfor %}
+
+    <div class="content-item">
+        <div>#</div>
+        <div class="w-50 ps-1">ОБСЛУЖИВАНИЕ</div>
+        <div class="w-25">{{info_data.people_in_desk}} * {{service_price}}</div>
+        <div class="w-25 text-end">= {{info_data.price_of_service}}</div>
+    </div>
+
+    <div class="total text-end">ВСЕГО: <span class="ps-3">{{bill}}</span></div>
+    <div class="total text-end">ИТОГО К ОПЛАТЕ: <span class="ps-3">{{bill}}</span></div>
+
+    <div class="footer">
+        <div>Всегда мы рады вам !!!</div>
+    </div>
+</section>
+
+<button class="print-button" onclick="window.print();">Печать чека</button>
+
+<script src="{% static 'fontawesomefree/js/all.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap-5.2.0/js/bootstrap.bundle.min.js' %}"></script>
+
+<script>
+    history.pushState(null, null, location.href);
+    window.onpopstate = function(event) {
+        history.go(1); // Go forward one step, effectively preventing going back more than one page
+    };
+</script>
+
+</body>
+</html>

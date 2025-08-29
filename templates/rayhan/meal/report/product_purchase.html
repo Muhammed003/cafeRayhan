@@ -1,0 +1,70 @@
+{% extends '../../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'meal-report-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i></a>
+<div class="mx-auto">
+    <h5 class="text-center">Покупки ингредиентов</h5>
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container mt-3">
+    <!-- Purchase Form -->
+    <form method="post" class="card shadow-sm p-3 rounded mb-4">
+        {% csrf_token %}
+        <div class="mb-2">
+            <label for="ingredient" class="form-label">Ингредиент</label>
+            <select name="ingredient" id="ingredient" class="form-select">
+                {% for ingredient in ingredients %}
+                    <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-2">
+            <label for="quantity" class="form-label">Количество</label>
+            <input type="number" step="0.01" name="quantity" id="quantity" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="price_per_unit" class="form-label">Цена за единицу</label>
+            <input type="number" step="0.01" name="price_per_unit" id="price_per_unit" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Добавить покупку</button>
+    </form>
+
+    <!-- Purchases Table -->
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Дата</th>
+                    <th>Ингредиент</th>
+                    <th>Количество</th>
+                    <th>Цена</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                    <tr>
+                        <td>{{ purchase.date|date:"d.m.Y H:i" }}</td>
+                        <td>{{ purchase.ingredient.name }}</td>
+                        <td>{{ purchase.quantity }}</td>
+                        <td>{{ purchase.price_per_unit }}</td>
+                        <td>
+                            <form method="post" action="?delete={{ purchase.id }}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-muted">Нет данных</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <!--
+     - Roxy: Bootstrap template by GettTemplates.com
+     - https://gettemplates.co/roxy
+    -->
+    <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}{% endblock title %} Райхан кафе </title>
+    <meta name="description" content="Roxy">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- External CSS -->
+
+    <!-- CSS -->
+    <!-- Modernizr JS for IE8 support of HTML5 elements and images queries -->
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.2.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400|Work+Sans:300,400,700" rel="stylesheet">
+     <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
+
+    <!-- CSS -->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">-->
+
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/home_page.css' %}" rel="stylesheet" type="text/css">
+    {% block link_style %}
+    {% endblock link_style %}
+</head>
+<style>
+ {% block style %}
+ {% endblock style %}
+</style>
+<body>
+<section class="header">
+    <div class="header-main d-flex justify-content-around px-3">
+        {% block header %}
+
+        {% endblock header %}
+
+    </div>
+</section>
+
+    <div class="position-relative pb-5 mb-5">
+    {% block content %}
+    {% endblock content %}
+     </div>
+
+    {% block position %}
+    {% endblock position %}
+
+    {% block scripts %}
+    {% endblock scripts %}
+<script defer>
+history.pushState(null, null, location.href);
+window.onpopstate = function(event) {
+    history.go(1); // Go forward one step, effectively preventing going back more than one page
+};
+const vapidPublicKey = "BGa9bXY208-c4yGVS6QtHU47IxrddDd4M7UIfVm8-KmKj0dBFFYA79UFq_vKkRp3WG82ocalY5t-pInBs94igiM";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function subscribeUser(registration) {
+  const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+console.log('Type:', typeof applicationServerKey); // object
+console.log('Is Uint8Array?', applicationServerKey instanceof Uint8Array); // true
+console.log('Length:', applicationServerKey.length); // 65
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey
+  });
+
+  console.log('Subscribed:', subscription);
+
+  // Отправить subscription на сервер
+  await fetch('/accounts/subscribe_user/', {
+    method: 'POST',
+    body: JSON.stringify(subscription),
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  });
+}
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  navigator.serviceWorker.register('/static/javascript/sw.js').then(registration => {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        subscribeUser(registration);
+      }
+    });
+  });
+}
+</script>
+
+	<script src="{% static 'fontawesomefree/js/all.min.js' %}"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+	<script src="{% static 'vendor/bootstrap-5.2.0/js/bootstrap.bundle.min.js' %}"></script>
+<script defer>
+
+     history.pushState(null, null, location.href);
+window.onpopstate = function(event) {
+    history.go(1);
+};
+</script>
+
+</body>
+</html>

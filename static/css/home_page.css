@@ -1,0 +1,60 @@
+a{
+    text-decoration: none !important;
+    color: #000;
+    font-family: "Arial";
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+* { padding: 0; margin: 0; }
+
+/*===== Home-main  ======*/
+.header-main {
+    background: #3FA34D; /* зелёный из логотипа */
+    padding: 12px 20px;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    color: #fff;
+}
+
+/* ----------home_page style------- */
+.bg-secondary-light{
+background: #c5d9d8;
+}
+.cursor-pointer{
+    cursor: pointer;
+}
+.text-shadow-dark{
+    text-shadow: -1px 1px 0 #111,
+	1px 1px 0 #333,
+	1px -1px 0 #000,
+	-1px -1px 0 #222;
+}
+.bg-order-edited{
+    background: linear-gradient(to right, #ec2F4B, #009FFF);
+}
+
+.bg-block-list-group{
+    background: #ffffffa6;
+    border-radius: 5px;
+    text-shadow: 1px 1px 1px #fff;
+}
+.bg-ui-gradient-1{
+     display: -webkit-box;
+     display: -ms-flexbox;
+     display: flex;
+     -webkit-box-orient: vertical;
+     -webkit-box-direction: normal;
+     -ms-flex-direction: column;
+     flex-direction: column;
+     min-height: 100vh;
+    background: #005C97;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #363795, #005C97);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #363795, #005C97); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}

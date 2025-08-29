@@ -1,0 +1,119 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block style %}
+<style>
+body {
+  background-color: #f5f7fa;
+}
+.meal-card .card-header {
+  background-color: #f8f9fa;
+}
+.toggle-group {
+  font-size: 14px;
+  padding: 4px 8px;
+}
+.date-item {
+  font-size: 15px;
+}
+</style>
+
+{% endblock style %}
+{% block header %}
+<nav class="navbar   shadow-sm p-2">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    <a href="{% url 'main' %}" class="btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="m-0 fw-bold">История блюд по дням</div>
+    <button class="btn btn-outline-primary d-md-none" data-bs-toggle="offcanvas" data-bs-target="#filterPanel">
+      <i class="fa-solid fa-filter"></i>
+    </button>
+  </div>
+</nav>
+{% endblock header %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Search & Filter -->
+  <div class="row mb-4 align-items-end">
+    <div class="col-md-6">
+      <label class="form-label">Поиск по блюду</label>
+      <input type="text" id="searchInput" class="form-control" placeholder="Например: Плов...">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">От</label>
+      <input type="date" id="startDate" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">До</label>
+      <input type="date" id="endDate" class="form-control">
+    </div>
+  </div>
+
+  <!-- Meals List -->
+  <div id="mealsContainer">
+    {% regroup meals_count by name as meals_by_name %}
+    {% for group in meals_by_name %}
+      <div class="card mb-3 meal-card" data-meal="{{ group.grouper|lower }}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">{{ group.grouper }}</span>
+          <button class="btn btn-sm btn-outline-secondary toggle-group" data-target="group-{{ forloop.counter }}">
+            ▼
+          </button>
+        </div>
+        <ul class="list-group list-group-flush collapse show" id="group-{{ forloop.counter }}">
+          {% for item in group.list %}
+            <li class="list-group-item date-item" data-date="{{ item.day|date:'Y-m-d' }}">
+              <span>{{ item.day|date:"d F Y" }}</span>
+              <span class="float-end fw-bold">{{ item.summa|floatformat:"0" }} шт</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.toggle-group').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      target.classList.toggle('show');
+      btn.textContent = target.classList.contains('show') ? '▼' : '►';
+    });
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const startDate = document.getElementById('startDate');
+  const endDate = document.getElementById('endDate');
+
+  function filterMeals() {
+    const searchValue = searchInput.value.toLowerCase();
+    const start = startDate.value;
+    const end = endDate.value;
+
+    document.querySelectorAll('.meal-card').forEach(card => {
+      const mealName = card.dataset.meal;
+      const matchSearch = mealName.includes(searchValue);
+      let hasVisibleDates = false;
+
+      card.querySelectorAll('.date-item').forEach(item => {
+        const date = item.dataset.date;
+        const visibleByDate =
+          (!start || date >= start) &&
+          (!end || date <= end);
+
+        item.style.display = visibleByDate ? 'block' : 'none';
+        if (visibleByDate) hasVisibleDates = true;
+      });
+
+      card.style.display = (matchSearch && hasVisibleDates) ? 'block' : 'none';
+    });
+  }
+
+  [searchInput, startDate, endDate].forEach(el => {
+    el.addEventListener('input', filterMeals);
+  });
+</script>
+{% endblock scripts %}

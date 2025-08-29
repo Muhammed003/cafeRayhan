@@ -1,0 +1,70 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Продажа
+        {% if messages %}
+            {% for message in messages %}
+                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+    {% if data %}
+    <div class="container mt-3">
+        <div class="d-flex bg-dark justify-content-between border rounded-top">
+            <div class="text-white w-50 p-2">Наименование</div>
+            <div class="text-success p-2"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="text-danger p-2"><i class="fa-solid fa-xmark"></i></div>
+            <div class="text-success p-2"><i class="fa-solid fa-check-double"></i></div>
+        </div>
+        <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Общий</div>
+            <div class="text-success p-2">{{all_balance}}</div>
+            <div class="text-danger p-2">+{{count_not_closed_orders}}</div>
+            <div class="text-success p-2">={{all_balance|add:count_not_closed_orders}}</div>
+        </div>
+        <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Кухня</div>
+            <div class="text-success p-2">{{kitchen}}</div>
+            <div class="text-danger p-2">+{{count_not_closed_orders_kitchen}}</div>
+            <div class="text-success p-2">= {{kitchen|add:count_not_closed_orders_kitchen}}</div>
+        </div>
+        <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Нац кухня</div>
+             <div class="text-danger p-2"></div>
+             <div class="text-danger p-2">{{unpaid_national_kitchen_total}}</div>
+            <div class="text-success p-2">= {{national_kitchen}}</div>
+        </div>
+         <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Уйгурская кухня</div>
+            <div class="text-danger p-2"></div>
+            <div class="text-danger p-2">{{unpaid_uyghur_kitchen_total}}</div>
+            <div class="text-success p-2">= {{uyghur_kitchen}}</div>
+        </div>
+        <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Самса</div>
+            <div class="text-success p-2">{{samsa}}</div>
+            <div class="text-danger p-2">+{{count_not_closed_orders_samsa}}</div>
+            <div class="text-success p-2">={{samsa|add:count_not_closed_orders_samsa}}</div>
+        </div>
+        <div class="d-flex justify-content-between border">
+            <div class="name border-end w-50  p-2">Шашлык</div>
+            <div class="text-success p-2">{{kebab}}</div>
+            <div class="text-danger p-2">+{{count_not_closed_orders_shashlyk}}</div>
+            <div class="text-success p-2">={{kebab|add:count_not_closed_orders_shashlyk}}</div>
+        </div>
+        <h4 class="text-primary display-4 m-2 text-center">Людей</h4>
+        <div class="fw-bold fs-3 text-center">{{sum_people}}</div>
+
+    </div>
+    {% endif %}
+{% include './trading.html' %}
+{% include './history_days_report.html' %}
+{% endblock content %}

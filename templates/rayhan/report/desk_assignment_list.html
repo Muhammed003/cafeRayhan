@@ -1,0 +1,32 @@
+{% extends '../main/base_report.html' %}
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Распределение группы
+    </div>
+<a href="{% url 'divide_desks' %}" class="mx-2"><i class="fa-solid fa-couch"></i> </a>
+<a href="{% url 'desk-assignment-create' %}" class="mx-2"><i class="fa-solid fa-plus"></i> </a>
+</div>
+{% endblock header %}
+{% block content %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Официант</th>
+                <th>Группа стола</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for assignment in assignments %}
+            <tr>
+                <td>{{ assignment.waitress }}</td>
+                <td>{{ assignment.desk_group }}</td>
+                <td>{{ assignment.shift_date|date:"d.m.Y" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+   <div class="text-center"><a href="{% url 'desk-assignment-create' %}" class="btn btn-primary mx-auto">Добавить</a></div>
+{% endblock %}

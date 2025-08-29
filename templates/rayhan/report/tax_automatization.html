@@ -1,0 +1,38 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Налог
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container mt-5 text-center">
+    {% if data %}
+        <h4 class="text-success">Выручка:</h4>
+        <p class="fs-4">{{ data }}</p>
+    {% elif error %}
+        <h4 class="text-danger">Ошибка:</h4>
+        <p>{{ error }}</p>
+    {% elif waiting %}
+        <h4 class="text-warning">Загрузка данных...</h4>
+        <p>Подождите пару секунд...</p>
+        <script>
+            setTimeout(function () {
+                window.location.reload();
+            }, 3000);
+        </script>
+    {% else %}
+        <p>Запускаем задачу...</p>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block position %}
+{% endblock position %}

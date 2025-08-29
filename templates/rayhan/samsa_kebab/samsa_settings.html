@@ -1,0 +1,95 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block header %}
+<a href="{% url 'settings_list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div>Самса настройки</div>
+<div></div>
+{% endblock header %}
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="jumbotron d-flex" style="background-image: url({% static 'img/shop_price.jpg' %})">
+  <div class="container">
+
+    <div class="bg-white p-2">
+        <div class="btn-group text-dark my-2">
+          <a data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample" class="btn btn-sm btn-info rounded-left text-white"> <i class="fa fa-plus"></i>  Добавить поля</a>
+          <button class="btn btn-sm btn-primary rounded-right" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Удалить поля</button>
+        </div>
+
+      <form method="POST" class="text-center" autocomplete="off">
+        {% csrf_token %}
+        {% for form_item in form_list %}
+          <input name="item_id" type="hidden" value="{{form_item.id}}">
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-dark text-white w-50">Мясная самса</span>
+            <input name="samsa_meat_price" type="float" inputmode="numeric" class="form-control text-center" id=""  value="{{form_item.samsa_meat_price}}"
+                   aria-describedby="basic-addon3">
+            <span class="input-group-text bg-dark text-white">сом</span>
+          </div>
+
+         <div class="input-group mb-3">
+            <span class="input-group-text bg-dark text-white w-50">Мясная самса</span>
+            <input name="samsa_potato_price" type="float" inputmode="numeric" class="form-control text-center"  value="{{form_item.samsa_potato_price}}"
+                   aria-describedby="basic-addon3">
+           <span class="input-group-text bg-dark text-white">сом</span>
+          </div>
+
+         <div class="input-group mb-3">
+            <span class="input-group-text bg-dark text-white w-50">Денег за штук мясная самса</span>
+            <input name="samsishnik_meat_pay" type="float" inputmode="numeric" class="form-control text-center"  value="{{form_item.samsishnik_meat_pay}}"
+                   aria-describedby="basic-addon3">
+           <span class="input-group-text bg-dark text-white">сом</span>
+          </div>
+
+         <div class="input-group mb-3">
+            <span class="input-group-text bg-dark text-white w-50">Денег за штук картошка самса</span>
+            <input name="samsishnik_potato_pay" type="float" inputmode="numeric" class="form-control text-center"   value="{{form_item.samsishnik_potato_pay}}"
+                   aria-describedby="basic-addon3">
+           <span class="input-group-text bg-dark text-white">сом</span>
+          </div>
+
+        {% endfor %}
+        <button class="btn btn-sm btn-primary rounded" name="change-item">Изменить</button>
+        </form>
+    </div>
+
+    </div>
+  </div>
+<div class="offcanvas offcanvas-start  bg-info" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Добавление</h5>
+    <button class="btn-close " data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+  </div>
+  <div class="offcanvas-body d-flex align-items-center">
+    <form class="d-block w-100 text-center" method="POST" autocomplete="off">
+      <div>
+              {% csrf_token %}
+              {{ form|crispy }}
+      </div>
+      <div class="mt-3 text-center  justify-content-center">
+        <button class="btn btn-dark text-white rounded" name="add-item">
+          Добавить
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasRightLabel">Удаление</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+  </div>
+  <div class="offcanvas-body">
+     {% for form_item in form_list %}
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-dark text-white w-50" id="basic-addon2">{{form_item.create_date}}</span>
+            <input name="{{form_item.name}}" type="float" inputmode="numeric" class="form-control w-25 text-center"   value="{{form_item.weight}}"
+                   aria-describedby="basic-addon2">
+            <a href="{% url 'samsa_settings_delete' form_item.id %}"  onclick="return confirm('Вы уверены что хотите удалить это?')" class="input-group-text bg-danger text-white" onclick="return confirm('Вы уверены что хотите удалить это?')"><i class="fa fa-trash"></i></a>
+          </div>
+        {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

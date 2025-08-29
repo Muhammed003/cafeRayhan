@@ -1,0 +1,22 @@
+{% extends '../main/base_report.html' %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'desk-assignment-list' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Добавление
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+    <h2 class="text-center">Номер столы для групп</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'desk-assignment-list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

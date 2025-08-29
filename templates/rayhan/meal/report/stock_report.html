@@ -1,0 +1,93 @@
+{% extends '../../main/base.html' %}
+{% load static %}
+{% block header %}
+<a href="{% url 'meal-report-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i></a>
+<div class="mx-auto">
+    <h5 class="text-center">📦 Остатки на складе</h5>
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container my-4">
+    <!-- Для больших экранов -->
+    <div class="d-none d-md-block">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Ингредиент</th>
+                        <th>Нач. остаток</th>
+                        <th>Приход</th>
+                        <th>Расход</th>
+                        <th>Сегодня</th>
+                        <th>Остаток</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ingredients_data %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.ingredient.name }}</td>
+                        <td>{{ item.initial }}</td>
+                        <td>{{ item.purchased }}</td>
+                        <td>{{ item.used }}</td>
+                        <td class="text-warning">{{ item.used_today }}</td>
+                        <td class="fw-bold {% if item.remaining < 5 %}text-danger{% else %}text-success{% endif %}">
+                            {{ item.remaining }}
+                        </td>
+                    </tr>
+                </tbody>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">Нет данных об ингредиентах.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Для мобильных устройств -->
+    <div class="d-block d-md-none">
+    {% for item in ingredients_data %}
+        <div class="card shadow-sm mb-3 border-0 rounded-3">
+            <div class="card-body p-3">
+                <h5 class="card-title fw-semibold text-primary mb-3">{{ item.ingredient.name }}</h5>
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>🗓 Начальный остаток:</span>
+                        <strong>{{ item.initial }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>📥 Приход:</span>
+                        <strong>{{ item.purchased|default:"0" }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center text-warning">
+                        <span>🧾 Использовано всего:</span>
+                        <strong>{{ item.used|default:"0" }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center text-warning">
+                        <span>📅 Сегодня использовано:</span>
+                        <strong>{{ item.used_today|default:"0" }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center fw-bold
+                        {% if item.remaining < 5 %}
+                            text-danger
+                        {% else %}
+                            text-success
+                        {% endif %}
+                    ">
+                        <span>✅ Остаток:</span>
+                        <span>{{ item.remaining|default:"0" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info text-center">Нет данных об ингредиентах.</div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

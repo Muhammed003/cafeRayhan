@@ -1,0 +1,59 @@
+{% extends "../main/base.html" %}
+{% block style %}
+.block-card{
+  display: block;
+  padding: 20px;
+  margin: 15px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 23px #333;
+  transition: .1s;
+}
+a.block-card:hover{
+  color: #000;
+  transform: scale(1.01);
+  transition: .1s;
+}
+{% endblock style %}
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Настройки кафе
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'meat_settings' %}" class="block-card">
+          <h3 class="text-center">🥩</h3>
+          <h4 class="text-center">Мясо настройки по умолчанию</h4>
+          <div class="description">
+              Введите количество мяса (в кг) для каждого блюда, чтобы правильно рассчитать необходимые мясо.
+          </div>
+        </a>
+    </div>
+     <div class="col-md-3 col-sm-6">
+        <a href="{% url 'samsa_settings' %}" class="block-card">
+          <h3 class="text-center">🥯</h3>
+          <h4 class="text-center">Самса настройки по умолчанию</h4>
+          <div class="description">
+              Введите цены самса , чтобы правильно рассчитать самсы.
+          </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'settings_program' %}" class="block-card">
+          <h3 class="text-center"><i class="fa-solid fa-gears"></i> </h3>
+          <h4 class="text-center">Настроить программу</h4>
+          <div class="description">
+              Можеть быть опасно
+          </div>
+        </a>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock content%}

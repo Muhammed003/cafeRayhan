@@ -1,0 +1,24 @@
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasBottom" aria-labelledby="offcanvasBottomLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasBottomLabel">Добавить</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body small">
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="type">Приноситель лепёшек</label>
+                <select class="form-control" id="type" name="type" required>
+                    <option value="Шеф">Шеф</option>
+                    <option value="Пекар">Пекар</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Количества</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" step="0.1" required>
+            </div>
+            <button type="submit" name="add_breadComing" class="btn btn-primary mt-2 mx-auto d-block">Добавить</button>
+        </form>
+  </div>
+</div>

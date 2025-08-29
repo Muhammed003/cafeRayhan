@@ -1,0 +1,82 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Время приготовления
+    </div>
+</div>
+{% endblock header %}
+
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="bg-dark px-2 d-flex justify-content-between m-3">
+            <a href="?time=1-5" class="text-white p-2 text-center border-end w-25">1-5</a>
+            <a href="?time=5-10" class="text-white p-2 text-center border-end w-25">5-10</a>
+            <a href="?time=10-15" class="text-white p-2 text-center border-end w-25">10-15</a>
+            <a href="?time=15-20" class="text-white p-2 text-center w-25">15-20</a>
+            <a href="?time=20-60" class="text-white p-2 border-start text-center w-25">20-60</a>
+        </div>
+    <div class="container pt-2">
+
+        {% regroup time_cooked by number_of_order as sorted_time_cooked %}
+        {% for group in sorted_time_cooked %}
+        <a href="" class="rounded">
+            <div class="d-flex w-100 justify-content-between bg-success rounded">
+               <div class=" w-25 text-white text-shadow-dark  p-2 rounded-start fw-bold">{{group.grouper}} - заказ</div>
+                {% for item in group.list %}
+                    {% ifchanged item.number_of_order  %}
+                   <div class="w-25 text-white text-shadow-dark border-start text-center p-2 fw-bold">{{item.author.username}}</div>
+                {% if  item.number_of_desk == 0 %}
+                   <div class="w-25 text-primary text-shadow-white border-start text-center  p-2 rounded-end fw-bold">сабой</div>
+                {% else %}
+                   <div class="w-25 text-white text-shadow-dark border-start text-center  p-2 rounded-end fw-bold">{{item.number_of_desk}} - стол</div>
+                {% endif %}
+
+                   <div class="w-25 text-white text-shadow-dark border-start text-center  p-2 rounded-end fw-bold">{{item.create_date|date:"H:i"}}</div>
+                {% endifchanged %}
+                {% endfor %}
+            </div>
+             {% for item in group.list %}
+            <div class="d-flex text-dark border m-2 rounded">
+                <div class="bg-order-info w-50 p-2 bg-primary text-white text-shadow-dark">{{   item.name }}</div>
+                {% if not item.time_cooked == None %}
+                <div class="bg-order-info w-50 p-2 text-center"><span class="text-danger">{{item.time_cooked }}</span>-минут</div>
+                {% else %}
+                <div class="bg-order-info w-50 p-2 text-center"><span class="text-danger">0</span>-минут</div>
+                {% endif %}
+            </div>
+
+
+            {% endfor %}
+        </a>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+
+<script>
+ document.addEventListener("DOMContentLoaded", function(event) {
+            var scrollpos = localStorage.getItem('scrollpos');
+            if (scrollpos) window.scrollTo(0, scrollpos);
+        });
+
+        window.onbeforeunload = function(e) {
+            localStorage.setItem('scrollpos', window.scrollY);
+        };
+</script>
+{% endblock scripts %}

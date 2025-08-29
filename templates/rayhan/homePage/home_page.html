@@ -1,0 +1,177 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+
+{% include './components/menu_left_page_kitchen.html' %}
+    <a href="{% url 'main' %}" class="mx-auto">
+        Главная
+    </a>
+<div class="button-menu-right cursor-pointer"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+
+{% endblock header %}
+
+{% block content %}
+<div class="container my-3 p-0">
+<!--    """""""""""""""""""""BLOCK-HEADER""""""""""""""""""""""-->
+     <div class="d-flex mb-2 p-1">
+        <a href="{% url 'orders-in-kitchen' %}" class="w-25">
+            <div class="text-center"><i class="fa-solid fa-kitchen-set"></i></div>
+            <div class="text-center">Заказ кухня</div>
+        </a>
+         <a href="{% url 'uyghur-kitchen' %}" class="w-25">
+            <div class="text-center"><i class="fa-solid fa-plate-wheat"></i></div>
+            <div class="text-center">Уйгурская кухня</div>
+        </a>
+         <a href="{% url 'national-kitchen' %}" class="w-25">
+            <div class="text-center"><i class="fa-solid fa-feather-pointed"></i></div>
+            <div class="text-center">Нац кухня</div>
+        </a>
+         <a href="{% url 'list-of-nomination' %}" class="w-25">
+            <div class="text-center"><i class="fa-solid fa-bolt"></i></div>
+            <div class="text-center">Заказать</div>
+        </a>
+
+    </div>
+
+    <!--    """""""""""""""""""""END-BLOCK-HEADER""""""""""""""""""""""-->
+
+    <!-- Container for blocks -->
+    <div id="blockContainer"></div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+const data = [
+ {% if user.roles == "administrator" or user.roles == "chef"  or user.roles == "employee" %}
+  {
+    subject_name: 'Кухня',
+    items: [
+      { icon: 'fa-solid fa-mug-hot', name: 'Чай', link: "kitchen/tea/orders/" },
+      { icon: 'fa-solid fa-rotate-left', name: 'История заказов', link: "kitchen/control/orders/" },
+      { icon: 'fa-solid fa-stop', name: 'Стоп лист', link: "meal/stop/list/" },
+      { icon: 'fa-solid fa-circle-info', name: 'Ограничения блюд', link: "meal/in_stock/" },
+      { icon: 'fa-solid fa-trash', name: 'Удаленные заказы', link: "kitchen/deleted_orders/list/" },
+      { icon: 'fa-solid fa-star', name: 'Рейтинговая блюд', link: "meal/rating/" },
+      { icon: 'fa-solid fa-medal', name: 'Рейтинг официанты', link: "waitress/rate_waitress/" },
+      { icon: 'fa-solid fa-list', name: 'Чек', link: "kitchen/bills_kitchen/" },
+    ],
+  },
+  {% endif %}
+   {% if user.roles == "samsishnik" or user.roles == "chef" %}
+      {
+        subject_name: 'Самса и Шашлыки',
+        items: [
+          { icon: 'fa-solid fa-mobile', name: 'Самса-Шашлык', link: "samsa/kebab/" },
+          { icon: 'fa-solid fa-bread-slice', name: 'Самса', link: "samsa/order_samsa/" },
+          { icon: 'fa-solid fa-ellipsis', name: 'Шашлык', link: "samsa/order_kebab/" },
+          { icon: 'fa-solid fa-rotate-left', name: 'История шашлыки', link: "samsa/history_samsa_kebab/" },
+          { icon: 'fa-solid fa-plus', name: 'Самса отчёт', link: "samsa/samsa_report/" },
+          { icon: 'fa-regular fa-window-restore', name: 'Блюда штук самсы', link: "meal/quantity/" },
+          { icon: 'fa-solid fa-credit-card', name: 'Оплата по QR', link: "waitress/pay_with_qr_code/" },
+
+        ],
+      },
+   {% endif %}
+
+   {% if user.roles == "cake_maker" or user.roles == "chef" %}
+      {
+        subject_name: 'Десерты',
+        items: [
+          { icon: 'fa-solid fa-mobile', name: 'Заказ торт', link: "kitchen/cakes/" },
+          { icon: 'fa-solid fa-rotate-left', name: 'История торты', link: "kitchen/control/orders/" },
+          { icon: 'fa-solid fa-window-restore', name: 'Блюда штук торты', link: "meal/cakes/quantity/" },
+          { icon: 'fa-solid fa-book', name: 'Отчет торты', link: "report/cakes_report" },
+        ],
+      },
+   {% endif %}
+
+  {% if user.roles == "administrator" or user.roles == "chef" %}
+  {
+    subject_name: 'Управление блюдами',
+    items: [
+      { icon: 'fa-solid fa-clipboard-list', name: 'Блюды', link: "meal/list/" },
+      { icon: 'fa-regular fa-window-restore', name: 'Блюда штук', link: "meal/quantity/" },
+      { icon: 'fa-solid fa-globe', name: 'Средний штук', link: "meal/average_quantity/" },
+      { icon: 'fa-solid fa-window-restore', name: 'Остаток самса мясо', link: "samsa/rest_meat/" },
+      { icon: 'fa-solid fa-calendar-days', name: 'История блюды штук', link: "meal/history/quantity_meals/" },
+    ],
+  },
+  {% endif %}
+  {
+    subject_name: 'Официантки',
+    items: [
+      { icon: 'fa-solid fa-stopwatch', name: 'Смена официанта', link: "kitchen/shift-waitress/" },
+      {% if user.roles == "administrator" or user.roles == "chef" %}
+      { icon: 'fa-solid fa-couch', name: 'Распределить столы', link: "report/desk/assignments/" },
+      {% endif %}
+    ],
+  },
+  {% if user.roles == "chef" %}
+  {
+    subject_name: 'Отчёт',
+    items: [
+      { icon: 'fa-solid fa-stopwatch', name: 'Статистика продаж', link: "report/analytics/" },
+      { icon: 'fa-solid fa-stopwatch', name: 'Продажа', link: "report/sale_day/" },
+      { icon: 'fa-solid fa-clock', name: 'Продажа по месяцам', link: "report/sale_month/" },
+      { icon: 'fa-solid fa-book', name: 'Отчёт лист', link: "report/notebook/" },
+      { icon: 'fa-solid fa-book', name: 'История отчёта', link: "report/history/" },
+      { icon: 'fa-solid fa-shop-slash', name: 'Закрытые смену', link: "report/request_to_close_shift/" },
+      { icon: 'fa-solid fa-receipt', name: 'История чеков', link: "report/bill_is_paid/" },
+      { icon: 'fa-solid fa-hourglass-end', name: 'Незавершенный отчёты', link: "report/not_ended_report/" },
+      { icon: 'fa-solid  fa-z', name: 'z-Отчёт', link: "report/z_report/" },
+      { icon: 'fa-brands fa-square-lastfm', name: 'Вчерашний отчет', link: "report/yesterday/" },
+      { icon: 'fa-solid fa-calendar-days', name: 'Управление официантками', link: "report/waitress/control_crud/" },
+
+    ],
+  },
+  {
+    subject_name: 'Другие',
+    items: [
+
+      { icon: 'fa-solid fa-credit-card', name: 'Долги за месяц', link: "report/debts/waitress/by_month/" },
+      { icon: 'fa-solid fa-list-check', name: 'Управление блюд с отчётами', link: "meal/report/list/" },
+      { icon: 'fa-solid fa-gears', name: 'База данный', link: "app-control/" },
+      { icon: 'fa-solid fa-clock', name: 'Отчет по времени', link: "report/by_hour/" },
+      { icon: 'fa-solid fa-receipt', name: 'Налоговой отчетности', link: "report/tax_auto/" },
+      { icon: 'fa-solid  fa-layer-group', name: 'Доход-прибыль', link: "report/income/" },
+      { icon: 'fa-solid  fa-clock', name: 'Время приготовления', link: "report/time_cooked/" },
+      { icon: 'fa-solid fa-user', name: 'Наёмники', link: "employee/" },
+    ],
+  },
+  {% endif %}
+];
+
+// Function to create a single block item
+function createBlockItem(icon, name, link) {
+  return `
+    <a href="/${link}" class="block__item d-flex p-2 fs-5 border-bottom">
+      <div class="block__inner_item__icon me-4"><i class="${icon}"></i></div>
+      <div class="block__inner_item__name">${name}</div>
+    </a>
+  `;
+}
+
+// Function to create the entire block
+function createBlock(data) {
+  const blockContainer = document.getElementById('blockContainer');
+  let html = '';
+  for (const block of data) {
+    html += `
+      <div class="block">
+        <div class="block__subject_name bg-secondary-light p-2 text-center">
+          ${block.subject_name}
+        </div>
+    `;
+    for (const item of block.items) {
+      html += createBlockItem(item.icon, item.name, item.link);
+    }
+    html += `</div>`;
+  }
+  blockContainer.innerHTML = html;
+}
+
+// Call the function to generate the blocks
+createBlock(data);
+</script>
+{% endblock %}

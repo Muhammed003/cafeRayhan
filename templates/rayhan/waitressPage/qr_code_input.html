@@ -1,0 +1,29 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+    {% with link_to_back='pay_with_qr_code'  %}
+      {% include '../waitressPage/components/arrow_left.html'   %}
+    {% endwith %}
+    {% with name_of_page='Qr код'  %}
+      {% include '../waitressPage/components/name_page.html'   %}
+    {% endwith %}
+{% endblock header %}
+
+
+{% block content %}
+
+
+{% if qr_code_bill %}
+  <div class="text-center mt-4">
+    <p>QR код для оплаты:</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ qr_code_bill|urlencode }}&size=200x200" alt="QR для оплаты">
+            <h4 class="my-2 fw-bold"><a href="{{ qr_code_bill }}" target="_blank">{{bill}} сом</a></h4>
+          </div>
+{% endif %}
+
+{% endblock content %}
+
+{% block footer %}
+{% include '../waitressPage/components/footer_waitress.html' %}
+{% endblock footer %}
+

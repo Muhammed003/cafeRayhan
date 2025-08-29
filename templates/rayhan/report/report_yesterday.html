@@ -1,0 +1,75 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+<div class="header-main">
+    <a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i></a>
+    <div class="mx-auto">Отчёт вчерашний</div>
+    <div></div>
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container report-container">
+    {% for item in waitress_data %}
+    <div class="waitress-card">
+        <h3 class="waitress-name">Официант: {{ item.waitress.user.username }}</h3>
+        <div class="waitress-info">
+            <div class="info-item">Баланс: <span>{{ item.waitress.balance }}</span></div>
+            <div class="info-item">Незавершённые заказы: <span>{{ item.unended_orders }}</span></div>
+            <div class="info-item">Лепёшка: <span>{{ item.bread }}</span></div>
+            <div class="info-item">Сумма из базы: <span>{{ item.summa_from_data }}</span></div>
+            <div class="info-item result">Результат: <span>{{ item.result }}</span></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
+
+{% block styles %}
+<style>
+    .report-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+    .waitress-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        transition: transform 0.3s ease;
+    }
+    .waitress-card:hover {
+        transform: scale(1.05);
+    }
+    .waitress-name {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .waitress-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .info-item {
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    .info-item span {
+        font-weight: bold;
+    }
+    .result {
+        color: #d9534f;
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+{% endblock styles %}

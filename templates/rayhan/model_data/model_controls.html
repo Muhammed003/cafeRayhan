@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Data Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Model Data</h1>
+
+        <!-- Filters -->
+        <form id="filterForm" class="mb-4">
+            <div class="row">
+                <div class="col">
+                    <input type="date" id="start_date" class="form-control" placeholder="Start Date">
+                </div>
+                <div class="col">
+                    <input type="date" id="end_date" class="form-control" placeholder="End Date">
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Table -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable">
+                <tr>
+                    <td colspan="3" class="text-center">No Data Available</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Variables for dynamically setting model URL
+        const appLabel = "your_app_label";  // Replace with actual app label dynamically or via user input
+        const modelName = "your_model_name"; // Replace with actual model name dynamically or via user input
+
+        // Define the model endpoint dynamically
+        const modelUrl = `/data/${appLabel}/${modelName}/`;
+
+        // Fetch and display data
+        async function fetchData(start_date, end_date) {
+            try {
+                const response = await axios.get(modelUrl, {
+                    params: { start_date, end_date }
+                });
+
+                const data = response.data;
+                const tableBody = document.getElementById("dataTable");
+
+                tableBody.innerHTML = ""; // Clear previous data
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="text-center">No Data Available</td></tr>`;
+                    return;
+                }
+
+                data.forEach((row) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${row.id}</td>
+                        <td>${JSON.stringify(row)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteData(${row.id})">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Delete data
+        async function deleteData(id) {
+            try {
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("action", "delete");
+
+                const response = await axios.post(modelUrl, formData);
+                if (response.data.success) {
+                    alert("Record deleted successfully!");
+                    fetchData(); // Refresh data
+                }
+            } catch (error) {
+                console.error("Error deleting record:", error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById("filterForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const start_date = document.getElementById("start_date").value;
+            const end_date = document.getElementById("end_date").value;
+            fetchData(start_date, end_date);
+        });
+
+        // Initial data fetch
+        fetchData();
+    </script>
+</body>
+</html>

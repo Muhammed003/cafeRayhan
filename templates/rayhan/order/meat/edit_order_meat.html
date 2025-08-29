@@ -1,0 +1,44 @@
+{% extends "../../main/base.html" %}
+{% block header %}
+<a href="{% url 'list-of-nomination' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Мясо
+</div>
+{% endblock header %}
+
+
+{% load crispy_forms_tags %}
+{% block content %}
+<div>
+  <div class="container">
+    <h3 class="text-center">Изменить</h3>
+    <!--      Заказать мясо если нет в базе данных -->
+      <div>
+        <form method="POST" class="text-center" autocomplete="off">
+          {% csrf_token %}
+          {% for meat_item in form_list %}
+          <div class="input-group mb-3">
+            <span class="input-group-text w-50 bg-dark text-white" id="basic-addon3">{{meat_item.name}}</span>
+            {% if meat_item.weight == 0 %}
+            <input type="text" class="form-control" name="{{meat_item.name}}" id="basic-url" aria-describedby="basic-addon3" value="" required>
+            {% else %}
+            <input type="text" class="form-control" name="{{meat_item.name}}" aria-describedby="basic-addon3" value="{{meat_item.weight}}">
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% if request.GET.edit == 'order' %}
+          <button class="btn btn-warning text-lowercase" name="edit-order">Изменить заказ</button>
+          {% else %}
+          <button class="btn btn-warning text-lowercase" name="edit-history">Изменить историю</button>
+          {% endif %}
+
+        </form>
+
+      </div>
+
+
+<!--      ====================== Конец отправка =============================-->
+  </div>
+</div>
+
+{% endblock %}

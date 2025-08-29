@@ -1,0 +1,54 @@
+{% extends '../main/base_waitress.html' %}
+
+{% load static %}
+
+
+{% block header %}
+<a href="{% url 'take-away-page' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+    <div class="mx-auto">
+        С собой заказ
+    {% if messages %}
+        {% for message in messages %}
+               <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    </div>
+<div type="button" class="button_box_new_order" id="button_top"><i class="fa-solid fa-bars"></i></div>
+
+{% endblock header %}
+
+{% block content %}
+<section id="info" class="section-info-bar">
+    <div class="box_new_order">
+        <div class="wait-block d-none fs-2 text-shadow-dark text-white">
+            Ждите
+            <div class=" ms-3 spinner-border text-dark" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <div class="box_new_order__list vh-100">
+            <div class="header-main d-flex justify-content-around p-3">
+                <div  class="button-menu-x"><i class="fa-solid fa-xmark"></i> </div>
+                <div class="mx-auto">
+                Новый заказ
+                </div>
+                <div class="button_box_new_order"></div>
+            </div>
+            <form method="POST" class="overflow-auto">
+                {% csrf_token %}
+                <div class="container  fs-4 overflow-box">
+                    <div class="d-flex justify-content-around p-2 border-bottom">
+                        <div class="fs-2 text-center">С собой</div>
+                    </div>
+                        <div class="ordered-meals">
+
+                        </div>
+                   <div class="text-center send-order"><button class="btn btn-success my-2" id="send_order" name="send_order">Отправить</button></div>
+                </div>
+                </form>
+        </div>
+    </div>
+</section>
+{% include './order-main.html' %}
+{% endblock content %}

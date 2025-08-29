@@ -1,0 +1,194 @@
+{% extends '../main/base.html' %}
+{% block style %}
+<style>
+    body { background-color: #f8f9fa; }
+    .container { max-width: 900px; margin-top: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .table { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); }
+    .table th, .table td { vertical-align: middle; text-align: center; }
+    .modal-header { background-color: #007bff; color: #fff; }
+    .btn-custom { background-color: #007bff; color: white; border-radius: 20px; }
+    .btn-custom:hover { background-color: #0056b3; }
+</style>
+{% endblock style %}
+
+{% block header %}
+<a href="{% url 'meal-report-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">Рецепты Блюд</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addMealRecipeModal">Добавить новый рецепт</button>
+    </div>
+
+
+
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>Продукты</th>
+                <th>Вес</th>
+                <th>Расходы</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% regroup meal_recipes|dictsort:"meal.menu_item.name" by meal as meal_groups %}
+            {% for group in meal_groups %}
+                <tr>
+                    <td colspan="2" class="bg-info text-white text-center">{{ group.grouper }}</td>
+                    <td colspan="2" class="bg-info text-white text-center total-consumption" data-meal="{{ group.grouper.id }}">
+                        0.00
+                    </td>
+                </tr>
+                {% for recipe in group.list %}
+                    <tr class="meal-row" data-meal="{{ group.grouper.id }}">
+                        <td class="text-start">{{ recipe.name_product }}</td>
+                        <td>{{ recipe.weight|floatformat:2 }}</td>
+                        <td class="consumption">{{ recipe.consumption|floatformat:0 }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                    data-bs-target="#editMealRecipeModal"
+                                    data-id="{{ recipe.id }}"
+                                    data-meal="{{ recipe.meal.id }}"
+                                    data-product="{{ recipe.name_product.id }}"
+                                    data-weight="{{ recipe.weight }}">
+                                <i class="fa-solid fa-edit"></i>
+                            </button>
+                            <form method="post" action="{% url 'meal-recipes' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                                <button type="submit" name="delete_recipe" class="btn btn-sm btn-danger">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Meal Recipe Modal -->
+<div class="modal fade" id="addMealRecipeModal" tabindex="-1" aria-labelledby="addMealRecipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить новый рецепт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'meal-recipes' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="meal">Основное блюдо</label>
+                        <select class="form-control" name="meal" required>
+                            {% for meal in meals %}
+                                <option value="{{ meal.id }}">{{ meal }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="name_product">Продукты</label>
+                        <select class="form-control" name="name_product" required>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Вес</label>
+                        <input type="number" step="0.01" class="form-control" name="weight" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" name="add_recipe" class="btn btn-custom">Добавить рецепт</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Meal Recipe Modal -->
+<div class="modal fade" id="editMealRecipeModal" tabindex="-1" aria-labelledby="editMealRecipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать рецепт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'meal-recipes' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="recipe_id" id="editRecipeId">
+                    <div class="form-group">
+                        <label for="editMealId">Основное блюдо</label>
+                        <select class="form-control" id="editMealId" name="meal" required>
+                            {% for meal in meals %}
+                                <option value="{{ meal.id }}">{{ meal }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductId">Продукты</label>
+                        <select class="form-control" id="editProductId" name="name_product" required>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeight">Вес</label>
+                        <input type="number" step="0.1" class="form-control" id="editWeight" name="weight" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" name="edit_recipe" class="btn btn-custom">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.meal-row');
+        const totals = {};
+
+        // Reset total values
+        document.querySelectorAll('.total-consumption').forEach(el => {
+            el.textContent = '0.00';
+        });
+
+        // Sum up consumptions
+        rows.forEach(row => {
+            const mealId = row.dataset.meal;
+            const consumption = parseFloat(row.querySelector('.consumption').textContent) || 0;
+            totals[mealId] = (totals[mealId] || 0) + consumption;
+        });
+
+        // Apply totals
+        for (const mealId in totals) {
+            const totalCell = document.querySelector(`.total-consumption[data-meal="${mealId}"]`);
+            if (totalCell) totalCell.textContent = totals[mealId].toFixed(2);
+        }
+
+        // Fill Edit Modal
+        const editModal = document.getElementById('editMealRecipeModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('editRecipeId').value = button.getAttribute('data-id');
+            document.getElementById('editMealId').value = button.getAttribute('data-meal');
+            document.getElementById('editProductId').value = button.getAttribute('data-product');
+            document.getElementById('editWeight').value = button.getAttribute('data-weight');
+        });
+    });
+</script>
+{% endblock content %}

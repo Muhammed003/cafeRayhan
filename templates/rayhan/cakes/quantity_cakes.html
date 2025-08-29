@@ -1,0 +1,39 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Торты штук
+</div>
+
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="container pt-2">
+        {% regroup meals_count by name as sorted_meals_count %}
+        {% for group in sorted_meals_count %}
+        <div class="d-flex border rounded">
+            <div class="bg-success w-50 text-white text-shadow-dark  p-2 rounded-start">{{group.grouper}}</div>
+                <div class="bg-light w-50 text-center  p-2 rounded-end">
+                    {% for item in group.list %}
+                        {% if item.is_paid %}
+                        {{item.summa|floatformat:0}}
+                        {% else %}
+                        <span class="text-primary">{{item.summa|floatformat:0}}</span>+
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock content %}

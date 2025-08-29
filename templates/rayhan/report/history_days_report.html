@@ -1,0 +1,38 @@
+<div class="container">
+{% regroup history_days_report by create_date|date:"F" as sorted_history_days_report %}
+  {% for group in sorted_history_days_report %}
+      <div class="text-white text-shadow-dark p-2 bg-danger rounded  unusual-radius text-center mb-2 ">{{group.grouper}}</div>
+      <div class="accordion accordion-flush mx-3" id="accordionFlushExample">
+        {% for item in group.list %}
+              <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingTwo">
+                  <button class="accordion-button collapsed bg-info rounded px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{item.id}}" aria-expanded="false" aria-controls="collapseTwo">
+                    <span class="w-50 text-white fw-bold text-shadow-dark bg-warning p-2 rounded-start">{{ item.create_date|date:'d-m-Y' }}</span>
+                    <span class="w-25 text-white fw-bold text-shadow-dark bg-secondary p-2 rounded-end">{{ item.all_balance }}</span>
+                  </button>
+                </h2>
+                <div id="collapse_{{item.id}}" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                  <div class="accordion-body">
+                    <div class="d-flex justify-content-between border-bottom p-1">
+                      <span class="w-50">Кухня</span>
+                      <span>{{item.kitchen}}</span>
+                    </div>
+
+                    <div  class="d-flex justify-content-between border-bottom p-1">
+                      <span class="w-50">Самса</span>
+                      <span>{{item.samsa}}</span>
+                    </div>
+
+                     <div  class="d-flex justify-content-between border-bottom p-1">
+                      <span class="w-50">Кебаб</span>
+                      <span>{{item.kebab}}</span>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+        {% endfor %}
+      </div>
+  {% endfor %}
+
+</div>

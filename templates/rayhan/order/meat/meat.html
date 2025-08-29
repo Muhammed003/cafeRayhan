@@ -1,0 +1,61 @@
+{% extends "../../main/base.html" %}
+{% block header %}
+<a href="{% url 'list-of-nomination' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Мясо
+</div>
+{% endblock header %}
+
+{% block content %}
+{% if is_already_ordered %}
+<div class="container mt-3">
+       <h2 class="text-danger text-center bg-white p-2">Изменить</h2>
+      <a href="{% url 'edit_meat_view' %}?edit=order" class="text-decoration-none">
+         <div class="toast-header bg-white">
+             <strong class="me-auto">Заказано</strong>
+              <small class="text-muted">{{time_ordered.whenpublished }}</small>
+         </div>
+          <div class=" text-white">
+              <div class="d-flex justify-content-around bg-dark p-2">
+                  <div class="me-auto fw-bold text-warning pl-5">{{meat_weight}} кг</div>
+                  {% if time_ordered.is_watched  %}
+                  <div class="fa_check_icon text-primary"><i class="fa fa-check"></i><i class="fa fa-check"></i></div>
+                  {% else %}
+                  <div class="fa_check_icon"><i class="fa fa-check"></i></div>
+                  {% endif %}
+              </div>
+
+              <div class="d-flex justify-content-around fw-bold bg-warning p-2 rounded-bottom">
+                {% if time_ordered.is_watched %}
+                  <div class="me-auto  text-dark pl-5">Просмотрено</div>
+                  <div class="fa_check_icon text-danger">{{time_ordered.get_watched_time}}</div>
+                  {% else %}
+                  <div class="me-auto fw-bold text-dark pl-5">Не просмотрено</div>
+                  {% endif %}
+              </div>
+
+          </div>
+
+
+     </a>
+</div>
+{% else %}
+<div class="container mt-3">
+        <h3 class="text-center">Добавить</h3>
+        <form method="POST">
+            {% csrf_token %}
+            {% for meal in default_meals %}
+            <div class="input-group mb-2">
+              <span class="input-group-text w-50  bg-warning" id="basic-addon1">{{ meal.name }}</span>
+              <input type="number" step="any" class="form-control text-center" name="weight_{{ meal.id }}"  id="weight_{{ meal.id }}"   value="{{meal.weight|stringformat:'.1f' }}"  min="0.0" placeholder="Вес" aria-label="Вес" aria-describedby="basic-addon1">
+            </div>
+            {% endfor %}
+            <div class="submit-btn">
+                <button type="submit" class="btn btn-primary mx-auto d-block">Отправить</button>
+            </div>
+        </form>
+</div>
+
+{% endif %}
+
+{% endblock content %}

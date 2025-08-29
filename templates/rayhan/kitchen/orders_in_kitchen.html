@@ -1,0 +1,49 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block title %}Заказ кухня{% endblock title %}
+{% block style %}
+  {% include '../kitchen/menu_kitchen/menu_left_style.css'   %}
+{% endblock style %}
+
+{% block header %}
+ <a href="{% url 'main' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+
+<div class="w-100 d-flex justify-content-between">
+  <button class="btn btn-primary my-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+  Меню
+</button>
+    <div class="my-1  fs-5 fw-bold " id="count-meals-here">
+        <span class="pe-2">Л-{{count_lagmanpolniy|floatformat:"0"}}</span>
+        <span class="">Л-0.7-{{count_lagman_07|floatformat:"0"}}</span>
+    </div>
+   <button class="btn btn-info border my-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
+  Кл. Блюды
+</button>
+  <a href="{% url 'sos-message' %}" class="button-sos btn btn-info btn-danger my-1" >
+    <i class="fa-solid fa-bell"></i> Тревога
+  </a>
+  </div>
+{% endblock header %}
+
+{% block content %}
+  {% include '../kitchen/menu_kitchen/menu_left_kitchen.html'   %}
+  {% include '../kitchen/menu_kitchen/menu_top_kitchen.html'   %}
+  {% include '../kitchen/components/orders.html' with name_of_page=name_of_page %}
+{% if tea_active_frame %}
+<iframe src="{% url 'tea-order' %}" id="myiframe"  class="d-none border-start border-dark border-4  d-sm-block position-fixed w-50 top-0 end-0 z-index-1 vh-100"  width="100%" height="100%">
+    Ваш браузер не поддерживает плавающие фреймы!
+ </iframe>
+{% endif %}
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}
+

@@ -1,0 +1,72 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Отчет по часам
+    </div>
+</div>
+{% endblock header %}
+{% block style %}
+    <style>
+        body {
+            padding: 20px;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+{% endblock style %}
+{% block content %}
+    <div class="container">
+        <form class="filter-form" method="get">
+            <div class="form-row">
+                <div class="col-md-5">
+                    <label for="start_time">Начало:</label>
+                    <input type="datetime-local" class="form-control" id="start_time" name="start_time" value="{{ start_time }}">
+                </div>
+               <div class="col-md-5 mb-2">
+                  <label for="end_time">Конец:</label>
+                  <input type="datetime-local" class="form-control" id="end_time" name="end_time" value="{{ end_time }}">
+              </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Час</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in hourly_sales %}
+                <tr>
+                    <td>{{ sale.hour|date:"H:i" }}</td>
+                    <td>{{ sale.total_price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Нет данных для этого времени</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}

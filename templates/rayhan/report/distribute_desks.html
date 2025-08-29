@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавление стола на группу</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 5px;
+            padding: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0d6efd;
+        }
+        .form-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center my-4">Добавление стола на группу</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_group_number" class="form-label">Номер группы</label>
+            <input type="number" name="group_number" id="id_group_number" class="form-control" value="{{ form.group_number.value }}" />
+        </div>
+        <div class="mb-3">
+            <label for="id_desks" class="form-label">Столы (разделенные запятыми)</label>
+            <input type="text" name="desks" id="id_desks" class="form-control" value="" />
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </form>
+</div>
+<!-- Bootstrap JS (for future use if needed) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

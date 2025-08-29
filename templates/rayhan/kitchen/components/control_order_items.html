@@ -1,0 +1,128 @@
+<h3 class="text-center">Заказы</h3>
+{% regroup list_of_orders by number_of_order as objects_by_number_of_order %}
+{% for group in objects_by_number_of_order %}
+    <div class="order-controller  position-relative m-2 " id="{{group.grouper}}">
+        {% for item in group.list %}
+          <div class="order-items px-2">
+              {% ifchanged item.number_of_order and item.author %}
+                <div class="header-order bg-info mb-2">
+                  <div class="text-start " id="username" > {{item.author.username}}</div>
+                  <div class="" id="time"> {{item.whenpublished}}</div>
+                  <div class="" id="number_of_order"> {{item.number_of_order}}</div>
+                    {% if  item.number_of_desk == 0 %}
+                         <div class="bg-primary text-shadow-dark text-white" id="number_of_desk">0</div>
+                    {% else %}
+                         <div class="link_order_header bg-success text-shadow-dark text-white" id="number_of_desk">{{item.number_of_desk}}</div>
+                    {% endif %}
+
+                </div>
+              {% endifchanged %}
+
+              <form class="body-order  my-1 d-flex justify-content-between border border-2  rounded" method="POST">
+                  {% csrf_token %}
+                  {% if item.order_is_edited and not item.takeaway_food %}
+                    <div class="name-meal p-2 w-50 bg-order-edited text-white align-items-center d-flex" data-item-id="{{item.id}}">{{item.name}}</div>
+                  {% elif item.takeaway_food %}
+                    <div class="name-meal bg-primary p-2 w-50 text-white align-items-center d-flex" data-item-id="{{item.id}}">{{item.name}}</div>
+                  {% else  %}
+                     <div class="name-meal p-2 w-50 align-items-center d-flex" data-item-id="{{item.id}}">{{item.name}}</div>
+                  {% endif %}
+                  <input type="hidden" name="meal" value="{{item.id}}">
+                  {% if is_paid != "True" %}
+                     {% if item.name  != "Лепёшка" and  not deleted_order  %}
+                         <div class="px-2 w-25 number-input">
+                              <button class="bg-warning h-100" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
+                                <input type="number" {%if plus_disabled%}readonly='True'{%else %}button{% endif %} name="quantity" value="{{item.get_int_quantity}}"  id="quantity_{{item.id}}"  class="w-75 text-center border-0 bg-success text-white ">
+                            <button type="button" {%if plus_disabled%}disabled{%else %}button{% endif %} onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus bg-warning h-100"></button>
+                         </div>
+                    {% elif deleted_order == "active"%}
+                    <div class="p-2  text-white  d-flex align-items-center">{{item.get_int_quantity}}</div>
+
+                    {% else %}
+                         <div class="px-2 w-25 number-input">
+                                <button class="bg-warning h-100" type="button" onclick="decrementQuantity('{{item.id}}')"></button>
+                                <input type="text" name="quantity" value="{{item.quantity}}" id="quantity_{{item.id}}" class="w-75 text-center border-0 bg-success text-white" oninput="validateMinValue(this, 0.5)">
+                                <button type="button" onclick="incrementQuantity('{{item.id}}')" class="plus bg-warning h-100"></button>
+                        </div>
+                    {% endif %}
+                  {% else %}
+                   <div class="p-2   d-flex align-items-center">{{item.quantity}}</div>
+                  {% endif %}
+
+                     <div class="p-2 justify-content-center  d-flex align-items-center">{{item.create_date|date:"H:i"}}</div>
+
+<!--                  # orders_controlling-->
+                  {% if is_paid != "True" %}
+                     {% if deleted_order == "active"%}
+                      <div  class="bg-primary w-25 align-items-center d-flex p-xl-4 p-lg-3 p-2 text-white fs-6 display-6 text-center">{{item.reason_to_deleting}} </div>
+                      {% else %}
+                      <button  class="bg-primary p-xl-4 p-lg-3 p-2 border-start d-flex align-items-center  text-white"><i class="fa fa-edit "></i> </button>
+                      {% endif %}
+                      {% if deleted_order == "active"%}
+                          <a href="{% url 'recovery_deleted_order' item.id %}"  onclick="return confirm('Вы уверены что хотите восстановить этот заказ?')" class="bg-danger p-xl-4 p-lg-3 p-md-2 p-2 rounded-end border-start d-flex align-items-center text-white" >
+                            <i class='fa-solid fa-trash-arrow-up'></i>
+                        </a>
+                       {% else %}
+                        <button class="my-button bg-danger p-xl-4 p-lg-3 p-md-2 p-2 rounded-end border-start d-flex align-items-center text-white" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" data-item-id="{{item.id}}">
+                            <i class='fa fa-trash'></i>
+                        </button>
+                       {% endif %}
+                  {% endif %}
+
+
+              </form>
+              <div class="fs-6 text-danger px-2">{{item.comments}}</div>
+
+          </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+{% include './model_deleting_order.html'   %}
+
+
+<script>
+
+
+function incrementQuantity(itemId) {
+    const quantityInput = document.getElementById(`quantity_${itemId}`);
+    quantityInput.value = (parseFloat(quantityInput.value) + 0.5).toFixed(1);
+}
+
+function decrementQuantity(itemId) {
+    const quantityInput = document.getElementById(`quantity_${itemId}`);
+    quantityInput.value = (parseFloat(quantityInput.value) - 0.5).toFixed(1);
+}
+function validateMinValue(input, minValue) {
+    if (parseFloat(input.value.replace(',', '.')) < minValue) {
+        input.value = minValue.toString().replace('.', ',');
+    }
+}
+
+document.querySelectorAll('.my-button').forEach(function (deleteButton) {
+    deleteButton.addEventListener('click', function () {
+        // Find the closest parent element with the class 'order-items'
+        const orderItems = this.closest('.order-items');
+
+        // Extract the itemId from the relevant element within orderItems
+        const itemId = orderItems.querySelector('.name-meal').dataset.itemId;
+        // Set the item ID in the form
+        document.getElementById('deleteMealIdInput').value = itemId;
+    });
+});
+
+// Add a function to submit the form when the "Delete" button is clicked
+function submitDeleteForm() {
+    const deletionReason = document.querySelector('input[name="options-outlined"]:checked');
+
+    // Check if a reason is selected
+    if (deletionReason) {
+        // Set the deletion reason in the form
+        document.getElementById('deletionReasonInput').value = deletionReason.value;
+
+        // Submit the form
+        document.getElementById('deleteOrderForm').submit();
+    } else {
+        alert('Please select a deletion reason.');
+    }
+}
+</script>

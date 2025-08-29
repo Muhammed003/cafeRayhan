@@ -1,0 +1,33 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block link_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/control_orders.css' %}">
+{% endblock link_style %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        История чеков
+    </div>
+{% endblock header %}
+
+
+
+{% block content %}
+{% with is_paid="True" %}
+<div class="order-main mt-2">
+    {% include '../kitchen/components/filtering_block.html'   %}
+    <div class="user-select-none w-75" id="orders-here">
+        {% include '../kitchen/components/control_order_items.html'   %}
+    </div>
+</div>
+{% endwith %}
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="module" src="{% static 'javascript/control_orders.js' %}"></script>
+{% endblock scripts %}
+
+

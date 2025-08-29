@@ -1,0 +1,35 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-angle-left"></i> </a>
+
+{% with name_of_page='Программы' link='main' %}
+  {% include '../waitressPage/components/name_page.html'   %}
+{% endwith %}
+
+
+{% endblock header %}
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-around flex-wrap">
+        <div class="card  my-2" style="width: 18rem;">
+          <img src="{% static 'images/mylogo.png' %}" class="card-img-top" alt="...">
+          <div class="card-body">
+            <h5 class="card-title">Программа для IOS</h5>
+            <p class="card-text">Вы можете скачать программу только для IOS.</p>
+            <a href="{% static 'program/ios_cafe.tar.gz'%}" download="Кафе" class="btn btn-primary">Скачать</a>
+          </div>
+        </div>
+
+        <div class="card  my-2" style="width: 18rem;">
+          <img src="{% static 'images/mylogo.png' %}" class="card-img-top" alt="...">
+          <div class="card-body">
+            <h5 class="card-title">Программа для Android</h5>
+            <p class="card-text">Вы можете скачать программу только для Android.</p>
+            <a href="{% static 'program/cafe.apk'%}" download="Кафе" class="btn btn-primary">Скачать</a>
+
+          </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

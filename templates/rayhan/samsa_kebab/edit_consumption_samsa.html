@@ -1,0 +1,86 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block header %}
+ <a href="{% url 'samsa_report_add' %}"><i class="fa-solid fa-arrow-left-long"></i></a>
+<div class="text-center">Изменить расход</div>
+<div></div>
+
+{% endblock header %}
+{% block content %}
+<div class="jumbotron d-flex" style="background-image: url({% static 'img/shop_price.jpg' %})">
+  <div class="container mt-2">
+      <form method="POST">
+          {% csrf_token %}
+        {% for consumption in samsa_consumption %}
+          <div class="input-group inner-box-input mb-3">
+              <input type="hidden" class="w-50 form-control" placeholder="Имя" name="name" value="{{consumption.name}}">
+              <input type="text" class="w-50 form-control" placeholder="Имя" name="name" value="{{consumption.name}}" disabled>
+              <input type="number" inputmode="numeric" class="form-control" name="quantity" value="{{consumption.quantity}}" placeholder="расход" required>
+                <select name="type_samsa" class="form-select w-25" id="inputGroupSelect01" required>
+                    {% if consumption.type_samsa == "мясная" %}
+                        <option value="мясная" selected>мясная</option>
+                        <option value="тамчы">тамчы</option>
+                    {% else %}
+                        <option value="тамчы" selected>тамчы</option>
+                        <option value="мясная">мясная</option>
+                    {% endif %}
+                </select>
+          </div>
+
+        {% endfor %}
+        <button class="btn btn-sm  btn-success my-2 rounded  w-100" name="save_edited_consumption">Изменить</button>
+      </form>
+          <h3 class="text-center">Добавить расход</h3>
+            <div id="flush-collapseOne" class="accordion-collapse collapse show" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+              <div class="accordion-body">
+                  <form method="POST">
+                         {% csrf_token %}
+                      <div class="box-of-input"  id="formulario">
+                      </div>
+
+                  <div class="btn btn-sm  btn-info rounded mx-auto w-25 d-block" onClick="addInput();">+</div>
+                    <button class="btn btn-sm  btn-success my-2 rounded  w-100" name="add_consumption">Добавить</button>
+                  </form>
+              </div>
+            </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+    {% if not have_written or edit_block %}
+        <script>
+
+    var counter = 1;
+    var dynamicInput = [];
+
+    function addInput(){
+        var newdiv = document.createElement('div');
+        newdiv.id = dynamicInput[counter];
+        newdiv.innerHTML = '<div class="input-group inner-box-input mb-3">'+
+                      '<span class="input-group-text">'+counter+'</span>'+
+                      '<input type="text" class="form-control" placeholder="Имя" name="name" required>'+
+                      '<input type="number" inputmode="numeric" class="form-control" name="consumption" placeholder="расход" required>'+
+                        '<select name="type_samsa" class="form-select" id="inputGroupSelect01" required>'+
+                            '<option selected value="">выберите</option>'+
+                            '<option value="мясная">мясная</option>'+
+                            '<option value="тамчы">тамчы</option>'+
+                          '</select>'+
+                      '<input type="button" class="text-danger input-group-text" value="x" onClick="removeInput('+dynamicInput[counter]+');">'+
+                  '</div>'
+
+        document.getElementById('formulario').appendChild(newdiv);
+        counter++;
+    }
+
+      function removeInput(id){
+        var elem = document.getElementById(id);
+        return elem.parentNode.removeChild(elem);
+      }
+
+
+        </script>
+
+    {% endif %}
+{% endblock scripts %}

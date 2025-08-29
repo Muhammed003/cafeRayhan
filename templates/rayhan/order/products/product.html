@@ -1,0 +1,174 @@
+{% extends '../../main/base.html' %}
+{% load static %}
+{% block style %}
+.active_btn_dark {
+    background: black;
+    color: #fff;
+    outline: 1px solid #000;
+    border: 1px solid #fff;
+}
+{% endblock style %}
+{% block header %}
+<a href="{% url 'list-of-nomination' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Продукты
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container">
+    <div class="shadow-1 table-responsive-sm">
+        <div class="btn-group my-2 mx-auto w-100">
+            <a href="{% url 'product-list' %}?filter=product" class="btn btn-light border {% if request.GET.filter == 'product' %} active_btn_dark{% endif %}">Продукты</a>
+            <a href="{% url 'product-list' %}?filter=bazaar" class="btn btn-light border {% if request.GET.filter == 'bazaar' %} active_btn_dark{% endif %}">Базар</a>
+            <a href="{% url 'product-list' %}?filter=shop" class="btn btn-light border {% if request.GET.filter == 'shop' %} active_btn_dark{% endif %}">Магазин</a>
+        </div>
+
+        <h3 class="text-center">Заказать</h3>
+
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Имя</th>
+                    <th class="text-center">Вес</th>
+                    <th class="text-center"><i class='fa-solid fa-share'></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in product %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td class="w-50">{{ product.name }}</td>
+                    <td class="w-25">
+                        <input type="number" inputmode="numeric"  name="summa" class="form-control text-center" placeholder="Количества" aria-label="Количества" value="0" aria-describedby="basic-addon2">
+                        <input type="hidden" value="{{product.id}}" name="product_id">
+                        <input type="hidden" value="{{product.type_products}}" name="product_group_item">
+                        <input type="hidden" value="{{request.GET.filter}}" name="product_filter">
+                    </td>
+
+                    <td class="text-center">
+                         {% if product.is_added_to_cart %}
+                        <button class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                        {% else %}
+                        <button class="btn btn-success"><i class="fa-solid fa-cart-plus"></i></button>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить продукт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text"  required id="newProductName" class="form-control mb-2" placeholder="Название продукта">
+                <input type="number" required  id="newProductWeight" class="form-control mb-2" placeholder="Количество">
+                <select id="newProductType"  required class="form-control mb-2">
+                    <option value="кг">кг</option>
+                    <option value="гр">гр</option>
+                    <option value="шт">шт</option>
+                </select>
+                <select id="newProductGroupItem" required  class="form-control">
+                    <option value="product">Продукты</option>
+                    <option value="bazaar">Базар</option>
+                    <option value="shop">Магазин</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="saveProductBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+  <form method="POST">
+    {% csrf_token %}
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать продукт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProductId">
+                <input type="text" id="editProductName" class="form-control mb-2">
+                <input type="number" id="editProductWeight" class="form-control mb-2">
+                <select id="editProductType" class="form-control mb-2">
+                    <option value="кг">кг</option>
+                    <option value="гр">гр</option>
+                    <option value="шт">шт</option>
+                </select>
+                <select id="editProductGroupItem" class="form-control">
+                    <option value="product">Продукты</option>
+                    <option value="bazaar">Базар</option>
+                    <option value="shop">Магазин</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="updateProductBtn">Обновить</button>
+            </div>
+        </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Add Product to Cart
+    document.querySelectorAll(".btn-success").forEach(button => {
+        button.addEventListener("click", function () {
+            const productId = this.closest('tr').querySelector('input[name="product_id"]').value;
+            const productType = this.closest('tr').querySelector('input[name="product_group_item"]').value;
+            const quantity = this.closest('tr').querySelector('input[name="summa"]').value;
+
+            fetch("{% url 'add-to-cart' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    summa: quantity,
+                    group_item: productType
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Продукт добавлен в корзину!");
+                    // Optionally, update the UI (cart icon, etc.)
+                } else {
+                    alert("Ошибка при добавлении продукта в корзину.");
+                }
+            });
+        });
+    });
+
+    // CSRF Token Helper Function
+    function getCSRFToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value || "{{ csrf_token }}";
+    }
+});
+
+</script>
+
+{% endblock %}

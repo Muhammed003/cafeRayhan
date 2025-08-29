@@ -1,0 +1,68 @@
+{% extends '../main/base.html' %}
+{% block header %}
+<a href="{% url 'meal-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Комментарии
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Выберите комментарии</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <label for="name" class="form-label">Наименование</label>
+                    <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="Пишите комментарии" required>
+                    {% if form.name.errors %}
+                        <div class="text-danger mt-2">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label">Выберите блюд</label>
+                    <div class="row">
+                        {% for meal in meals %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="meal_{{ meal.id }}" name="meals" value="{{ meal.id }}">
+                                <label class="form-check-label" for="meal_{{ meal.id }}">
+                                    {{ meal.name }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-lg">Добавить комментарии</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border-radius: 10px;
+    }
+    .card-header {
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .form-control-lg, .form-check-input {
+        border-radius: 5px;
+    }
+    button {
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}

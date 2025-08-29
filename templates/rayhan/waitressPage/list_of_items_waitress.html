@@ -1,0 +1,19 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="w-75 text-center">Список функции </div>
+
+
+
+{% endblock header %}
+{% block content %}
+<div class="container mt-2">
+    <a href="{% url 'rate-waitress' %}" class="bg-secondary text-white border p-2 rounded w-100 d-block fs-3">
+      🌟 Рейтинги
+    </a>
+    <a href="{% url 'rules-waitress' %}" class="bg-secondary text-white border p-2 rounded w-100 d-block fs-3">
+      📜 Правилы
+    </a>
+</div>
+{% endblock content %}

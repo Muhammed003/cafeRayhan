@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация пользователя</title>
+
+    <!-- Link Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="text-center text-info">Добавить (пользователя)</h1>
+    <form id="userForm" method="post" autocomplete="off">
+         {% csrf_token %}
+        <!-- Username Input -->
+        <div class="mb-3">
+            <label class="form-label">Имя пользователя</label>
+            <input type="text" class="form-control" id="username" name="name_of_user"
+                   placeholder="Введите имя пользователя" required autocomplete="off">
+            <div id="usernameFeedback" class="invalid-feedback"></div>
+        </div>
+        <!-- Phone Number Input -->
+        <div class="mb-3">
+            <label for="phonenumber" class="form-label">Телефон номер</label>
+            <input type="number" class="form-control" id="phonenumber" name="phonenumber"
+                   placeholder="Введите номер телефона" required>
+            <div id="phonenumberFeedback" class="invalid-feedback"></div>
+        </div>
+        <!-- Password Input -->
+        <div class="mb-3">
+            <label for="pwd" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="pwd" name="pwd" placeholder="Введите пароль" required autocomplete="off">
+            <div id="pwdFeedback" class="invalid-feedback"></div>
+        </div>
+        <!-- Confirm Password Input -->
+        <div class="mb-3">
+            <label for="matchPwd" class="form-label">Подтверждение пароля</label>
+            <input type="password" class="form-control" id="matchPwd" name="matchPwd" placeholder="Подтвердите пароль" required>
+            <div id="matchPwdFeedback" class="invalid-feedback"></div>
+        </div>
+        <!-- User Type Select -->
+        <div class="mb-3">
+            <label class="form-label">Звание пользователя</label>
+            <select class="form-select" id="user_select" name="user_select" required>
+                <option value="">Выберите звание</option>
+                <option value="chef">Шеф</option>
+                <option value="administrator">Администратор</option>
+                <option value="employee">Работник</option>
+                <option value="waitress">Официант</option>
+                <option value="samsishnik">Самсышник</option>
+                <option value="butcher">Мясник</option>
+                <option value="chebureki_maker">Чебурешник</option>
+                <option value="cake_maker">Тортышник</option>
+                <option value="demo">Демо</option>
+                <option value="clien">Клиент</option>
+            </select>
+            <div id="user_selectFeedback" class="invalid-feedback"></div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Добавить</button>
+    </form>
+</div>
+<!-- Link Bootstrap JS (at the end of the body) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to validate the username field
+        function validateUsername() {
+            const usernameInput = document.getElementById("username");
+            const usernameFeedback = document.getElementById("usernameFeedback");
+            const validName = /^[А-Яа-яA-Za-z0-9-_]{4,24}$/.test(usernameInput.value);
+            if (!validName) {
+                usernameInput.classList.add("is-invalid");
+                usernameFeedback.innerText = "От 4 до 24 символов. Должен начинаться с буквы. Допускаются буквы, цифры, символы подчеркивания, дефисы.";
+                return false;
+            }
+            usernameInput.classList.remove("is-invalid");
+            usernameFeedback.innerText = "";
+            return true;
+        }
+
+        // Function to validate the phone number field
+        function validatePhoneNumber() {
+            const phoneNumberInput = document.getElementById("phonenumber");
+            const phoneNumberFeedback = document.getElementById("phonenumberFeedback");
+            const validPhoneNumber = /^[0-9]{9,9}$/.test(phoneNumberInput.value);
+            if (!validPhoneNumber) {
+                phoneNumberInput.classList.add("is-invalid");
+                phoneNumberFeedback.innerText = "Допускаются только 9 цифр. Пишите номер без нуля и без +996.";
+                return false;
+            }
+            phoneNumberInput.classList.remove("is-invalid");
+            phoneNumberFeedback.innerText = "";
+            return true;
+        }
+
+        // Function to validate the password field
+        function validatePassword() {
+            const passwordInput = document.getElementById("pwd");
+            const passwordFeedback = document.getElementById("pwdFeedback");
+            const validPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,24}$/.test(passwordInput.value);
+            console.log(passwordInput.value)
+            if (!validPwd) {
+                passwordInput.classList.add("is-invalid");
+                passwordFeedback.innerText = "От 8 до 24 символов. Должен содержать заглавные и строчные буквы и цифру.";
+                return false;
+            }
+            passwordInput.classList.remove("is-invalid");
+            passwordFeedback.innerText = "";
+            return true;
+        }
+
+        // Function to validate the confirm password field
+        function validateConfirmPassword() {
+            const passwordInput = document.getElementById("pwd");
+            const confirmPasswordInput = document.getElementById("matchPwd");
+            const confirmPasswordFeedback = document.getElementById("matchPwdFeedback");
+            const validMatch = passwordInput.value === confirmPasswordInput.value;
+            if (!validMatch) {
+                confirmPasswordInput.classList.add("is-invalid");
+                confirmPasswordFeedback.innerText = "Пароли не совпадают.";
+                return false;
+            }
+            confirmPasswordInput.classList.remove("is-invalid");
+            confirmPasswordFeedback.innerText = "";
+            return true;
+        }
+
+        // Function to validate the user type select
+        function validateUserType() {
+            const userTypeSelect = document.getElementById("user_select");
+            const userTypeFeedback = document.getElementById("user_selectFeedback");
+            const validUserType = userTypeSelect.value !== "";
+            if (!validUserType) {
+                userTypeSelect.classList.add("is-invalid");
+                userTypeFeedback.innerText = "Выберите звание из списка.";
+                return false;
+            }
+            userTypeSelect.classList.remove("is-invalid");
+            userTypeFeedback.innerText = "";
+            return true;
+        }
+
+        // Add event listeners for each input field to trigger validation on input event
+        document.getElementById("username").addEventListener("input", validateUsername);
+        document.getElementById("phonenumber").addEventListener("input", validatePhoneNumber);
+        document.getElementById("pwd").addEventListener("input", validatePassword);
+        document.getElementById("matchPwd").addEventListener("input", validateConfirmPassword);
+        document.getElementById("user_select").addEventListener("input", validateUserType);
+
+        // Form validation on submit
+        document.getElementById("userForm").addEventListener("submit", function(event) {
+            if (!validateUsername() || !validatePhoneNumber() || !validatePassword() || !validateConfirmPassword() || !validateUserType()) {
+                event.preventDefault(); // Prevent form submission if there are validation errors
+            }
+        });
+    });
+</script>
+</body>
+</html>

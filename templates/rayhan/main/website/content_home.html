@@ -1,0 +1,107 @@
+{% extends "./index.html" %}
+{% load static %}
+{% block content %}
+
+<div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="{% static 'images/image_web_carousel_1.jpg' %}" class="d-block w-100" alt="...">
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/image_web_carousel_2.jpg' %}" class="d-block w-100" alt="...">
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/image_web_carousel_3.jpg' %}" class="d-block w-100" alt="...">
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+
+<section class="container my-5" data-aos="fade-up">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark">Кафе «Райхан» — вкус традиций в самом сердце Оша</h1>
+    <p class="text-muted fs-5">
+      Добро пожаловать в <strong>кафе Райхан</strong> — уютное место в городе <strong>Ош</strong>, где встречаются восточные традиции и современный комфорт.
+      Нас выбирают за <strong>вкусную еду</strong>, <strong>приятную атмосферу</strong> и <strong>доступные цены</strong>.
+    </p>
+  </div>
+</section>
+<section class="content_home">
+    <div class="container text-center my-4" data-aos="fade-up">
+      <div class="p-3 rounded shadow-sm" style="background-color: #f8f9fa;">
+        <h5 class="mb-2 fw-bold text-dark">
+          🕒 Время работы кафе
+        </h5>
+        <p class="mb-1 text-muted">
+          Каждый день с <strong>07:00</strong> до <strong>20:00</strong>
+        </p>
+        <hr class="my-2" style="max-width: 200px; margin: auto;">
+        <a href="https://go.2gis.com/2IG1m" class="mb-0 text-primary">
+          📍 Адрес: г. Ош, Кыргызстан, ул. Таттыбубу Турсунбаевой, 21/1Б
+        </a>
+      </div>
+    </div>
+
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3 col-sm-6" data-aos="fade-up">
+          <a href="" class="block-card">
+            <h3 class="text-center">🏷️%</h3>
+            <h4 class="text-center">Скидки и акции</h4>
+              <div class="description">
+                  Следите за актуальными скидками и специальными предложениями нашего кафе. Наслаждайтесь любимыми блюдами по выгодным ценам!
+              </div>
+          </a>
+      </div>
+       <div class="col-md-3 col-sm-6"  data-aos="fade-up" data-aos-delay="100">
+          <a href="" class="block-card">
+            <h3 class="text-center">🧾</h3>
+            <h4 class="text-center">Меню</h4>
+            <div class="description">
+                <div class="description">
+                    Меню кафе Райхан — это вкусные блюда, фото, состав и цены. Смотрите, выбирайте и приходите в гости!
+                </div>
+
+            </div>
+          </a>
+      </div>
+      <div class="col-md-3 col-sm-6">
+          <a href="" class="block-card"  data-aos="fade-up" data-aos-delay="200">
+           <h3 class="text-center">📍</h3>
+              <h4 class="text-center">О нас</h4>
+              <div class="description">
+                  Узнайте больше о кафе «Райхан»: традиции, атмосфера и забота о каждом госте.
+              </div>
+          </a>
+      </div>
+      <div class="col-md-3 col-sm-6">
+          <a href="" class="block-card"  data-aos="fade-up" data-aos-delay="200">
+          <h3 class="text-center">📸</h3>
+          <h4 class="text-center">Галерея</h4>
+          <div class="description">
+              Посмотрите, как красиво выглядят наши блюда — еда глазами!
+          </div>
+
+          </a>
+      </div>
+
+
+    </div>
+
+  </div>
+
+</section>
+{% endblock content %}

@@ -1,0 +1,51 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block header %}
+ <a href="{% url 'samsa_rest_meat' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+<div>Мясо самсы отчёт</div>
+<div></div>
+
+{% endblock header %}
+{% block content %}
+{% load crispy_forms_tags %}
+  <div class="container pt-2">
+<!--      {% if meat_not_found %}-->
+      <h2 class="text-center text-danger">Вчера была входное ?</h2>
+<!--      {% endif %}-->
+     {% regroup list_of_history by day|date:"F" as objects_by_month %}
+
+        {% for group in objects_by_month %}
+          <div class="fw-bold bg-success border rounded p-2 text-center text-white text-shadow-dark">{{ group.grouper }}</div>
+          {% for history in group.list %}
+                        <div class="bg-dark text-center p-2 mt-2 fw-bold rounded-top" > {{history.day|date:"d-m-Y"  }}</div>
+                          <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100">
+                            <div class="text-primary w-50">имя</div>
+                            <div class="text-primary">сделано</div>
+                            <div class="text-primary">мясо <i class="fa-solid fa-arrow-up"></i></div>
+                          </div>
+                        <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100">
+                            <div class="w-50">Мясная самса</div>
+                            <div class="">{{history.samsa_meat}} шт</div>
+                            <div class="">{{samsa_meat_used_to|floatformat:1 }} кг</div>
+                        </div>
+                        <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100">
+                            <div class="w-50">Картошка самса</div>
+                            <div>{{history.samsa_little}} шт</div>
+                            <div>{{samsa_potato_used_to|floatformat:1}} кг</div>
+                        </div>
+                        <div class="d-flex fw-bold bg-primary w-50 p-2 border justify-content-between w-100  text-white text-shadow-dark">
+                            <div class="w-50">Мясо остатка</div>
+                            <div>{{meat_in_stock|floatformat:1 }} кг</div>
+                        </div>
+          {% endfor %}
+
+      {% endfor %}
+
+      {% for item in meat %}
+      <div class="fw-bold">{{item.weight}}</div>
+      {% endfor %}
+
+  </div>
+{% endblock %}

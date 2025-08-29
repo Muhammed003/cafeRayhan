@@ -1,0 +1,89 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+    <a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="mx-auto text-dark">
+        {{ today }}
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if waitresses %}
+        <table class="table table-bordered table-hover bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Имя пользователя</th>
+                    <th>Сумма</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for waitress in waitresses %}
+                <tr>
+                    <td>{{ waitress.user.username }}</td>
+                    <td>{{ waitress.balance }}</td>
+                    <td>
+                        <button
+                            class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-waitress-id="{{ waitress.id }}"
+                            data-waitress-name="{{ waitress.user.username }}">
+                            Удалить
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">Сегодня нет официанток.</div>
+    {% endif %}
+</div>
+
+<!-- Modal подтверждения -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="waitress_id" id="modalWaitressId">
+        <div class="modal-header">
+          <h5 class="modal-title">Подтверждение удаления</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Вы уверены, что хотите удалить <b id="modalWaitressName"></b> и все её сегодняшние заказы?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger">Удалить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const confirmModal = document.getElementById("confirmDeleteModal");
+    confirmModal.addEventListener("show.bs.modal", event => {
+        const button = event.relatedTarget;
+        const waitressId = button.getAttribute("data-waitress-id");
+        const waitressName = button.getAttribute("data-waitress-name");
+        document.getElementById("modalWaitressId").value = waitressId;
+        document.getElementById("modalWaitressName").textContent = waitressName;
+    });
+});
+</script>
+{% endblock content %}

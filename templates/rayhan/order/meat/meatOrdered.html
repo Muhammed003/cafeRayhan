@@ -1,0 +1,170 @@
+{% extends "../../main/base.html" %}
+{% block header %}
+<a href="{% url 'butcher-main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+   Мясо заказы
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container mt-3">
+    <h3 class="text-center">Кухня</h3>
+    <h4 class="text-danger text-center border-bottom mb-3">{{ kitchen }} <span class="text-dark">кг</span></h4>
+    <h3 class="text-center text-primary">Самса</h3>
+    <h4 class="text-danger text-center">{{ samsa }} <span class="text-dark">кг</span></h4>
+    <hr>
+    {% if not  have_written %}
+    <h3 class="text-center">Тетрадь</h3>
+    <div class="d-flex rounded mb-1 fs-5 fw-bold">
+        <div class="w-50">Наименование</div>
+        <div class="w-25">Вес</div>
+        <div class="w-25">Сумма</div>
+    </div>
+       <form method="POST">
+        {% csrf_token %}
+        <div id="blocks-container">
+            <div class="input-group mb-3">
+                <span class="input-group-text w-50" id="basic-addon1" >Мясо</span>
+                <input type="hidden" name="name" value="Мясо">
+                <input
+                    type="number"
+                    step="0.1"
+                    inputmode="numeric"
+                    name="weight"
+                    value="{{ total_weight|stringformat:'.1f' }}"
+                    class="form-control text-center w-25"
+                    placeholder="Вес"
+                    aria-label="Вес"
+                    readonly
+                    aria-describedby="basic-addon1">
+                <input readonly type="text"  name="price" class="form-control w-25" id="summa" value="{{meat_meat_price|floatformat:0}}" placeholder="сумма" aria-label="" aria-describedby="basic-addon1">
+            </div>
+            <!-- Initial Block -->
+
+        </div>
+        <button type="button" id="add-block-button" class="btn btn-primary mt-3">+</button>
+        <button type="submit" class="btn btn-success mt-3 fixed-bottom rounded-0">
+            <i class="fa-solid fa-paper-plane"></i> Сохранить
+            <span class="text-danger" id="total-all-summa"></span>
+        </button>
+    </form>
+    {% else %}
+    {% for meat in meat_ordered_data %}
+    <form method="POST">
+        {% csrf_token %}
+        <div id="blocks-container">
+            <div class="input-group mb-3">
+                <span class="input-group-text w-50" id="basic-addon1" >{{meat.name}}</span>
+                <input type="hidden" name="name" value="Мясо">
+                <input
+                    type="number"
+                    step="0.1"
+                    inputmode="numeric"
+                    name="weight"
+                    value="{{ meat.weight|stringformat:'.1f' }}"
+                    class="form-control text-center w-25 weight"
+                    placeholder="Вес"
+                    aria-label="Вес"
+
+                    aria-describedby="basic-addon1">
+                <input  type="text"  name="price" class="form-control w-25 " id="summa" value="{{meat.summa}}" placeholder="сумма" aria-label="" aria-describedby="basic-addon1">
+            </div>
+            <!-- Initial Block -->
+
+        </div>
+        <button type="submit" class="btn btn-success mt-3 fixed-bottom rounded-0">
+            <i class="fa-solid fa-paper-plane"></i> Сохранить
+            <span class="text-danger" id="total-all-summa"></span>
+        </button>
+    </form>
+
+
+    {% endfor %}
+        <button type="button" id="add-block-button" class="btn btn-primary mt-3">+</button>
+
+    {% endif %}
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    // Function to update the sum based on weight and selected price
+    function updateSum(input) {
+        const weight = parseFloat(input.value);
+        if (isNaN(weight)) {
+        input.closest('.input-group').querySelector('#summa').value = '';
+        return;
+    }
+        const selectedOption = input.closest('.input-group').querySelector('select').selectedOptions[0];
+        const price = parseFloat(selectedOption.dataset.price); // Use data-price attribute for price
+
+        const result = weight * price;
+
+        const summaInput = input.closest('.input-group').querySelector('#summa');
+        summaInput.value = result.toFixed(1); // Show result with one decimal place
+
+    }
+
+    // Function to update the weight based on summa and price
+    function updateWeight(input) {
+        const summa = parseFloat(input.value);
+        const selectedOption = input.closest('.input-group').querySelector('select').selectedOptions[0];
+        const price = parseFloat(selectedOption.dataset.price); // Use data-price attribute for price
+
+        const weight = summa / price;
+        if (isNaN(weight)) {
+            input.closest('.input-group').querySelector('#summa').value = '';
+            return;
+        }
+
+        const weightInput = input.closest('.input-group').querySelector('.weight');
+        weightInput.value = weight.toFixed(1); // Update weight with one decimal place
+
+    }
+
+
+    // Add new block dynamically
+    document.getElementById('add-block-button').addEventListener('click', function () {
+        const blockToAdd = `
+            <div class="input-group mb-3">
+                <select class="form-select w-50 price-select" id="inputGroupSelect01" required name="name">
+                    <option selected value="">Выберите</option>
+                    {% for item in meat_prices %}
+                        <option value="{{ item.name }}" data-price="{{ item.price }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+                <input
+                    type="number"
+                    step="0.1"
+                    inputmode="numeric"
+                    class="form-control text-center weight w-25"
+                    placeholder="Вес"
+                    aria-label="Вес"
+                    required
+                    aria-describedby="basic-addon1" name="weight">
+                <input type="text" required name="price" class="form-control summa w-25" id="summa" placeholder="сумма" aria-label="" aria-describedby="basic-addon1" >
+            </div>
+        `;
+
+        document.getElementById('blocks-container').insertAdjacentHTML('beforeend', blockToAdd);
+
+        const newWeightInput = document.querySelector('.input-group:last-child .weight');
+        const newSelect = document.querySelector('.input-group:last-child select');
+        const newSummaInput = document.querySelector('.input-group:last-child .summa');
+
+        // Update summa when weight is inputted
+        newWeightInput.addEventListener('input', function () {
+            updateSum(this);
+        });
+
+        // Update summa when a price is selected
+        newSelect.addEventListener('change', function () {
+            const weightInput = this.closest('.input-group').querySelector('.weight');
+            updateSum(weightInput);
+        });
+
+        // Update weight when summa is changed
+        newSummaInput.addEventListener('input', function () {
+            updateWeight(this);
+        });
+    });
+</script>
+{% endblock scripts %}

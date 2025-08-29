@@ -1,0 +1,20 @@
+{% extends "../../main/base.html" %}
+{% block header %}
+<div class="mx-auto">
+    Управление мясами
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container">
+    <a href="{% url 'butcher-meat-orders' %}" class="position-relative d-block fs-4 rounded border bg-light border-secondary m-2 p-2 text-center">Мясо заказы
+        {% if meat_written %}
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            1
+            <span class="visually-hidden">unread messages</span>
+          </span>
+        {% endif %}
+    </a>
+    <a href="{% url 'butcher-meat-orders-history' %}" class="d-block fs-4 rounded border bg-light border-secondary m-2 p-2 text-center">История заказов</a>
+    <a href="{% url 'unpaid-meat-orders' %}" class="d-block fs-4 rounded border bg-light border-secondary m-2 p-2 text-center">Неоплаченные мясо</a>
+</div>
+{% endblock content %}

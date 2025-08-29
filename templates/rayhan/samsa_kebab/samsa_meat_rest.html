@@ -1,0 +1,109 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+ <a href="{% url 'main' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+<div>Мясо самсы отчёт</div>
+<div></div>
+
+{% endblock header %}
+
+{% block content %}
+<div class="jumbotron d-flex" style="background-image: url({% static 'img/shop_price.jpg' %})">
+  <div class="container mt-2">
+    <p>
+      <a class="btn btn-warning rounded m-1" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1">
+        История за месяц
+    </a>
+      <button class="btn btn-warning rounded m-1" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">История мяса</button>
+      <button class="btn btn-warning rounded m-1" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample3" aria-expanded="false" aria-controls="multiCollapseExample3">Остатка  мяса</button>
+    </p>
+
+<div class="row">
+          <div class="col-md-6">
+            <div class="collapse multi-collapse my-2" id="multiCollapseExample1">
+              <div class="card card-body">
+                {% for item in months %}
+                <div class="bg-dark p-2 rounded text-center text-white"> {{item.month|date:'F'}}</div>
+                <div class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                    <div>Мясная самса</div>
+                    <div>{{item.samsa_meat}} шт</div>
+                </div>
+                <div class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                    <div>Картошка самса</div>
+                    <div>{{item.samsa_little}} шт</div>
+                </div>
+                <div class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                    <div>Зарплата</div>
+                    <div>{{item.salary}} сом</div>
+                </div>
+                <div class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                    <div>Период времени</div>
+                    <div><span class="text-danger">{{item.time_count}}</span> дня</div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="collapse multi-collapse my-2" id="multiCollapseExample2">
+              <div class="card card-body text-dark">
+                   {% regroup meat_samsa by month|date:"F" as objects_in_list %}
+
+                {% for group in objects_in_list %}
+                  <div class="fw-bold bg-danger border rounded p-2 text-center text-white">{{ group.grouper }}</div>
+                  {% for item in group.list %}
+                                <a href="" class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                                    <div class="w-50"> {{item.name }}</div>
+                                    <div class="text-primary">{{item.weight}} кг</div>
+                                    <div class="">{{item.count}} день</div>
+                                </a>
+                      {% endfor %}
+
+                  {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="collapse multi-collapse my-2" id="multiCollapseExample3">
+              <div class="card card-body">
+                {% for item in rest_meat %}
+                <div class="bg-dark p-2 rounded text-center text-white"> {{item.month|date:'F'}}</div>
+                <div class="text-decoration-none d-flex fw-bold bg-light w-50 text-dark p-2 border rounded my-2 justify-content-between w-100">
+                    <div>Остатка самса</div>
+                    <div>{{item.weight}} кг</div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+</div>
+        {% regroup list_of_history by day|date:"F" as objects_by_month %}
+
+        {% for group in objects_by_month %}
+          <div class="fw-bold bg-success border rounded p-2 text-center text-white text-shadow-dark">{{ group.grouper }}</div>
+          {% for history in group.list %}
+            <a href="{% url 'samsa_rest_meat_detail' history.day|date:'Y-m-d' %}" class="text-decoration-none text-white">
+                        <div class="bg-dark text-center p-2 mt-2 fw-bold rounded-top" > {{history.day|date:"d-m-Y"}}</div>
+                        <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100">
+                            <div class="w-50">Мясная самса</div>
+                            <div>{{history.samsa_meat}} шт</div>
+                        </div>
+                        <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100">
+                            <div class="w-50">Картошка самса</div>
+                            <div>{{history.samsa_little}} шт</div>
+                        </div>
+                        <div class="d-flex fw-bold bg-light w-50 text-dark p-2 border justify-content-between w-100 rounded-bottom">
+                            <div class="w-50">Зарплата</div>
+                            <div>{{history.salary}} сом</div>
+                        </div>
+            </a>
+          {% endfor %}
+
+      {% endfor %}
+
+  </div>
+</div>
+{% endblock content %}

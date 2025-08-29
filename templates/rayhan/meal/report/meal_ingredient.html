@@ -1,0 +1,124 @@
+{% extends '../../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'meal-report-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Ингредиенты в блюде
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container mt-4">
+  <!-- Create Form -->
+  <form method="post" class="row g-2 align-items-end">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div class="col-12 col-md-4">
+      <label class="form-label">Блюдо</label>
+      <select name="meal" class="form-select" required>
+        {% for meal in meals %}
+        <option value="{{ meal.id }}">{{ meal.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Ингредиент</label>
+      <select name="ingredient" class="form-select" required>
+        {% for ing in all_ingredients %}
+        <option value="{{ ing.id }}">{{ ing.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label">Кол-во</label>
+      <input type="number" step="0.001" name="amount" class="form-control" required>
+    </div>
+    <div class="col-6 col-md-2">
+      <button type="submit" class="btn btn-success w-100">Добавить</button>
+    </div>
+  </form>
+
+  <hr class="my-4">
+
+  <!-- Ingredient Table -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Блюдо</th>
+          <th>Ингредиент</th>
+          <th>Кол-во</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in ingredients %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ item.meal.name }}</td>
+          <td>{{ item.ingredient.name }}</td>
+          <td>{{ item.amount }} {{ item.ingredient.get_unit_display }}</td>
+          <td>
+            <!-- Edit Button -->
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+              data-bs-target="#editModal{{ item.id }}">✏️</button>
+
+            <!-- Delete -->
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">🗑️</button>
+            </form>
+          </td>
+        </tr>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <div class="modal-header">
+                  <h5 class="modal-title">Редактировать</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-2">
+                  <div class="col-12">
+                    <label class="form-label">Блюдо</label>
+                    <select name="meal" class="form-select" required>
+                      {% for meal in meals %}
+                      <option value="{{ meal.id }}" {% if meal.id == item.meal.id %}selected{% endif %}>{{ meal.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Ингредиент</label>
+                    <select name="ingredient" class="form-select" required>
+                      {% for ing in all_ingredients %}
+                      <option value="{{ ing.id }}" {% if ing.id == item.ingredient.id %}selected{% endif %}>{{ ing.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Кол-во</label>
+                    <input type="number" step="0.001" name="amount" class="form-control" value="{{ item.amount }}" required>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

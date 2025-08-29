@@ -1,0 +1,37 @@
+.order-main {
+    column-count: 3;
+    height: 83vh;
+    column-gap: 10px;
+    column-rule: 3px dashed #333;
+    column-fill: auto;
+}
+
+.header-order {
+    display: flex;
+    justify-content: between;
+}
+
+.header-order div:first-child {
+    width: 35%;
+}
+
+.header-order div:nth-child(2) {
+    width: 25%;
+}
+
+.header-order > div, .link_order_header {
+    width: 20%;
+    text-align: center;
+    padding: 6px;
+    display:block;
+}
+
+
+@media (max-width: 768px) {
+    .order-main{
+        column-count: 1;
+    }
+    .button-sos{
+        display: none;
+    }
+}

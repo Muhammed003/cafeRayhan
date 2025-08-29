@@ -1,0 +1,50 @@
+
+<button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+  <i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="offcanvas offcanvas-start  text-bg-dark" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header ">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel"> <i class="fa fa-solid fa-user"></i>  {{request.user.username}}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body">
+      <div id="blockContainers">
+           {% if user.roles == "chef" %}
+             <a href="{% url 'consumptions-history' %}" class="text-white d-flex p-2 fs-5 border-bottom">
+                  <div class="block__inner_item__icon me-4 text-success"><i class="'fa fa-solid fa-clipboard-list"></i></div>
+                  <div class="block__inner_item__name">История расходов</div>
+               </a>
+          <a href="{% url 'bread-page' %}" class="text-white d-flex p-2 fs-5 border-bottom">
+                  <div class="block__inner_item__icon me-4 text-success"><i class="'fa fa-solid fa-circle-dot"></i></div>
+                  <div class="block__inner_item__name">Лепёшка</div>
+               </a>
+               <a href="{% url 'control-users' %}" class="text-white d-flex p-2 fs-5 border-bottom">
+                  <div class="block__inner_item__icon me-4 text-success"><i class="fa fa-solid fa-users"></i></div>
+                  <div class="block__inner_item__name">Управление пользователями</div>
+               </a>
+           {% endif %}
+          {% if user.roles == "chef" or user.roles == "administrator" %}
+               <a href="{% url 'settings_list' %}" class="text-white d-flex p-2 fs-5 border-bottom">
+                  <div class="block__inner_item__icon me-4 text-success"><i class="fa fa-solid fa-gears"></i></div>
+                  <div class="block__inner_item__name">Настройки кафе</div>
+               </a>
+           {% endif %}
+           <a href="{% url 'programs-page' %}" class="text-white d-flex p-2 fs-5 border-bottom">
+                  <div class="block__inner_item__icon me-4 text-success"><i class="fa-brands fa-app-store"></i></div>
+                  <div class="block__inner_item__name">Программы</div>
+           </a>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="block__item d-flex p-2 fs-5 border-bottom text-danger btn  w-100" type="submit">
+            <div class="block__inner_item__icon me-4"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <div class="block__inner_item__name">Выйти</div>
+          </button>
+        </form>
+
+      </div>
+  </div>
+</div>
+

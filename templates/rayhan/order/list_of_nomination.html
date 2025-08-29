@@ -1,0 +1,18 @@
+{% extends '../main/base.html' %}
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Заказать
+</div>
+{% endblock header %}
+{% block content %}
+<div class="bg-ui-gradient-1">
+    <div class="container pt-2">
+        <a href="{% url 'meat_order' %}" class="d-block bg-block-list-group text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🥩 </span> Мясо</a>
+        <a href="{% url 'meat_order' %}" class="d-block bg-block-list-group text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🐄 </span> Мясо бикин</a>
+        <a href="{% url 'meat_order' %}" class="d-block bg-block-list-group text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🐑 </span> Мясо баранина</a>
+        <a href="{% url 'product-list' %}" class="d-block bg-block-list-group text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🍅🫑 </span>Продукты и т.д</a>
+    </div>
+</div>
+
+{% endblock %}

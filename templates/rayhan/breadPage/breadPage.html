@@ -1,0 +1,121 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+
+{% block header %}
+    {% with link_to_back='main'  %}
+      {% include '../waitressPage/components/arrow_left.html'   %}
+    {% endwith %}
+    {% with name_of_page='Лепёшка'  %}
+      {% include '../waitressPage/components/name_page.html'   %}
+    {% endwith %}
+{% endblock header %}
+
+{% block content %}
+ <div class="container mt-2">
+        <h1 class="text-center mb-4">Приход лепёшки</h1>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center">
+                <div class="w-75"> От шефа и пекаря</div>
+
+            <div class="w-25"><button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom">Добавить</button></div>
+
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Наименовние</th>
+                            <th class="text-center">Кол.</th>
+                            <th class="text-center">Дата</th>
+                            <th class="text-center">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bread in bread_list %}
+                        <tr>
+                            <td>{{ bread.name }}</td>
+                            <td>{{ bread.quantity }}</td>
+
+                            <td>{{ bread.create_date|date:"H:i" }}</td>
+                            <td class="text-center">
+                                <a class="btn btn-sm btn-primary" href="{% url 'edit-main-of-bread' bread.id %}"><i class="fa-solid fa-edit"></i> </a>
+                                <a class="btn btn-sm btn-danger" href="{% url 'delete-main-of-bread' bread.id %}" onclick="return confirm('Вы уверены что хотите удалить это?')" ><i class="fa-solid fa-trash"></i> </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white d-flex align-items-center">
+                 <div class="w-75"> Разделение между официантами</div>
+
+            <div class="w-25"><button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Добавить</button></div>
+
+            </div>
+            <div class="accordion m-2" id="accordionExample">
+            {% regroup bread_waitress_list by waitress_bread_type__user__username as grouped_bread %}
+            {% for group in grouped_bread %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <button class="accordion-button p-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                        <span class="w-50">{{ group.grouper }}</span>
+                        {% for total in bread_waitress_total_quantity %}
+                            {% if total.waitress_bread_type__user__username == group.grouper %}
+                                <span class="ps-5 text-primary">{{ total.sum }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </button>
+                </h2>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Имя</th>
+                                    <th class="text-center">Количества</th>
+                                    <th class="text-center"><i class="fa-solid fa-trash"></i> / <i class="fa-solid fa-edit"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in group.list %}
+                                <tr>
+                                    <td class="">{{ item.waitress_bread_type__user__username }}</td>
+                                    <td class="text-center">{{ item.quantity }} <span class="text-danger"></span></td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm btn-primary" href="{% url 'edit-bread-coming' item.id %}"><i class="fa-solid fa-edit"></i> </a>
+                                        <a class="btn btn-sm btn-danger" href="{% url 'delete-bread-coming' item.id %}" onclick="return confirm('Вы уверены что хотите удалить это?')" ><i class="fa-solid fa-trash"></i> </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        </div>
+        {% if user.type_rating >= 3 or user.rate == 10%}
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        Остатка на ящике
+                    </div>
+                    <div class="card-body">
+                        <p class="h4">на ящике:  {{ bread_rest|default:"0" }} шт </p>
+                    </div>
+                </div>
+        {% endif %}
+
+
+        <!-- Add Bread Coming Form -->
+    {% include './breadComingAdd.html'   %}
+        <!-- Add Bread to Waitress Form -->
+    {% include './breadWaitressAdd.html'   %}
+
+
+    </div>
+{% endblock  %}

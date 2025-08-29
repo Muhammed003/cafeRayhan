@@ -1,0 +1,30 @@
+<!-- Edit Consumption Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Изменить расход</h5>
+                <button type="button" class="close  btn btn-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'consumptions-waitress' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="edit_consumption_id" name="consumption_id">
+                    <div class="form-group">
+                        <label for="edited_summa">Новая сумма</label>
+                        <div class="input-group mb-3">
+                          <input type="text" class="form-control" id="edited_name" name="edited_name" disabled>
+                          <input type="number" class="form-control text-center" id="edited_summa" name="edited_summa" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-primary" name="edit_consumption">Сохранить изменение</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

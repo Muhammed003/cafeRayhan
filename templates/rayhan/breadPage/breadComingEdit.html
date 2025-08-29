@@ -1,0 +1,22 @@
+{% extends '../main/base_waitress.html' %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+    {% with link_to_back='bread-page' %}
+        {% include '../waitressPage/components/arrow_left.html' %}
+    {% endwith %}
+    {% with name_of_page='Редактирование лепёшки' %}
+        {% include '../waitressPage/components/name_page.html' %}
+    {% endwith %}
+{% endblock header %}
+
+{% block content %}
+    <div class="container mt-2">
+        <h1 class="text-center mb-4">Редактирование лепёшки</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+        </form>
+    </div>
+{% endblock %}

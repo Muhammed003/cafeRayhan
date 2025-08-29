@@ -1,0 +1,53 @@
+{% load static %}
+<div class="navbar-top">
+<nav class="navbar navbar-expand-lg navbar-dark ">
+  <div class="container">
+   <a class="navbar-brand d-flex align-items-center" href="#">
+    <img src="{% static 'images/mylogo.png' %}" alt="Караван Кафе" width="40" height="40" class="me-2">
+    <span class="fw-bold fs-5">Райхан</span>
+  </a>
+
+
+    <div class="collapse navbar-collapse d-none d-block-md" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Главная</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">О нас</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Проверка чека</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Профиль</a>
+        </li>
+      </ul>
+    </div>
+      {% if request.user.is_authenticated %}
+          <span class="text-white">
+
+          </span>
+      <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-user pe-2"></i> {{ request.user.get_full_name|default:request.user.username }}
+          </button>
+          <ul class="dropdown-menu p-0">
+            <li class="p-1" >
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger w-100 d-block border-radious-none">Выйти</button>
+            </form>
+
+            </li>
+          </ul>
+        </div>
+
+        {% else %}
+          <a href="{% url 'login' %}" class="text-white">
+            <i class="fa-solid fa-user pe-2"></i> Войти
+          </a>
+        {% endif %}
+  </div>
+</nav>
+</div>

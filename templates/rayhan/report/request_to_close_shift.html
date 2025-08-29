@@ -1,0 +1,45 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Запрос на закрытые смену
+    </div>
+    <a href="{% url 'main' %}"> <i class="fa-solid fa-clock"></i> </a>
+
+</div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="p-2 margin-bottom-170">
+        {% for item in waitress_request %}
+        <a href="{% url 'request-close-shift-detail' item.id %}" class=" d-block w-100  rounded bg-success text-white p-2"><span class="text-shadow-dark">{{item}}</span> хочеть закрыть смену </a>
+        {% endfor %}
+
+    </div>
+
+
+</section>
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script>
+$(document).ready(function () {
+    setInterval(function () {
+        $("#content").load(window.location.href + " #content" );
+    }, 3000);
+});
+</script>
+{% endblock scripts %}
+
+

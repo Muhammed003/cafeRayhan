@@ -1,0 +1,33 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block link_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/control_orders.css' %}">
+{% endblock link_style %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Удаленные заказы
+    </div>
+{% endblock header %}
+
+
+
+{% block content %}
+<div class="order-main pt-2 bg-dark vh-100 text-white">
+    {% include './components/filtering_block.html'   %}
+    <div class="user-select-none w-75" id="orders-here">
+        {% with deleted_order='active'%}
+            {% include './components/control_order_items.html'   %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="module" src="{% static 'javascript/control_orders.js' %}"></script>
+{% endblock scripts %}
+
+

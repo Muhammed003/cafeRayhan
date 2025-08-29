@@ -1,0 +1,117 @@
+{% extends '../main/base.html' %}
+{% block header %}
+<a href="{% url 'meal-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Список товаров
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card p-4" style="border-radius: 20px; background: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+        <div class="card-header text-center mb-4" style="background: #f8f9fa; border-radius: 15px;">
+            <h2 class="mb-0" style="color: #5a5a5a;">Редактировать блюдо</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" validate>
+                {% csrf_token %}
+
+                <div class="form-floating mb-4">
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter meal name" required
+                           value="{{ form.name.value }}" style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px;">
+                    <label for="name" style="color: #6c757d;">Имя блюда</label>
+                    {{ form.name.errors }}
+                </div>
+
+                <div class="form-floating mb-4">
+                    <input type="number" class="form-control" id="price" name="price" placeholder="Enter price" required
+                           value="{{ form.price.value }}" step="0.01" style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px;">
+                    <label for="price" style="color: #6c757d;">Цена</label>
+                    {{ form.price.errors }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="group_item" class="form-label" style="color: #6c757d; font-size: 14px;">Группа вставление</label>
+                    <select class="form-select custom-select" id="group_item" name="group_item" required
+                            style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px; background-color: #f8f9fa;">
+                        {% for group in form.group_item.field.queryset %}
+                            <option value="{{ group.id }}" {% if group.id == form.group_item.value %}selected{% endif %}>{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {{ form.group_item.errors }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="type" class="form-label" style="color: #6c757d; font-size: 14px;">Вид контейнера</label>
+                    <select class="form-select custom-select" id="type" name="type" required
+                            style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px; background-color: #f8f9fa;">
+                        {% for container in form.type.field.queryset %}
+                            <option value="{{ container.id }}" {% if container.id == form.type.value %}selected{% endif %}>{{ container.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {{ form.type.errors }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="filter_by" class="form-label" style="color: #6c757d; font-size: 14px;">Фильтер блюды</label>
+                    <select class="form-select custom-select" id="filter_by" name="filter_by" required
+                            style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px; background-color: #f8f9fa;">
+                        {% for filter in form.filter_by.field.queryset %}
+                            <option value="{{ filter.id }}" {% if filter.id == form.filter_by.value %}selected{% endif %}>{{ filter.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {{ form.filter_by.errors }}
+                </div>
+
+                <div class="form-floating mb-4">
+                    <input type="number" class="form-control" id="quantity_of_a_person" name="quantity_of_a_person" required
+                           value="{{ form.quantity_of_a_person.value }}" placeholder="Enter quantity per person" style="border-radius: 10px; border: 1px solid #dee2e6; padding: 15px; font-size: 16px;">
+                    <label for="quantity_of_a_person" style="color: #6c757d;">Количество для одного человека</label>
+                    {{ form.quantity_of_a_person.errors }}
+                </div>
+
+                <div class="form-check mb-4">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if form.is_active.value %}checked{% endif %}
+                           style="border-radius: 5px; border: 1px solid #dee2e6;">
+                    <label class="form-check-label" for="is_active" style="color: #6c757d;">Активный</label>
+                    {{ form.is_active.errors }}
+                </div>
+
+                <button type="submit" class="btn w-100 py-3"
+                        style="background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; border-radius: 15px; font-size: 18px; transition: background 0.3s;">
+                    Сохранить изменения
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hover effect for the submit button */
+    .btn:hover {
+        background: linear-gradient(135deg, #feb47b, #ff7e5f);
+    }
+    /* Focus effect for inputs and selects */
+    .form-control:focus, .custom-select:focus {
+        border-color: #ff7e5f;
+        box-shadow: 0px 0px 10px rgba(255, 126, 95, 0.2);
+    }
+    /* Styles for inputs while typing */
+    .form-control:not(:placeholder-shown) {
+        background-color: #fff;
+        box-shadow: 0px 0px 10px rgba(255, 126, 95, 0.1);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    /* Custom styles for select dropdown */
+    .custom-select {
+        background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"%3E%3Cpath fill="%236c757d" d="M2 0L0 2h4zM2 5L0 3h4z"/%3E%3C/svg%3E');
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 8px 10px;
+    }
+    /* Custom styles for select options */
+    .custom-select option {
+        padding: 10px;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
