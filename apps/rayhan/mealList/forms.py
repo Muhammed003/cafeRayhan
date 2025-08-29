@@ -1,7 +1,8 @@
 from django import forms
 from django.utils import timezone
 
-from .models import MealsInMenu, CommentsInMeal, GroupNameStopList, GroupItemStopList, RatingMeal, ProductPrices
+from .models import MealsInMenu, CommentsInMeal, GroupNameStopList, GroupItemStopList, RatingMeal, ProductPrices, \
+    Ingredient
 
 
 class MealsInMenuForm(forms.ModelForm):
@@ -79,7 +80,7 @@ class RatingMealForm(forms.ModelForm):
 class ProductPricesForm(forms.ModelForm):
     class Meta:
         model = ProductPrices
-        fields = ["name", "create_date", "price", "type"]  # Exclude `create_date` here
+        fields = ["name", "create_date", "price", "type", "type_products"]  # Exclude `create_date` here
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -89,3 +90,10 @@ class ProductPricesForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+
+class IngredientForm(forms.ModelForm):
+    class Meta:
+        model = Ingredient
+        fields = ['name', 'unit', 'source', 'current_price', 'is_available']

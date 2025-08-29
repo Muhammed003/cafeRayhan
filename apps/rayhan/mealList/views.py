@@ -1,8 +1,9 @@
 from datetime import datetime, date
+from decimal import Decimal
 from pyexpat.errors import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import  F, FloatField, Sum, ExpressionWrapper
-from django.db.models.functions import TruncDay
+from django.db.models import F, FloatField, Sum, ExpressionWrapper, Avg
+from django.db.models.functions import TruncDay, TruncMonth, TruncDate
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from apps.account.mixins import RoleRequiredMixin
@@ -16,7 +17,9 @@ from django.views.generic import TemplateView, FormView, UpdateView, CreateView
 from apps.rayhan.mealList.forms import MealsInMenuForm, EditMealsInMenuForm, CommentsInMealForm, \
     EditCommentsMealsInMenuForm, GroupNameStopListForm, GroupItemStopListForm, RatingMealForm, ProductPricesForm
 from apps.rayhan.mealList.models import MealsInMenu, CommentsInMeal, StopList, GroupNameStopList, GroupItemStopList, \
-    MealGroup, GroupByOther, ContainerType, MealsToShow, RatingMeal, InStockInMeal, ProductPrices, MealRecipes
+    MealGroup, GroupByOther, ContainerType, MealsToShow, RatingMeal, InStockInMeal, ProductPrices, MealRecipes, \
+    Ingredient, MealIngredient, ProductPurchase, MealPreparation, UsedIngredient, InitialIngredientStock
+from apps.rayhan.report.models import CountMeals
 from apps.rayhan.waitressPage.models import OrderMeal
 
 SAMSA_KEBAB_LIST = [
@@ -26,7 +29,6 @@ SAMSA_KEBAB_LIST = [
     "Куриный",
     "Баранина",
     "Кусковой",
-    "Томчи самса",
 ]
 
 class MealListView(RoleRequiredMixin, TemplateView):
@@ -246,43 +248,34 @@ class QuantityOfMealADay(RoleRequiredMixin, TemplateView, View):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(self.request.user.roles)
-        if self.request.user.roles == "administrator":
-            context["meals_count"] = OrderMeal.objects.filter(Q(name__in=["Гуляш",
-                                                                          "Казахский",
-                                                                          "Казахский 0,7",
-                                                                          'Шорпо',
-                                                                          'Шорпо 200',
-                                                                          'Блинчики',
-                                                                          'Казахски 200',
-                                                                          'Аш',
-                                                                          'Манная каша',
-                                                                          'Котлет',
-                                                                          'Рисовая каша',
-                                                                          'Бифштекс',
-                                                                          'Бифштекс без яйца',
-                                                                          'День и ночь',
-                                                                          'Гарнир',
-                                                                          'Мампар',
-                                                                          ]),
-                                                          create_date__date=datetime.now().date()).annotate(
-            day=TruncDay('create_date')).values('day').annotate(
-            summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
-            '-day')
-        elif self.request.user.roles == "samsishnik":
-            context["meals_count"] = OrderMeal.objects.filter(Q(name__in=SAMSA_KEBAB_LIST),
-                                                              create_date__date=datetime.now().date()).annotate(
-                day=TruncDay('create_date')).values('day').annotate(
-                summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
-                '-day')
+        today = datetime.now().date()
+
+        if self.request.user.roles == "samsishnik":
+            # Берём все блюда из группы Самсы и Шашлыки
+            meals_in_groups = MealsInMenu.objects.filter(
+                group_item__name__in=["Самсы", "Шашлыки"]
+            ).values_list("name", flat=True)
+
+            context["meals_count"] = OrderMeal.objects.filter(
+                name__in=meals_in_groups,
+                create_date__date=today
+            ).annotate(
+                day=TruncDay('create_date')
+            ).values('day').annotate(
+                summa=Sum('quantity')
+            ).values('name', 'day', 'summa', 'is_paid').order_by('-day')
 
         else:
-            context["meals_count"] = OrderMeal.objects.filter(create_date__date=datetime.now().date()).annotate(
-                day=TruncDay('create_date')).values('day').annotate(
-                summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
-                '-day')
+            context["meals_count"] = OrderMeal.objects.filter(
+                create_date__date=today
+            ).annotate(
+                day=TruncDay('create_date')
+            ).values('day').annotate(
+                summa=Sum('quantity')
+            ).values('name', 'day', 'summa', 'is_paid').order_by('-day')
 
         return context
+
 
 
 # RATING MEAL
@@ -359,7 +352,12 @@ class ProductPriceView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["products"] = ProductPrices.objects.all().order_by("name")
+        filter_value = self.request.GET.get('filter')
+        if filter_value:
+            context["products"] = ProductPrices.objects.filter(type_products=filter_value).order_by("name")
+        else:
+            context["products"] = ProductPrices.objects.all().order_by("name")
+
         context["form"] = ProductPricesForm()
         return context
 
@@ -403,34 +401,39 @@ class MealRecipesView(RoleRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Annotate each recipe with its consumption
+        # Pre-fetch all recipes and related fields
         meal_recipes = (
             MealRecipes.objects
-            .select_related('meal', 'name_product')
-            .annotate(
-                consumption=ExpressionWrapper(
-                    F('weight') * F('name_product__price'),
-                    output_field=FloatField()
-                )
-            )
+            .select_related('meal', 'name_product', 'name_product__this_meal_consumption')
         )
 
-        # Annotate each meal with total consumption using the correct related name 'meal_recipes'
-        meals_with_consumption = (
-            MealsToShow.objects
-            .annotate(
-                total_consumption=Sum(
-                    ExpressionWrapper(
-                        F('meal_recipes__weight') * F('meal_recipes__name_product__price'),
-                        output_field=FloatField()
-                    )
-                )
-            )
-        )
+        # Annotate each recipe with its custom "consumption" value
+        annotated_recipes = []
+        for recipe in meal_recipes:
+            if recipe.name_product.price == 0:
+                # Fallback to consumption of related meal
+                fallback_consumption = 0
+                related_meal = recipe.name_product.this_meal_consumption
+                if related_meal:
+                    print(related_meal.consumption)
+                    fallback_consumption = related_meal.consumption or 0
+                recipe.consumption = recipe.weight * fallback_consumption
+            else:
+                recipe.consumption = float(recipe.weight) * float(recipe.name_product.price)
+            annotated_recipes.append(recipe)
 
-        # Add these to the context
-        context['meal_recipes'] = meal_recipes.order_by("meal")
-        context['meals'] = meals_with_consumption
+        # Get total consumption for each meal by summing annotated values
+        meals = MealsToShow.objects.all()
+        meal_consumption_map = {meal.id: 0 for meal in meals}
+        for recipe in annotated_recipes:
+            if recipe.meal_id in meal_consumption_map:
+                meal_consumption_map[recipe.meal_id] += float(recipe.consumption)
+
+        for meal in meals:
+            meal.total_consumption = meal_consumption_map.get(meal.id, 0)
+
+        context['meal_recipes'] = sorted(annotated_recipes, key=lambda x: x.meal_id)
+        context['meals'] = meals
         context['products'] = ProductPrices.objects.all()
         return context
 
@@ -440,7 +443,10 @@ class MealRecipesView(RoleRequiredMixin, TemplateView):
             meal_id = request.POST.get('meal')
             name_product_id = request.POST.get('name_product')
             weight = request.POST.get('weight')
-
+            meal_id_from_menu = MealsToShow.objects.get(id=meal_id)
+            product_price = ProductPrices.objects.get(id=name_product_id).price
+            meal_id_from_menu.consumption += (Decimal(product_price) * Decimal(weight))
+            meal_id_from_menu.save()
             # Create and save the new meal recipe
             MealRecipes.objects.create(
                 meal_id=meal_id,
@@ -451,20 +457,31 @@ class MealRecipesView(RoleRequiredMixin, TemplateView):
             return redirect('meal-recipes')  # Ensure this matches your URL name
 
         elif 'edit_recipe' in request.POST:
+            print(request.POST)
             # Handle editing an existing recipe
             recipe_id = request.POST.get('recipe_id')
             meal_id = request.POST.get('meal')
             name_product_id = request.POST.get('name_product')
             weight = request.POST.get('weight')
-            print(f"meal_id:{meal_id} recipe_id:{recipe_id} name_product_id:{name_product_id} weight:{weight}")
+
+            meal_id_from_menu = MealsToShow.objects.get(id=meal_id)
+            product_price = ProductPrices.objects.get(id=name_product_id).price
+
             #
             # # Get the existing recipe and update it
-            # recipe = get_object_or_404(MealRecipes, id=recipe_id)
-            # recipe.meal_id = meal_id
-            # recipe.name_product_id = name_product_id
-            # recipe.weight = weight
-            # recipe.save()
-            # messages.success(request, "Рецепт успешно изменен!")
+            recipe = get_object_or_404(MealRecipes, id=recipe_id)
+            recipe.meal_id = meal_id
+            recipe.name_product_id = name_product_id
+
+            meal_id_from_menu.consumption -= (Decimal(product_price) * Decimal(recipe.weight))
+            recipe.weight = weight
+            meal_id_from_menu.consumption += (Decimal(product_price) * Decimal(weight))
+            print(meal_id_from_menu.consumption)
+            meal_id_from_menu.save()
+
+
+            recipe.save()
+            messages.success(request, "Рецепт успешно изменен!")
             return redirect('meal-recipes')
 
         elif 'delete_recipe' in request.POST:
@@ -476,5 +493,244 @@ class MealRecipesView(RoleRequiredMixin, TemplateView):
             return redirect('meal-recipes')
 
         return super().post(request, *args, **kwargs)
+
+
+
+
+class QuantityOfCakesView(RoleRequiredMixin, TemplateView, View):
+    template_name = 'rayhan/cakes/quantity_cakes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cakes_meal_names = MealsInMenu.objects.filter(group_item__name="Торты").values_list('name', flat=True)
+        context["meals_count"] = OrderMeal.objects.filter( name__in=cakes_meal_names, create_date__date=datetime.now().date()).annotate(
+            day=TruncDay('create_date')).values('day').annotate(
+            summa=Sum('quantity')).values('name', 'day', 'summa', 'is_paid').order_by(
+            '-day')
+
+        return context
+
+
+
+
+class AverageQuantityMeals(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/meal/average_quantity.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["meals_count"] = CountMeals.objects.filter(create_date__month=datetime.now().month).annotate(
+            month=TruncMonth('create_date')).values('month').annotate(
+            summa=Avg('quantity')).values('name',  'month', 'summa').order_by(
+            'month').order_by("name")
+
+        return context
+
+
+class HistoryQuantityOfMealsView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/meal/history_quantity.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.roles == "administrator":
+            today = date.today()
+            start_month = today.replace(day=1)
+
+            context["meals_count"] = (
+                CountMeals.objects.filter(create_date__gte=start_month)
+                .annotate(day=TruncDay('create_date'))
+                .values('name', 'day')
+                .annotate(summa=Sum('quantity'))
+                .order_by('-day', 'name')
+            )
+        else:
+
+            context["meals_count"] = (
+                CountMeals.objects.all()
+                .annotate(day=TruncDay('create_date'))
+                .values('name', 'day')
+                .annotate(summa=Sum('quantity'))
+                .order_by('-day', 'name')
+            )
+
+
+        return context
+
+
+
+
+
+class IngredientView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/meal/report/ingredient_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ingredients'] = Ingredient.objects.all().order_by('name')
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        if action == 'add':
+            name = request.POST.get('name')
+            unit = request.POST.get('unit')
+            source = request.POST.get('source')
+            price = request.POST.get('current_price') or 0
+            is_available = request.POST.get('is_available') == 'on'
+            Ingredient.objects.create(name=name, unit=unit, source=source, current_price=price, is_available=is_available)
+            messages.success(request, 'Ингредиент успешно добавлен.')
+        elif action == 'edit':
+            pk = request.POST.get('id')
+            ingredient = Ingredient.objects.get(pk=pk)
+            ingredient.name = request.POST.get('name')
+            ingredient.unit = request.POST.get('unit')
+            ingredient.source = request.POST.get('source')
+            ingredient.current_price = request.POST.get('current_price') or 0
+            ingredient.is_available = request.POST.get('is_available') == 'on'
+            ingredient.save()
+            messages.success(request, 'Ингредиент обновлен.')
+        elif action == 'delete':
+            pk = request.POST.get('id')
+            Ingredient.objects.filter(pk=pk).delete()
+            messages.warning(request, 'Ингредиент удален.')
+
+        return redirect('ingredient-list')  # your URL name here
+
+
+
+# views.py
+
+class MealIngredientView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/meal/report/meal_ingredient.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["ingredients"] = MealIngredient.objects.select_related("meal", "ingredient")
+        context["meals"] = MealsInMenu.objects.filter(is_active=True)
+        context["all_ingredients"] = Ingredient.objects.filter(is_available=True)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get("action")
+        meal_id = request.POST.get("meal")
+        ingredient_id = request.POST.get("ingredient")
+        amount = request.POST.get("amount")
+
+        if action == "create":
+            if MealIngredient.objects.filter(meal_id=meal_id, ingredient_id=ingredient_id).exists():
+                messages.error(request, "Такой ингредиент уже добавлен в блюдо.")
+            else:
+                MealIngredient.objects.create(
+                    meal_id=meal_id,
+                    ingredient_id=ingredient_id,
+                    amount=amount
+                )
+                messages.success(request, "Ингредиент успешно добавлен.")
+        elif action == "edit":
+            item_id = request.POST.get("item_id")
+            item = get_object_or_404(MealIngredient, id=item_id)
+            item.meal_id = meal_id
+            item.ingredient_id = ingredient_id
+            item.amount = amount
+            item.save()
+            messages.success(request, "Ингредиент обновлён.")
+        elif action == "delete":
+            item_id = request.POST.get("item_id")
+            item = get_object_or_404(MealIngredient, id=item_id)
+            item.delete()
+            messages.success(request, "Удалено успешно.")
+        return redirect("meal-ingredient")
+
+
+# views.py
+
+
+class ProductPurchaseView(RoleRequiredMixin, View):
+    template_name = 'rayhan/meal/report/product_purchase.html'
+
+    def get(self, request):
+        purchases = ProductPurchase.objects.order_by('-date')
+        ingredients = Ingredient.objects.filter(is_available=True)
+        return render(request, self.template_name, {
+            'purchases': purchases,
+            'ingredients': ingredients,
+        })
+
+    def post(self, request):
+        ingredient_id = request.POST.get('ingredient')
+        quantity = request.POST.get('quantity')
+        price_per_unit = request.POST.get('price_per_unit')
+
+        if ingredient_id and quantity and price_per_unit:
+            try:
+                purchase = ProductPurchase.objects.create(
+                    ingredient_id=ingredient_id,
+                    quantity=quantity,
+                    price_per_unit=price_per_unit
+                )
+                messages.success(request, f"Успешно добавлена покупка: {purchase}")
+            except Exception as e:
+                messages.error(request, f"Ошибка: {str(e)}")
+        else:
+            messages.error(request, "Пожалуйста, заполните все поля.")
+
+        return redirect('product-purchase')
+
+
+# views.py
+from django.utils.timezone import now
+
+class IngredientStockView(RoleRequiredMixin, TemplateView):
+    template_name = 'rayhan/meal/report/stock_report.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        today = date.today()
+        first_day = today.replace(day=1)
+
+
+        ingredients_data = []
+
+        for ingredient in Ingredient.objects.all():
+            # Начальный остаток
+            initial = InitialIngredientStock.objects.filter(
+                ingredient=ingredient, date=first_day
+            ).first()
+            initial_qty = initial.quantity if initial else 0
+
+            # Приходы за месяц
+            purchases = ProductPurchase.objects.annotate(
+                date_only=TruncDate('date')
+            ).filter(
+                ingredient=ingredient,
+                date_only__gte=first_day,
+                date_only__lte=today
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+
+            # Расходы за месяц
+            used = UsedIngredient.objects.filter(
+                ingredient=ingredient,
+                date__gte=first_day,
+                date__lte=today
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+
+            # Расход сегодня
+            used_today = UsedIngredient.objects.filter(
+                ingredient=ingredient,
+                date=today
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+
+            remaining = initial_qty + purchases - used
+
+            ingredients_data.append({
+                'ingredient': ingredient,
+                'initial': initial_qty,
+                'purchased': purchases,
+                'used': used,
+                'used_today': used_today,
+                'remaining': remaining
+            })
+
+        context['ingredients_data'] = ingredients_data
+        return context
 
 

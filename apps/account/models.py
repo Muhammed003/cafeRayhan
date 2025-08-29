@@ -55,6 +55,8 @@ class CustomUser(AbstractUser, PermissionsMixin):
         ("administrator", "Администратор"),
         ("employee", "Работник"),
         ("samsishnik", "Cамсышник"),
+        ("cake_maker", "Тортышник"),
+        ("chebureki_maker", "Чебурешник"),
         ("waitress", "Официант"),
         ("butcher", "Мясник"),
         ("demo", "Демо"),
@@ -132,42 +134,41 @@ class CustomUser(AbstractUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         # Generate the activation code
         # Сохраняем статистику за день
-        try:
-            if self.roles == "waitress":
-                stat, created = UserTrophyStat.objects.get_or_create(user=self, date=datetime.today().date())
-                stat.trophies = self.trophies
-                stat.save()
-                # Ensure trophies are non-negative
-                if self.trophies < 0:
-                    raise ValidationError("Trophies cannot be negative.")
 
-                # Update daily statistics for waitresses
-                stat, created = UserTrophyStat.objects.get_or_create(user=self, date=datetime.today().date())
-                stat.trophies = self.trophies
-                stat.save()
+            # if self.roles == "waitress":
+            #     stat, created = UserTrophyStat.objects.get_or_create(user=self, date=datetime.today().date())
+            #     stat.trophies = self.trophies
+            #     stat.save()
+            #     # Ensure trophies are non-negative
+            #     if self.trophies < 0:
+            #         raise ValidationError("Trophies cannot be negative.")
+            #
+            #     # Update daily statistics for waitresses
+            #     stat, created = UserTrophyStat.objects.get_or_create(user=self, date=datetime.today().date())
+            #     stat.trophies = self.trophies
+            #     stat.save()
+            #
+            #     # Update type_rating based on trophies
+            #     if self.trophies >= 100:
+            #         # Calculate the type_rating level based on the trophies
+            #         rating_level = min((self.trophies // 100) + 1, len(self.RATING_CHOICES))
+            #         self.type_rating = rating_level
+            #     else:
+            #         # Set type_rating to the base level
+            #         self.type_rating = 1  # Assuming 1 corresponds to "Базовый"
+            #      # Check if the trophies are greater than or equal to 100
+            #     if self.trophies >= 100:
+            #         # Calculate the type_rating level based on the trophies
+            #         rating_level = min((self.trophies // 100) + 1, len(self.RATING_CHOICES))
+            #         print(f"Calculated Rating Level: {rating_level}")
+            #
+            #         # Update the type_rating field
+            #         self.type_rating = rating_level
+            #     else:
+            #         # If trophies are less than 100, set the type_rating to the base level
+            #         self.type_rating = 1  # Assuming 1 corresponds to "Базовый"
 
-                # Update type_rating based on trophies
-                if self.trophies >= 100:
-                    # Calculate the type_rating level based on the trophies
-                    rating_level = min((self.trophies // 100) + 1, len(self.RATING_CHOICES))
-                    self.type_rating = rating_level
-                else:
-                    # Set type_rating to the base level
-                    self.type_rating = 1  # Assuming 1 corresponds to "Базовый"
-                 # Check if the trophies are greater than or equal to 100
-                if self.trophies >= 100:
-                    # Calculate the type_rating level based on the trophies
-                    rating_level = min((self.trophies // 100) + 1, len(self.RATING_CHOICES))
-                    print(f"Calculated Rating Level: {rating_level}")
-
-                    # Update the type_rating field
-                    self.type_rating = rating_level
-                else:
-                    # If trophies are less than 100, set the type_rating to the base level
-                    self.type_rating = 1  # Assuming 1 corresponds to "Базовый"
-        except Exception as e:
-            pass
-        # Call the parent class's save method
+            # Call the parent class's save method
         return super().save(*args, **kwargs)
 
 
@@ -215,6 +216,15 @@ class UserTrophyStat(models.Model):
         verbose_name_plural = "Трофеи"
         unique_together = ('user', 'date')
 
+class PushSubscription(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    endpoint = models.TextField(unique=True)
+    p256dh = models.CharField(max_length=256)
+    auth = models.CharField(max_length=256)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Subscription for {self.user or 'anonymous'}"
 
 
 

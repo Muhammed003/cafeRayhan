@@ -8,9 +8,13 @@ from config import settings
 class Samsa(models.Model):
 
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='samsa')
-    samsa_meat = models.PositiveIntegerField(verbose_name='Мясная самса')
-    samsa_potato = models.PositiveIntegerField(verbose_name='Самса картофельная')
+    samsa_meat = models.PositiveIntegerField(verbose_name='Обычный самса', default=0)
+    samsa_little = models.PositiveIntegerField(verbose_name='Тамчы самса', default=0)
+    remainder_samsa_meat = models.PositiveIntegerField(verbose_name='Остатка большое самсы', default=0)
+    remainder_samsa_little = models.PositiveIntegerField(verbose_name='Остатка тамчы самсы', default=0)
     salary = models.PositiveIntegerField(default=0, verbose_name='Зарплата')
+    take_away_summa = models.PositiveIntegerField(default=0, verbose_name='С собой деньги')
+    for_another_cafe = models.PositiveIntegerField(default=0, verbose_name='для Райхан кафе')
     create_date = models.DateField(auto_now_add=False, unique=True)
     update_date = models.DateTimeField(auto_now=True)
 
@@ -24,16 +28,18 @@ class Samsa(models.Model):
         return self.samsa_meat * samsa_meat_data.price
 
     @property
-    def sum_of_samsa_potato(self):
-        samsa_potato_data = MealsInMenu.objects.get(name="Самса картошка")
-        return self.samsa_potato * samsa_potato_data.price
+    def sum_of_samsa_little(self):
+        samsa_little_data = MealsInMenu.objects.get(name="Тамчы самса")
+        return self.samsa_little * samsa_little_data.price
+
+
 
 
 class SamsaPriceDefault(models.Model):
 
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='samsa_price')
     samsa_meat_price = models.CharField(max_length=100, verbose_name='Мясная самса')
-    samsa_potato_price = models.CharField(max_length=100, verbose_name='Самса картофельная')
+    samsa_tamchi_price = models.CharField(max_length=100, verbose_name='Самса тамчы', default="0")
     samsishnik_meat_pay = models.CharField(max_length=100, verbose_name='Зарплата шт мясная самса')
     samsishnik_potato_pay = models.CharField(max_length=100, verbose_name='Зарплата шт картофельная самса')
     create_date = models.DateTimeField(auto_now_add=True)
@@ -46,13 +52,13 @@ class SamsaPriceDefault(models.Model):
 
 class SamsaConsumption(models.Model):
     TYPE_SAMSA = (
-        ("картошка", "картошка"),
+        ("тамчы", "тамчы"),
         ("мясная", "мясная"),
     )
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='samsa_consumption')
     name = models.CharField(max_length=100, verbose_name='Имя')
     quantity = models.CharField(max_length=100, verbose_name='Количества')
-    type_samsa = models.CharField(choices=TYPE_SAMSA, max_length=255, default="картошка", verbose_name='Тип')
+    type_samsa = models.CharField(choices=TYPE_SAMSA, max_length=255, default="тамчы", verbose_name='Тип')
     create_date = models.DateTimeField(auto_now_add=False)
     update_date = models.DateTimeField(auto_now=True)
 

@@ -8,7 +8,11 @@ class RequiresShiftMixin:
         today = datetime.now().date()
         waitress = Waitress.objects.filter(user=request.user, create_date=today).first()
 
-        if not waitress or not waitress.shift:
-            return redirect('waitress-page')  # Replace with the actual URL name
+        if request.user.roles == "chef":
+            pass
+        elif not waitress or not waitress.shift:
+            return redirect('waitress-page')  # Replace with the actual URL name]
+
+
 
         return super().dispatch(request, *args, **kwargs)

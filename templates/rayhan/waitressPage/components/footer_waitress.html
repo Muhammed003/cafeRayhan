@@ -14,11 +14,11 @@
             <span><i class="fa-solid fa-truck"></i></span>
         </a>
         {% if busy_number_of_desk %}
-        <a class="footer__block__icon_1000 ">
+        <a href="#" class="footer__block__icon_1000">
             <span><i class="fa-solid fa-shop"></i></span>
         </a>
         {% else %}
-         <a class="footer__block__icon_1000 ">
+         <a href="{% url 'new-order-meal' %}?desk=1000&&people=0" class="footer__block__icon">
             <span><i class="fa-solid fa-shop"></i></span>
         </a>
         {% endif %}
@@ -26,7 +26,7 @@
     <div class="footer">
         <a href="{% url 'waitress-kitchen' %}" class="text-center {% if request.path == '/waitress/kitchen/' %}active{% endif %}">
             <div class="footer__block__icon"><i class="fa-solid fa-kitchen-set"></i></div>
-            <div>Кухня</div>
+            <div>Заказы</div>
         </a>
         <a href="{% url 'order-bill' 'active' %}" class="text-center {% if request.path == '/waitress/bill/active/' %}active{% endif %}">
             <div class="footer__block__icon"><i class="fa-solid fa-receipt"></i></div>

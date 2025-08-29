@@ -1,6 +1,8 @@
 {% extends '../main/base_waitress.html' %}
 {% load static %}
-
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock style %}
 {% block header %}
 {% include './components/menu_left_waitress.html' %}
 
@@ -75,7 +77,7 @@
     {% if waitress_ok %}
         <div class="jumbotron vh-100 d-flex" style="background-image: url({% static 'account/r.png' %})">
           <div class="container mt-2 align-items-center d-flex mb-5 pb-5">
-              <h1  class="display-1 fs-1 mb-4 w-100 ">Райхан  <br>кафе</h1>
+              <h1  class="display-1 fs-1 mb-4 w-100 ">Караван  <br>кафе</h1>
           </div>
         </div>
     {% elif waitress_does_not_open_shift %}
@@ -95,25 +97,38 @@
       Ждите
     </button>
     {% elif end_page %}
+    {% if the_best_take_away_food %}
      {% include './audio_after_work.html' %}
+    {% endif %}
         <div class="jumbotron fs-1 h-100 bg-dark text-white" style="background-image: url({% static 'images/gif/success.gif' %})">
            {% if the_best_waitress %}
           <h2 class="display-2 mb-4 w-100 text-center border-0 text-danger text-shadow">Вы стали лучшим официантом<br> на сегодня</h2>
           {% endif %}
           <div class=" display-1 text-center mb-2">Смена закрыто</div>
           <h1 class="display-2 mb-4 w-100 border-0 text-danger text-shadow">Общая сумма</h1>
-          <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">{{summa.balance}}</span> <br>сом</h1>
+<!--          <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">{{summa.balance}}</span> <br>сом</h1>-->
+          <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">Вы не можете посмотреть нет доступа</span> <br></h1>
           <h1 class="display-2 mb-4 w-100 border-0 text-danger text-shadow">Расход</h1>
           <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">{{consumption}}</span> <br>сом</h1>
           <h1 class="display-2 mb-4 w-100 border-0 text-danger text-shadow">Итого</h1>
+            <div></div>
           <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">{{result}}</span> <br>сом</h1>
+<!--          <h1 class="display-1 mb-4 border-0 text-shadow w-100"><span class="text-success">Вы не можете посмотреть нет доступа</span> <br></h1>-->
       </div>
     {% else %}
     <div class="p-2  text-center waitress_page_body">
-      <img src="{% static 'account/r.png' %}" width="100%" class="rounded" alt="Your Image">
-        <h2 class="display-1 mb-4 text-shadow text-info w-100">Райхан кафе</h2>
-        <h1 class="display-2 mb-4 w-100 border-0 text-dark text-shadow">{% if request.user.rate >= 10 %} <span>👑</span> {% endif %}{{request.user.username}}</h1>
-        {% if late %}
+        <img src="{% static 'account/r.png' %}" width="100%" class="rounded" alt="Your Image">
+        <h2 class="display-1 mb-4 text-shadow text-info w-100">Караван кафе</h2>
+        <h1 class="display-2 mb-4 w-100 border-0 text-dark text-shadow">
+    {% if request.user.rate >= 10 %} <span>👑</span> {% endif %}
+        {% if request.user.username == "Райхан" %}
+        <span class="shining-text">Райхан </span>
+        <br>
+            {% else %}
+                {{ request.user.username }}
+            {% endif %}
+        </h1>
+       {% if late %}
             {% if late_minutes <= 15 %}
                 <div class="alert alert-success">
                     <strong>Ты немного опоздал:</strong> {{ late_minutes|floatformat:0 }} минут{% if late_minutes > 1 %}ы{% endif %}.
@@ -151,10 +166,14 @@
             <a href="{% url 'start-work' %}" class="display-3 mb-4 w-100 border-0 btn btn-warning btn-lg fs-1 mt-4">Начать смену</a>
         {% endif %}
 
+
     </div>
     {% endif %}
 </div>
 {% endblock content %}
+
+
+
 {% block footer %}
 {% if waitress_ok %}
     {% include './components/footer_waitress.html' %}

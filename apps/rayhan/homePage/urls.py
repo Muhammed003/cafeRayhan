@@ -14,4 +14,7 @@ urlpatterns = [
   path("app-control/", AppModelListView.as_view(), name="app_model_list"),
   path('get_model_data/<str:app_label>/<str:model_name>/', get_model_data, name='get_model_data'),
   path('employee/', EmployeeManagementView.as_view(), name='employee-manage'),
+  path('not-in-work/', NotInWork.as_view(), name='not_in_work'),
+  path('check_bill/', BillCheckPageView.as_view(), name='check_bill_web'),
+
 ]

@@ -51,9 +51,21 @@ admin.site.register(GroupByOther)
 admin.site.register(CommentsInMeal, CommentsInMealAdmin)
 
 admin.site.register(RatingMeal, RatingMealAdmin)
+admin.site.register(UyghurMealsToKitchen)
 
 admin.site.register(StopList, StopListAdmin)
 admin.site.register(MealRecipes, MealRecipesAdmin)
 admin.site.register(ProductPrices, ProductPricesAdmin)
 admin.site.register(GroupItemStopList, GroupItemStopListAdmin)
 admin.site.register(InStockInMeal, RatingMealAdmin)
+
+
+
+# NEW MODELS
+admin.site.register(Ingredient)
+admin.site.register(MealIngredient)
+admin.site.register(ProductPurchase)
+admin.site.register(MealPreparation)
+admin.site.register(UsedIngredient)
+admin.site.register(InitialIngredientStock)
+

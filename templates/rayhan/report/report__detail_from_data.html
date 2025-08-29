@@ -1,0 +1,32 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'z-report' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Информации
+    </div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="container pt-2">
+         <div class="d-flex bg-dark text-white ">
+                <div class="p-2 w-50 text-center">Имя</div>
+                <div class="p-2 w-25 text-center border-start">Сумма из базы</div>
+                <div class="p-2 w-25 text-center border-start">Баланс</div>
+            </div>
+             {% for item in waitress_results %}
+                <div class="d-flex border  bg-success my-1 text-white">
+                    <div class="w-50  text-shadow-dark text-center">{{item.waitress}}</div>
+                    <div class="bg-light text-center p-2 text-dark w-25 border-start">{{item.sum_price}}</div>
+                    <div class="text-center p-2 text-dark w-25 border-start bg-warning">{{item.balance}}</div>
+                </div>
+            {% endfor %}
+    </div>
+</section>
+
+{% endblock content %}

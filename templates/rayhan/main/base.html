@@ -7,6 +7,8 @@
      - https://gettemplates.co/roxy
     -->
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{% block title %}{% endblock title %} Райхан кафе </title>
     <meta name="description" content="Roxy">
@@ -62,10 +64,56 @@ history.pushState(null, null, location.href);
 window.onpopstate = function(event) {
     history.go(1); // Go forward one step, effectively preventing going back more than one page
 };
+const vapidPublicKey = "BGa9bXY208-c4yGVS6QtHU47IxrddDd4M7UIfVm8-KmKj0dBFFYA79UFq_vKkRp3WG82ocalY5t-pInBs94igiM";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function subscribeUser(registration) {
+  const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+console.log('Type:', typeof applicationServerKey); // object
+console.log('Is Uint8Array?', applicationServerKey instanceof Uint8Array); // true
+console.log('Length:', applicationServerKey.length); // 65
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey
+  });
+
+  console.log('Subscribed:', subscription);
+
+  // Отправить subscription на сервер
+  await fetch('/accounts/subscribe_user/', {
+    method: 'POST',
+    body: JSON.stringify(subscription),
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  });
+}
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  navigator.serviceWorker.register('/static/javascript/sw.js').then(registration => {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        subscribeUser(registration);
+      }
+    });
+  });
+}
 </script>
 
 	<script src="{% static 'fontawesomefree/js/all.min.js' %}"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 	<script src="{% static 'vendor/bootstrap-5.2.0/js/bootstrap.bundle.min.js' %}"></script>
 <script defer>
 

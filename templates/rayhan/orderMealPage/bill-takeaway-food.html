@@ -42,7 +42,7 @@
          </a>
 
     </h4>
-   <h4 class="fw-bold text-uppercase text-center">КАФЕ РАЙХАН</h4>
+   <h4 class="fw-bold text-uppercase text-center">КАФЕ КАРАВАН</h4>
     <h5 class="text-uppercase text-center">Предварительный</h5>
     <h6 class="text-uppercase text-center">Код чека: № <span class="px-2 border-bottom border-dark">{{code_bill}}</span> </h6>
 </section>
@@ -72,11 +72,32 @@
 <div class="d-flex w-100 justify-content-between  position-fixed bg-light border-top border-2 border-dark  bottom-0 left-0">
     <a href="" class="bg-info end-order fs-3  px-3 py-1"><i class="fa-solid fa-cut"></i></a>
     <a href="{% url 'close_order' info_data.number_of_desk info_data.number_of_order info_data.code_bill 'with_cash' %}" class="bg-success text-white end-order fs-3 px-3 py-1">Наличный</a>
-    <a href="{% url 'close_order' info_data.number_of_desk info_data.number_of_order info_data.code_bill 'with_card' %}" class="bg-warning end-order fs-3 px-3 py-1"><i class="fa-solid fa-credit-card"></i> </a>
+    <a  data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample" class="bg-warning end-order fs-3 px-3 py-1"><i class="fa-solid fa-credit-card"></i> </a>
+
+
+
+<!--offcanvas card-->
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">{{request.user.username}}</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+        {% if qr_code_bill %}
+  <div class="text-center mt-4">
+    <p>QR код для оплаты:</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ qr_code_bill|urlencode }}&size=200x200" alt="QR для оплаты">
+            <h4 class="my-2 fw-bold"><a href="{{ qr_code_bill }}" target="_blank">{{bill}} сом</a></h4>
+          </div>
+        {% endif %}
+      <a href="{% url 'close_order' info_data.number_of_desk info_data.number_of_order info_data.code_bill 'with_card' %} " onclick="return confirm('Вы уверены что хотите оплатить с картой?')" class="bg-warning end-order fs-3 px-3 py-1 mx-auto d-block text-center rounded">Оплачено с картой </a>
+  </div>
+</div>
 
 </div>
 	<script src="{% static 'fontawesomefree/js/all.min.js' %}"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 	<script src="{% static 'vendor/bootstrap-5.2.0/js/bootstrap.bundle.min.js' %}"></script>
 <script defer>
 history.pushState(null, null, location.href);

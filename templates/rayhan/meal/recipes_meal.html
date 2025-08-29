@@ -11,25 +11,20 @@
     .btn-custom:hover { background-color: #0056b3; }
 </style>
 {% endblock style %}
+
 {% block header %}
-<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
-<div class="mx-auto">
-    Рецепты Блюд
-</div>
+<a href="{% url 'meal-report-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">Рецепты Блюд</div>
 {% endblock header %}
+
 {% block content %}
 <div class="container">
     <div class="header">
-        <button class="btn btn-custom" data-toggle="modal" data-target="#addMealRecipeModal">Добавить новый рецепт</button>
+        <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addMealRecipeModal">Добавить новый рецепт</button>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
 
-    <!-- Meal Recipes List -->
+
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
@@ -44,20 +39,18 @@
             {% for group in meal_groups %}
                 <tr>
                     <td colspan="2" class="bg-info text-white text-center">{{ group.grouper }}</td>
-                    <td colspan="2" class="bg-info text-white text-center total-consumption" data-meal="{{ group.grouper }}">
+                    <td colspan="2" class="bg-info text-white text-center total-consumption" data-meal="{{ group.grouper.id }}">
                         0.00
                     </td>
                 </tr>
-
                 {% for recipe in group.list %}
-                    <tr class="meal-row" data-meal="{{ group.grouper }}">
+                    <tr class="meal-row" data-meal="{{ group.grouper.id }}">
                         <td class="text-start">{{ recipe.name_product }}</td>
                         <td>{{ recipe.weight|floatformat:2 }}</td>
                         <td class="consumption">{{ recipe.consumption|floatformat:0 }}</td>
                         <td>
-                            <!-- Actions for editing/deleting -->
-                            <button class="btn btn-sm btn-info" data-toggle="modal"
-                                    data-target="#editMealRecipeModal"
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                    data-bs-target="#editMealRecipeModal"
                                     data-id="{{ recipe.id }}"
                                     data-meal="{{ recipe.meal.id }}"
                                     data-product="{{ recipe.name_product.id }}"
@@ -84,8 +77,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addMealRecipeModalLabel">Добавить новый рецепт</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Добавить новый рецепт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'meal-recipes' %}">
                 <div class="modal-body">
@@ -112,7 +105,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="submit" name="add_recipe" class="btn btn-custom">Добавить рецепт</button>
                 </div>
             </form>
@@ -125,8 +118,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editMealRecipeModalLabel">Редактировать рецепт</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Редактировать рецепт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'meal-recipes' %}">
                 <div class="modal-body">
@@ -154,7 +147,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="submit" name="edit_recipe" class="btn btn-custom">Сохранить изменения</button>
                 </div>
             </form>
@@ -162,44 +155,39 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // Function to calculate and display total consumption for each meal group
-        function calculateTotalConsumption() {
-            $('.meal-row').each(function () {
-                var mealName = $(this).data('meal');
-                var consumption = parseFloat($(this).find('.consumption').text());
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.meal-row');
+        const totals = {};
 
-                // Find the corresponding total consumption cell for the meal group
-                var totalCell = $('.total-consumption[data-meal="' + mealName + '"]');
+        // Reset total values
+        document.querySelectorAll('.total-consumption').forEach(el => {
+            el.textContent = '0.00';
+        });
 
-                // If the totalCell exists, add the consumption
-                if (totalCell.length) {
-                    var currentTotal = parseFloat(totalCell.text()) || 0;
-                    totalCell.text((currentTotal + consumption));
-                }
-            });
+        // Sum up consumptions
+        rows.forEach(row => {
+            const mealId = row.dataset.meal;
+            const consumption = parseFloat(row.querySelector('.consumption').textContent) || 0;
+            totals[mealId] = (totals[mealId] || 0) + consumption;
+        });
+
+        // Apply totals
+        for (const mealId in totals) {
+            const totalCell = document.querySelector(`.total-consumption[data-meal="${mealId}"]`);
+            if (totalCell) totalCell.textContent = totals[mealId].toFixed(2);
         }
 
-        // Calculate total consumption on page load
-        calculateTotalConsumption();
-
-        // Set up the edit modal with the existing recipe data
-        $('#editMealRecipeModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var recipeId = button.data('id');
-            var mealId = button.data('meal');
-            var productId = button.data('product');
-            var weight = button.data('weight');
-
-            var modal = $(this);
-            modal.find('#editRecipeId').val(recipeId);
-            modal.find('#editMealId').val(mealId);
-            modal.find('#editProductId').val(productId);
-            modal.find('#editWeight').val(weight);
+        // Fill Edit Modal
+        const editModal = document.getElementById('editMealRecipeModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('editRecipeId').value = button.getAttribute('data-id');
+            document.getElementById('editMealId').value = button.getAttribute('data-meal');
+            document.getElementById('editProductId').value = button.getAttribute('data-product');
+            document.getElementById('editWeight').value = button.getAttribute('data-weight');
         });
     });
 </script>

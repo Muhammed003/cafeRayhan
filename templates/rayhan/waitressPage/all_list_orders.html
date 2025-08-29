@@ -1,0 +1,41 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock style %}
+{% block header %}
+{% include './components/menu_left_waitress.html' %}
+
+<a href="{% url 'main' %}" class="mx-auto btn fs-5">
+      Главная
+</a>
+{% include './components/dropdown_menu.html' %}
+{% endblock header %}
+
+{% block content %}
+     <div class="container">
+        <div class="my-3">
+            <a href="{% url 'orders_waitress_kitchen' 'kitchen' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
+                🍽️ <span class="ps-3">Кухня</span>
+            </a>
+        </div>
+        <div class="my-3">
+            <a href="{% url 'orders_waitress_kitchen' 'kebab' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
+                🍢 <span class="ps-3">Шашлык</span>
+            </a>
+        </div>
+          <div class="my-3">
+            <a href="{% url 'orders_waitress_kitchen' 'all_orders' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
+                📋  <span class="ps-3">Все заказы</span>
+            </a>
+        </div>
+          <div class="my-3">
+            <a href="{% url 'pay_with_qr_code' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
+                💳  <span class="ps-3">Оплата по QR</span>
+            </a>
+        </div>
+     </div>
+{% endblock content %}
+{% block footer %}
+{% include './components/footer_waitress.html' %}
+{% endblock footer %}

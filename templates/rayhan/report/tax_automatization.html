@@ -11,13 +11,28 @@
 {% endblock header %}
 
 {% block content %}
-<div class="container">
-    <h3 class="text-danger text-center">Выручка</h3>
-        <h4 class="text-center"> {{data}}</h4>
-    <!-- Displaying the total revenue -->
 
+<div class="container mt-5 text-center">
+    {% if data %}
+        <h4 class="text-success">Выручка:</h4>
+        <p class="fs-4">{{ data }}</p>
+    {% elif error %}
+        <h4 class="text-danger">Ошибка:</h4>
+        <p>{{ error }}</p>
+    {% elif waiting %}
+        <h4 class="text-warning">Загрузка данных...</h4>
+        <p>Подождите пару секунд...</p>
+        <script>
+            setTimeout(function () {
+                window.location.reload();
+            }, 3000);
+        </script>
+    {% else %}
+        <p>Запускаем задачу...</p>
+    {% endif %}
 </div>
-{% endblock content %}
+
+{% endblock %}
 
 {% block position %}
 {% endblock position %}

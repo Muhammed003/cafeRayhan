@@ -25,6 +25,8 @@ class Waitress(models.Model):
     tea = models.PositiveIntegerField(default="0", verbose_name='Чай')
     sherbet = models.PositiveIntegerField(default="0", verbose_name='Шербет')
     drinks = models.PositiveIntegerField(default="0", verbose_name='Напитки')
+    сhebureki = models.PositiveIntegerField(default="0", verbose_name='Чебуреки')
+    cakes = models.PositiveIntegerField(default="0", verbose_name='Десерты')
     wanted_to_close_shift = models.BooleanField(default=False)
     wanted_to_start_shift = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
@@ -43,6 +45,7 @@ class Waitress(models.Model):
         for i in author:
             summa.append(i.summa)
         return self.balance - sum(summa)
+
 
     class Meta:
         verbose_name = 'Официантка'
@@ -101,6 +104,7 @@ class OrderMeal(models.Model):
     is_paid = models.BooleanField(default=False)
     order_done = models.BooleanField(default=False)
     order_samsa_kebab= models.BooleanField(default=False)
+    order_cakes= models.BooleanField(default=False)
     order_is_edited = models.BooleanField(default=False)
     takeaway_food = models.BooleanField(default=False)
     order_closed_time = models.DateTimeField(auto_now_add=False, verbose_name="Время завершения заказа",null=True)

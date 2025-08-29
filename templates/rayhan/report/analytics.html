@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика продаж</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #f9f9f9; }
+    .summary-box { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .stat-title { font-size: 1.1rem; color: #888; }
+    .stat-value { font-size: 1.5rem; font-weight: bold; }
+    .chart-box { height: 300px; }
+    .popular-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="container py-4">
+  <h2 class="mb-4">Статистика продаж</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Выручка</div>
+        <div class="stat-value text-success"> {% if data %}{{all_balance|add:count_not_closed_orders}}{% else %} 0 {% endif %}</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Прибыль</div>
+        <div class="stat-value text-success">
+          {% if total_profit %}{{total_profit}}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Чеки</div>
+        <div class="stat-value text-danger">{% if data %}{{quantity_of_order_bills.number_of_order}}{% else %} 0 {% endif %}</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Посетителей</div>
+        <div class="stat-value">{{sum_people}}</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Средний чек</div>
+        <div class="stat-value text-primary">{% if data %}{{average_check|floatformat:0}}{% else %} 0 {% endif %}</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="summary-box text-center">
+        <div class="stat-title">Не олачено</div>
+        <div class="stat-value text-danger">{% if data %}{{count_not_closed_orders}}{% else %} 0 {% endif %}</div>
+      </div>
+    </div>
+  </div>
+    <div class="mb-3">
+        <button class="btn btn-outline-primary btn-sm" onclick="setChartData('hour')">Часы</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="setChartData('day')">Дни</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="setChartData('month')">Месяцы</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="setChartData('year')">Годы</button>
+
+    </div>
+  <div class="card mb-4">
+    <div class="card-body">
+        <canvas id="revenueChart" class="chart-box mb-4"></canvas>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">Источники заказов</div>
+        <div class="card-body">
+            <p>В заведении: <strong>{{ revenue_in_place }}</strong></p>
+            <p>Навынос: <strong>{{ revenue_takeaway }}</strong></p>
+            <p>Доставка: <strong>{{ revenue_delivery }}</strong></p>
+       </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+          <div class="card-header fw-bold text-primary">Популярные товары</div>
+          <ul class="list-group list-group-flush">
+            {% for item in popular_meals %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ item.name }}</span>
+                <span class="badge bg-success rounded-pill">{{ item.total_quantity }}</span>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">Нет данных</li>
+            {% endfor %}
+          </ul>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      {% for hour_block in hourly_popular_meals %}
+      <div class="col-md-6 mb-3">
+        <div class="card">
+          <div class="card-header fw-bold text-primary">
+            Заказы с {{ hour_block.hour_from }} до {{ hour_block.hour_to }}
+          </div>
+          <ul class="list-group list-group-flush">
+            {% for item in hour_block.popular_meals %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ item.name }}</span>
+                <span class="badge bg-success rounded-pill">{{ item.total_quantity }}</span>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">Нет данных</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+<div style="max-width: 400px; position: relative;">
+  Поиск по блюдам
+  <input type="text" id="mealSearch" class="form-control" placeholder="Поиск блюда...">
+  <div id="searchResults" class="list-group position-absolute w-100" style="z-index: 1050; max-height: 300px; overflow-y: auto;"></div>
+</div>
+
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const chartData = {
+    hour: {
+      labels: [{% for item in hourly_data %}"{{ item.hour|date:"H:i" }}",{% endfor %}],
+      data: [{% for item in hourly_data %}{{ item.total_price|default:0 }},{% endfor %}]
+    },
+    day: {
+      labels: [{% for item in day_data %}"{{ item.create_date_str }}",{% endfor %}],
+      data: [{% for item in day_data %}{{ item.all_balance }},{% endfor %}]
+    },
+    month: {
+      labels: [{% for item in month_data %}"{{ item.month|date:"Y-m" }}",{% endfor %}],
+      data: [{% for item in month_data %}{{ item.total }},{% endfor %}]
+    },
+    year: {
+      labels: [{% for item in year_data %}"{{ item.year|date:"Y" }}",{% endfor %}],
+      data: [{% for item in year_data %}{{ item.total }},{% endfor %}]
+    }
+  };
+
+  const ctx = document.getElementById('revenueChart');
+  let revenueChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.day.labels,
+      datasets: [{
+        label: 'Выручка',
+        data: chartData.day.data,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true },
+        x: { title: { display: true, text: 'Период' } }
+      }
+    }
+  });
+
+  function setChartData(type) {
+    revenueChart.data.labels = chartData[type].labels;
+    revenueChart.data.datasets[0].data = chartData[type].data;
+    revenueChart.update();
+  }
+
+
+
+
+
+
+
+
+   (function() {
+    const input = document.getElementById('mealSearch');
+    const resultsContainer = document.getElementById('searchResults');
+    let timeout = null;
+
+    function clearResults() {
+      resultsContainer.innerHTML = '';
+      resultsContainer.style.display = 'none';
+    }
+
+    input.addEventListener('input', function() {
+      clearTimeout(timeout);
+      const query = this.value.trim();
+      if (query.length < 2) {
+        clearResults();
+        return;
+      }
+
+      timeout = setTimeout(() => {
+        fetch(`/report/api/meal-hourly-quantity/?q=${encodeURIComponent(query)}`)
+          .then(response => response.json())
+          .then(data => {
+            resultsContainer.innerHTML = '';
+            if (!data.results || data.results.length === 0) {
+              resultsContainer.innerHTML = `<div class="list-group-item text-muted">Ничего не найдено</div>`;
+              resultsContainer.style.display = 'block';
+              return;
+            }
+
+            data.results.forEach(item => {
+              const el = document.createElement('div');
+              el.className = 'list-group-item d-flex justify-content-between align-items-center';
+              el.textContent = item.hour;
+              const badge = document.createElement('span');
+              badge.className = 'badge bg-primary rounded-pill';
+              badge.textContent = item.quantity;
+              el.appendChild(badge);
+              resultsContainer.appendChild(el);
+            });
+
+            resultsContainer.style.display = 'block';
+          })
+          .catch(() => {
+            clearResults();
+          });
+      }, 300);
+    });
+
+    document.addEventListener('click', function(event) {
+      if (!input.contains(event.target) && !resultsContainer.contains(event.target)) {
+        clearResults();
+      }
+    });
+  })();
+
+
+</script>
+</body>
+</html>

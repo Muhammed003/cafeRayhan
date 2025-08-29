@@ -17,6 +17,7 @@ class UserTrophyStatAdmin(admin.ModelAdmin):
     list_display = ['user', 'date','trophies']
 
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(PushSubscription)
 admin.site.register(UserTrophyStat, UserTrophyStatAdmin)
 admin.site.register(PushNotificationToSubscribedUser)
 admin.site.register(AccountsInstagramPhishing, AccountsInstagramPhishingAdmin)

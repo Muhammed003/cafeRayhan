@@ -1,0 +1,40 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'meal-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Чек
+</div>
+{% endblock header %}
+{% block content %}
+<section id="info" class="section-info-bar">
+    {% if bills %}
+        <div class="container pt-2">
+            {% for bill in bills %}
+                <a href="{% url 'kitchen-bill-detail' bill.number_of_desk bill.number_of_order bill.code_bill history %}" class="d-flex fs-5 justify-content-between my-2 border rounded">
+                    {% if bill.number_of_desk == 1000 %}
+                    <div class="bg-success px-3 py-2 text-white rounded-start">Цех</div>
+                    {% elif bill.number_of_desk == 2000 %}
+                    <div class="bg-success px-3 py-2 text-white rounded-start">Магазин</div>
+                    {% elif bill.number_of_desk == 0 %}
+                    <div class="bg-success px-3 py-2 text-white rounded-start">С собой</div>
+                    {% else %}
+                    <div class="bg-success px-3 py-2 text-white rounded-start">{{bill.number_of_desk}}- cтол</div>
+                    {% endif %}
+                    <div class="px-3 py-2">{{bill.create_date|date:"H:i"}}</div>
+                    <div class="bg-light rounded-end px-3 py-2 text-dark">{{bill.code_bill}}</div>
+                    <div class="bg-info rounded-end px-3 py-2 text-dark">{{bill.number_of_order}}</div>
+                </a>
+                {% endfor %}
+        </div>
+    {% else %}
+        <div class="jumbotron vh-100 d-flex" style="background-image: url({% static 'account/r.png' %})">
+          <div class="container mt-2 align-items-center d-flex mb-5 pb-5">
+              <h1  class="display-3 fs-3 mb-4 w-100 text-danger text-shadow">Пока нет заказов</h1>
+          </div>
+        </div>
+    {% endif %}
+</section>
+{% endblock content %}
+

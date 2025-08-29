@@ -4,8 +4,8 @@ from .views import *
 urlpatterns = [
   # WAITRESS SIDE
   path("", WaitressPageView.as_view(),  name="waitress-page"),
-  path('start/late_user_work/<int:price>/', StartLateUserShiftWaitress.as_view(), name='late-user-start-work'),
   path('start/work/', StartShiftWaitress.as_view(), name='start-work'),
+  path('start/late_user_work/<int:price>/', StartLateUserShiftWaitress.as_view(), name='late-user-start-work'),
   path('end/work/', EndShiftWaitress.as_view(), name='end-work'),
   # END WAITRESS SIDE
 
@@ -14,7 +14,8 @@ urlpatterns = [
   path("desks_simple/", DesksSimpleView.as_view(),  name="desks_simple"),
   path("desks/edit/order/<int:pk>/", EditOrderWaitress.as_view(),  name="edit-order-waitress"),
   path('desks/new/order/', NewOrderView.as_view(), name='new-order-meal'),
-  path('kitchen/', KitchenWaitressView.as_view(), name='waitress-kitchen'),
+  path('kitchen/', AllWaitressView.as_view(), name='waitress-kitchen'),
+  path('orders_kitchen_waitress/<str:pk>/', KitchenWaitressView.as_view(), name='orders_waitress_kitchen'),
   # END DESK SIDE
 
   # ORDER TAKEAWAY SIDE
@@ -45,7 +46,11 @@ urlpatterns = [
   path('waitress_list_items/', ListOfItemsWaitressView.as_view(), name='waitress-list-items'),
   path('rate_waitress/', RateWaitressView.as_view(), name='rate-waitress'),
   path('rules_waitress/', RulesWaitressView.as_view(), name='rules-waitress'),
+  path('pay_with_qr_code/', PayWithQr.as_view(), name='pay_with_qr_code'),
+  path('qr_code_input/', QrCodeInput.as_view(), name='qr_code_input'),
 
+  path('save-subscription/', save_subscription, name='save_subscription'),
+  path('vapid-public-key/', vapid_public_key, name='vapid_public_key'),
 
 
 ]

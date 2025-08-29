@@ -1,0 +1,49 @@
+
+
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block header %}
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div  class="mx-auto text-dark">
+        Блюды штук средний
+    </div>
+{% endblock header %}
+
+{% block content %}
+
+
+
+<section id="content">
+    <div class="container pt-2">
+        {% regroup meals_count by month|date:"F" as sorted_meals_count %}
+        {% for group in sorted_meals_count %}
+        <div class="">
+            <div class="bg-danger text-white text-shadow-dark  p-2 rounded text-center">{{group.grouper}}</div>
+                <div class="bg-light">
+                    {% for item in group.list %}
+                        <div class="d-flex m-2 border rounded">
+                            <div class="p-2 w-50 bg-success rounded-start text-white text-shadow-dark">{{item.name}}</div>
+                            <div class="p-2 w-50 bg-light text-center">{{item.summa|floatformat:0}}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+
+<script>
+
+</script>
+{% endblock scripts %}

@@ -1,7 +1,79 @@
 {% extends '../main/base_waitress.html' %}
 {% load static %}
 
+{% block style %}
+<style>
+.letter-selector {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.5rem;
+}
+.letter-btn {
+    min-width: 50px;
+    font-size: 1.3rem;
+    border-radius: 50px;
+    transition: all 0.3s ease-in-out;
+}
+.letter-btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+.blocked-desk, .assigned-table, .inner-table {
+    padding: 1.2rem;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+    border-radius: 12px;
+    cursor: pointer;
+}
+.blocked-desk {
+    background-color: #dc3545 !important;
+    color: white;
+}
+.assigned-table {
+    background-color: #28a745;
+    color: white;
+}
+.inner-table {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 2px dashed #ccc;
+}
 
+/* Стили для группы букв */
+.group-letter {
+    text-align: center;
+    display: block;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(45deg, #007bff, #00c6ff);
+    padding: 0.5rem 1rem;
+    margin: 1rem auto;
+    border-radius: 12px;
+    width: max-content;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.6);
+    border: 3px solid white;
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+}
+</style>
+{% endblock style %}
 {% block header %}
 
 <a href="{% url 'waitress-kitchen' %}"><i class="fa-solid fa-angle-left"></i> </a>
@@ -21,7 +93,9 @@
     <div class="content-tables__box">
         <div class="container mt-2">
             <h3 class="text-center border-bottom p-2">Номер стола</h3>
-            <div class="row tables"></div>
+            <div class="row tables">
+                   <div class="group-letter w-100">Группа A</div>
+            </div>
         </div>
     </div>
 </section>
@@ -42,6 +116,9 @@
 
 {% block scripts %}
 <script type="text/javascript">
+const alphabet = "BCDEFGHIJKLMNOPQRSTUVWXYZ";
+let groupIndex = 0;
+
 document.addEventListener('DOMContentLoaded', (event) => {
     // Initialize JavaScript arrays and variables
     const busy_desks_box = [];
@@ -80,6 +157,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
         } else {
             tables.innerHTML += `<div class="col p-2"><div class="inner-table available-desk" id="${i}">${i}</div></div>`;
         }
+
+         if (i % 10 === 0) {
+            const groupLetter = alphabet[groupIndex] || "?";
+            tables.innerHTML += `<div class="group-letter w-100">Группа ${groupLetter}</div>`;
+            groupIndex++;
+        }
+
     }
 
     // Handle clicks on assigned desks

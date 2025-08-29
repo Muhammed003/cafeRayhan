@@ -10,4 +10,5 @@ urlpatterns = [
   path('instagram/login/', AccountInstagramView.as_view(), name="account-users"),
   path('users/change/password/<int:pk>/', EditUserView.as_view(), name="password_change"),
   path('not_allowed/', NoPermissionsView.as_view(), name="no_permission_page"),
+  path('subscribe_user/', SaveSubscriptionView.as_view(), name="no_permission_page"),
 ]

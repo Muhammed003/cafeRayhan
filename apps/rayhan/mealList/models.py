@@ -49,6 +49,16 @@ class MealsInMenu(models.Model):
     def __str__(self):
         return self.name
 
+    def cost_price(self):
+        return sum([
+            i.ingredient.current_price * i.amount
+            for i in self.ingredients.all()
+        ])
+
+    def profit(self):
+        return self.price - self.cost_price()
+
+
     class Meta:
         verbose_name = 'Меню блюда'
         verbose_name_plural = 'Меню блюды'
@@ -152,6 +162,7 @@ class MealsToShow(models.Model):
     menu_item = models.ForeignKey(MealsInMenu, on_delete=models.CASCADE, verbose_name='Блюдо в меню', related_name='menu_items')
     create_date = models.DateField(auto_now_add=True, verbose_name="Дата добавления")
     is_active = models.BooleanField(default=True)
+    consumption = models.DecimalField(max_digits=10, decimal_places=1, verbose_name='Расход', default=0)
     type_distribution = models.CharField(max_length=50, choices=MENU_TYPE_CHOICES, verbose_name='Тип распределения', null=True, blank=True)
     from_one_meal = models.IntegerField(verbose_name="блюда из одного штука", null=True, blank=True)
 
@@ -179,12 +190,26 @@ class ProductPrices(models.Model):
         ('pcs', 'шт'),
         ('l', 'литр'),
     ]
+    TYPE_PRODUCTS = [
+        ('bazaar', 'базар'),
+        ('product', 'продукты'),
+        ('shop', 'магазин'),
+    ]
 
     name = models.CharField(max_length=250, verbose_name='Имя продукта')
     price = models.DecimalField(max_digits=10, decimal_places=1, verbose_name='Цена')
     create_date = models.DateTimeField(auto_now_add=False, verbose_name="Дата добавления", null=True, blank=True)
     update_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата изменения", null=True, blank=True)
     type = models.CharField(max_length=3, choices=TYPE_CHOICES, verbose_name='Тип', default='kg')
+    type_products = models.CharField(max_length=250, choices=TYPE_PRODUCTS, verbose_name='Группа продукты', default='product')
+    is_added_to_cart = models.BooleanField(default=False)
+    this_meal_consumption = models.ForeignKey(to=MealsToShow,
+                                              on_delete=models.CASCADE,
+                                              verbose_name='Блюдо-основа',
+                                              related_name='derived_meals',
+                                              null=True,
+                                              blank=True
+                                              )
 
     def __str__(self):
         return self.name
@@ -206,3 +231,115 @@ class MealRecipes(models.Model):
     class Meta:
         verbose_name = 'Рецепты блюд'
         verbose_name_plural = 'Рецепты блюда'
+
+class UyghurMealsToKitchen(models.Model):
+    name_related_meal = models.OneToOneField(to=MealsInMenu, on_delete=models.CASCADE, related_name='uyghur_meals_to_kitchen', verbose_name="Тип блюд")
+
+    class Meta:
+        verbose_name = 'Уйгурская кухня'
+        verbose_name_plural = 'Уйгурская кухня'
+
+    def __str__(self):
+        return self.name_related_meal.name
+
+
+# NEW CODE:
+from django.db import models
+
+
+class Ingredient(models.Model):
+    UNIT_CHOICES = [
+        ('kg', 'кг'),
+        ('pcs', 'шт'),
+        ('l', 'литр'),
+    ]
+
+    SOURCE_CHOICES = [
+        ('bazaar', 'Базар'),
+        ('market', 'Магазин'),
+        ('warehouse', 'Склад'),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name='Название ингредиента')
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='kg', verbose_name='Единица измерения')
+    source = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='market', verbose_name='Источник')
+    current_price = models.DecimalField(default=0,max_digits=10, decimal_places=2, verbose_name='Текущая цена')
+    is_available = models.BooleanField(default=True, verbose_name='Доступен')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+
+class MealIngredient(models.Model):
+    meal = models.ForeignKey(MealsInMenu, on_delete=models.CASCADE, related_name='ingredients', verbose_name='Блюдо')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name='Ингредиент')
+    amount = models.DecimalField(max_digits=10, decimal_places=3, verbose_name='Количество')
+
+    def __str__(self):
+        return f"{self.ingredient.name} для {self.meal.name}"
+
+    class Meta:
+        verbose_name = 'Ингредиент в блюде'
+        verbose_name_plural = 'Ингредиенты в блюде'
+        unique_together = ('meal', 'ingredient')
+
+
+
+class ProductPurchase(models.Model):
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='purchases', verbose_name='Ингредиент')
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Количество')
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена за единицу')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Дата покупки')
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.ingredient.current_price = self.price_per_unit
+            self.ingredient.save()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Покупка ингредиента'
+        verbose_name_plural = 'Покупки ингредиентов'
+
+
+class MealPreparation(models.Model):
+    meal = models.ForeignKey(MealsInMenu, on_delete=models.CASCADE, related_name='preparations', verbose_name='Блюдо')
+    quantity = models.PositiveIntegerField(verbose_name='Количество приготовлено')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Дата приготовления')
+
+    def total_cost(self):
+        return self.meal.cost_price() * self.quantity
+
+    class Meta:
+        verbose_name = 'Приготовление блюда'
+        verbose_name_plural = 'Приготовления блюд'
+
+
+class UsedIngredient(models.Model):
+    meal = models.ForeignKey('MealsInMenu', on_delete=models.CASCADE, null=True, related_name='ingredients_used', verbose_name='Блюдо')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='used', verbose_name='Ингредиент')
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Количество использовано')
+    date = models.DateField(auto_now_add=True, verbose_name='Дата использования')
+
+    class Meta:
+        verbose_name = 'Ингредиент использован'
+        verbose_name_plural = 'Ингредиенты использованы'
+
+
+
+class InitialIngredientStock(models.Model):
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name="Ингредиент")
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Начальный остаток")
+    date = models.DateField(verbose_name="Дата (начало месяца)")
+
+    class Meta:
+        unique_together = ['ingredient', 'date']
+        verbose_name = "Начальный остаток"
+        verbose_name_plural = "Начальные остатки"
+
+
+

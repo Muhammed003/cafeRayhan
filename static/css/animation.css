@@ -1,0 +1,40 @@
+ /* Сияющий текст */
+  .shining-text {
+      font-weight: bold;
+      font-size: 2.5rem;
+      animation: colorChange 3s infinite alternate;
+  }
+
+  /* Бьющееся сердце */
+  .heart {
+      display: inline-block;
+      animation: heartBeat 1s infinite alternate;
+  }
+
+  /* Анимация слова "ЛЮБЛЮ" */
+  .love {
+      font-weight: bold;
+      color: #ff3366;
+      animation: loveBlink 2s infinite alternate;
+  }
+
+  /* Анимация цвета текста */
+  @keyframes colorChange {
+      0% { color: #00ffff; text-shadow: 0 0 5px #00ffff, 0 0 10px #66ffff, 0 0 15px #99ffff; }
+      50% { color: #ffff66; text-shadow: 0 0 5px #ffff66, 0 0 10px #ffcc00, 0 0 15px #ffaa00; }
+      100% { color: #ffffff; text-shadow: 0 0 5px #ffffff, 0 0 10px #cccccc, 0 0 15px #aaaaaa; }
+  }
+
+  /* Анимация мигания "ЛЮБЛЮ" */
+  @keyframes loveBlink {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Анимация биения сердца */
+  @keyframes heartBeat {
+      0% { transform: scale(1); color: #ff3366; text-shadow: 0 0 5px #ff3366, 0 0 10px #ff6699; }
+      50% { transform: scale(1.3); color: #ff0000; text-shadow: 0 0 10px #ff0000, 0 0 15px #ff3366; }
+      100% { transform: scale(1); color: #ff3366; text-shadow: 0 0 5px #ff3366, 0 0 10px #ff6699; }
+  }

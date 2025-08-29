@@ -1,0 +1,72 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        Продажа
+        {% if messages %}
+            {% for message in messages %}
+                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container my-4">
+
+  <h3 class="mb-3 text-center">📊 Общий баланс по месяцам</h3>
+  <ul class="list-group mb-4">
+    {% for item in all_balance_monthly %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ item.month_str }}</span>
+        <span class="badge bg-primary rounded-pill">{{ item.total }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted">Нет данных</li>
+    {% endfor %}
+  </ul>
+
+  <h3 class="mb-3 text-center">🍽 Кухня по месяцам</h3>
+  <ul class="list-group mb-4">
+    {% for item in kitchen_monthly %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ item.month_str }}</span>
+        <span class="badge bg-success rounded-pill">{{ item.total }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted">Нет данных</li>
+    {% endfor %}
+  </ul>
+
+  <h3 class="mb-3 text-center">🥟 Самса по месяцам</h3>
+  <ul class="list-group mb-4">
+    {% for item in samsa_monthly %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ item.month_str }}</span>
+        <span class="badge bg-warning text-dark rounded-pill">{{ item.total }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted">Нет данных</li>
+    {% endfor %}
+  </ul>
+
+  <h3 class="mb-3 text-center">🍢 Шашлык по месяцам</h3>
+  <ul class="list-group mb-4">
+    {% for item in kebab_monthly %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ item.month_str }}</span>
+        <span class="badge bg-danger rounded-pill">{{ item.total }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted">Нет данных</li>
+    {% endfor %}
+  </ul>
+
+</div>
+
+{% endblock content %}

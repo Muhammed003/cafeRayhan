@@ -38,9 +38,15 @@ urlpatterns = [
     # REPORT
     path('report/', include('apps.rayhan.report.urls')),
 
-    # REPORT
+    # MEAT
     path('meat/', include('apps.rayhan.meat.urls')),
-    path('meat/', include('apps.rayhan.meat.urls')),
+
+    # MEAT
+    path('products/', include('apps.rayhan.products.urls')),
+
+    # GAME
+    path('game/', include('apps.rayhan.game.urls')),
+
 
     path('generate-feedback/<str:task_type>/', generate_audio_feedback, name='generate_feedback'),
 

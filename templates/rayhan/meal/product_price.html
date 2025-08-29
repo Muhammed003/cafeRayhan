@@ -3,7 +3,7 @@
 <style>
     body { background-color: #f8f9fa; }
     .container { max-width: 900px; margin-top: 40px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
     .table { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); }
     .table th, .table td { vertical-align: middle; text-align: center; }
     .modal-header { background-color: #007bff; color: #fff; }
@@ -15,7 +15,10 @@
     .modal-footer { border-top: none; }
     .btn-secondary { background-color: #6c757d; border-radius: 20px; }
     .btn-secondary:hover { background-color: #5a6268; }
-
+    .active_btn_dark{
+    background: black;
+    color: #fff;
+    }
     /* Responsive Design */
     @media (max-width: 768px) {
         .table {
@@ -41,15 +44,15 @@
 {% block content %}
 <div class="container">
     <div class="header">
-        <h2 class="text-center">Управление ценами на продукцию</h2>
+         <div class="btn-group my-2 mx-auto w-100">
+            <a href="?filter=product" class="btn btn-light border rounded-start {% if request.GET.filter == 'product' %}active_btn_dark{% endif %}" aria-current="page">Продукты</a>
+            <a href="?filter=bazaar" class="btn btn-light border {% if request.GET.filter == 'bazaar' %}active_btn_dark{% endif %}">Базар</a>
+            <a href="?filter=shop" class="btn btn-light border rounded-end {% if request.GET.filter == 'shop' %}active_btn_dark{% endif %}">Магазин</a>
+         </div>
         <button class="btn btn-custom" data-toggle="modal" data-target="#addProductModal">Добавить новый продукт</button>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+
 
     <!-- Product List -->
     <table class="table table-bordered table-hover">
@@ -64,7 +67,7 @@
         <tbody>
             {% for product in products %}
                 <tr>
-                    <td>{{ product.name }}</td>
+                    <td class="text-start">{{ product.name }}</td>
                     <td>{{ product.price|floatformat:0 }}</td>
                     <td>{{ product.get_type_display }}</td>
                     <td>
@@ -72,7 +75,8 @@
                                 data-target="#editProductModal"
                                 data-id="{{ product.id }}"
                                 data-name="{{ product.name }}"
-                                data-price="{{ product.price }}">
+                                data-price="{{ product.price }}"
+                                data-group="{{ product.type_products }}">
                             <i class="fa-solid fa-edit"></i>
                         </button>
                         <form method="post" action="{% url 'product-price' %}" style="display:inline;">
@@ -107,7 +111,7 @@
                         <label for="addProductPrice">Цена</label>
                         <input type="number" step="0.1" class="form-control" id="addProductPrice" name="price" required placeholder="Введите цену продукта">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mt-1">
                         <label for="productType">Тип</label>
                         <select class="form-control" id="productType" name="type" required>
                             <option value="kg">кг</option>
@@ -115,6 +119,15 @@
                             <option value="l">литр</option>
                         </select>
                     </div>
+                     <div class="form-group  mt-1">
+                        <label for="productGroup">Группа</label>
+                        <select class="form-control" id="productGroup" name="type_products" required>
+                            <option value="product">продукты</option>
+                            <option value="bazaar">базар</option>
+                            <option value="shop">магазин</option>
+                        </select>
+                    </div>
+
                     <input type="hidden" name="add_product" value="1">
                 </div>
                 <div class="modal-footer">
@@ -145,12 +158,20 @@
                         <label for="editProductPrice">Цена</label>
                         <input type="number" step="0.1" class="form-control" id="editProductPrice" name="price" required placeholder="Введите цену продукта">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mt-1">
                         <label for="productType">Тип</label>
                         <select class="form-control" id="productType" name="type" required>
                             <option value="kg">кг</option>
                             <option value="pcs">шт</option>
                             <option value="l">литр</option>
+                        </select>
+                    </div>
+                       <div class="form-group  mt-1">
+                        <label for="editproductGroup">Группа</label>
+                        <select class="form-control" id="editproductGroup" name="type_products" required>
+                            <option value="product">продукты</option>
+                            <option value="bazaar">базар</option>
+                            <option value="shop">магазин</option>
                         </select>
                     </div>
                     <input type="hidden" name="edit_product" value="1">
@@ -175,10 +196,13 @@
         const id = button.data('id');
         const name = button.data('name');
         const price = button.data('price');
+        const group = button.data('group');
         const modal = $(this);
+        console.log( button.data())
         modal.find('#editProductId').val(id);
         modal.find('#editProductName').val(name);
         modal.find('#editProductPrice').val(price);
+        modal.find('#editproductGroup').val(group);
     });
 </script>
 {% endblock content %}

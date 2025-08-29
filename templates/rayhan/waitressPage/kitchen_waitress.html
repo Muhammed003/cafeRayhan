@@ -59,7 +59,11 @@
                                  {% else %}
                                 <div class="px-2 w-50">{{item.name}}</div>
                                 <div class="px-2">{{item.get_int_quantity}}</div>
-                                <div class="px-2 bg-primary text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"></div>
+                                         {% if item.order_done %}
+                                            <div class="px-2 bg-primary text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"><i class="fa-solid fa-check"></i> </div>
+                                          {% else %}
+                                            <div class="px-2 bg-danger text-white rounded-end border-start border-2 fs-5 d-flex align-items-center"><i class="fa-solid fa-xmark"></i> </div>
+                                          {% endif %}
                                  {% endif %}
                                  </div>
                                     <div class="fs-6 text-danger px-2">{{item.comments}}</div>

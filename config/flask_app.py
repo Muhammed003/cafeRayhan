@@ -24,7 +24,6 @@ def generate_audio_feedback(request, task_type):
     if user_feedback is None:
         user_feedback = "Гость"
 
-
     task_feedback = {
         "greetings": [
         f"Привет, {request.user.username}, как дела? Рад тебя видеть!",

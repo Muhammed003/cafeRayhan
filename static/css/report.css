@@ -27,14 +27,15 @@ a{
     border: 1px solid #fff;
     outline: 1px solid #333;
 }
-.header-main{
-    background: #CDB900;
-    padding: 10px;
-    width: 100%;
+.header-main {
+    background: #3FA34D; /* зелёный из логотипа */
+    padding: 12px 20px;
     font-size: 1.2em;
-    position: relative;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    color: #fff;
 }
 @media (max-width: 768px) {
 .box-md{

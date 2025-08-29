@@ -1,5 +1,10 @@
 {% extends '../main/base.html' %}
-
+{% block header %}
+<a href="{% url 'meal-list' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Список товаров
+</div>
+{% endblock header %}
 {% block content %}
 <div class="container mt-5">
     <div class="card p-4" style="border-radius: 20px; background: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">

@@ -1,0 +1,40 @@
+{% extends '../main/base.html' %}
+{% load static %}
+
+{% block style %}
+  {% include '../kitchen/menu_kitchen/menu_left_style.css'   %}
+{% endblock style %}
+
+{% block header %}
+ <a href="{% url 'main' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+ <div class="my-1  fs-5 fw-bold " id="count-meals-here">
+        <span class="pe-2">C-{{count_samsa_big|floatformat:"0"}}</span>
+        <span class="">ТС-{{count_samsa_small|floatformat:"0"}}</span>
+    </div>
+ <button class="btn btn-info border" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
+  Кл. Блюды
+</button>
+
+{% endblock header %}
+
+{% block content %}
+  {% include '../kitchen/menu_kitchen/menu_left_kitchen.html'   %}
+  {% include '../kitchen/menu_kitchen/menu_top_kitchen.html'   %}
+  {% with name_of_page='order_samsa'%}
+   {% include '../kitchen/components/orders.html'   %}
+  {% endwith %}
+
+
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}
+

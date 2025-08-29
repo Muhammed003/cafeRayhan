@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'apps.rayhan.report',
     'apps.rayhan.meat',
     'apps.rayhan.samsa_kebab',
+    'apps.rayhan.products',
+    'apps.rayhan.game',
 
     # lib
     'crispy_forms',
@@ -167,6 +169,11 @@ USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+# REDIS
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # уже должен быть
+
+# ⬇️ ВАЖНО: добавить backend
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 
 
@@ -179,6 +186,8 @@ LOGOUT_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-
+VAPID_PUBLIC_KEY = "BGa9bXY208-c4yGVS6QtHU47IxrddDd4M7UIfVm8-KmKj0dBFFYA79UFq_vKkRp3WG82ocalY5t-pInBs94igiM"
+VAPID_PRIVATE_KEY = "qeA1QY8hVlMK4YOENThpsbIhc88mJ-9PCZ6csbRJDxI"
 SALYK_USERNAME = config('SALYK_USERNAME')
+SALYK_PASSWORD = config('SALYK_PASSWORD')
 SALYK_PASSWORD = config('SALYK_PASSWORD')

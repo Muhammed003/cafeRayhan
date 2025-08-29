@@ -1,0 +1,33 @@
+
+<nav class="navbar-bottom navbar-light navbar-expand  fixed-bottom d-md-none d-lg-none d-xl-none shadow"
+    style="background: #0f071f;">
+    <ul class="nav nav-justified w-100" id="myTab" role="tablist">
+        <li class="nav-item {% if active_tab == 'home' %}active{% endif %} " role="presentation">
+            <a href="/" class="nav-link " id="home-tab"
+             >
+                <span><i class="fa-solid fa-home fs-5"></i></span>
+                <div>Главная</div>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'bill_check' %}active{% endif %}" role="presentation">
+             <a href="{% url 'check_bill_web' %}" class="nav-link" id="" >
+                <span><i class="fa-solid fa-receipt fs-5"></i></span>
+                <div>Чек</div>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="project-tab" data-bs-toggle="tab" data-bs-target="#project" type="button"
+                role="tab" aria-controls="profile" aria-selected="false">
+                <span><i class="fa-solid fa-circle-exclamation fs-5"></i></span>
+                <div>Инфо</div>
+            </button>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collection" type="button"
+                role="tab" aria-controls="notif" aria-selected="false">
+                <span><i class="fa-solid fa-user fs-5"></i></span>
+                <div>Профиль</div>
+            </button>
+        </li>
+        </li>
+    </ul>
+</nav>

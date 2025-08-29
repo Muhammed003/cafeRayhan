@@ -10,6 +10,8 @@ ROLE_PERMISSIONS = {
 VIEW_PERMISSIONS = {
     # CHEF PERMISSIONS
     "ReportNoteBook": ["chef"],
+    "HistoryReportView": ["chef"],
+    "HistoryDetailReportView": ["chef"],
     "RequestToCloseShiftWaitress": ["chef"],
     "RequestShiftDetailView": ["chef"],
     "EndRequestShiftDetailView": ["chef"],
@@ -19,19 +21,22 @@ VIEW_PERMISSIONS = {
     "SettingsProgramView": ["chef"],
     "InComeView": ["chef"],
     # WAITRESS
-    "BreadPage": ["chef", "waitress"],
+    "BreadPage": ["chef", "waitress", "administrator", ],
     "EditBreadMainPageView": ["chef", "waitress"],
     "DeleteBreadMainPageView": ["chef", "waitress"],
     "EditBreadComingView": ["chef", "waitress"],
     "WaitressBreadDeleteView": ["chef", "waitress"],
     "StartShiftWaitress": ["chef", "administrator", "employee", "waitress"],
-    "WaitressPageView": ["waitress"],
     "StartLateUserShiftWaitress": ["employee", "waitress"],
+    "WaitressPageView": ["waitress"],
+    "PayWithQr": ["waitress", "chef"],
+    "QrCodeInput": ["waitress", "chef"],
     "DesksSimpleView": ["waitress"],
     "DesksView": ["waitress"],
     "NewOrderView": ["waitress"],
     "EditOrderWaitress": ["waitress"],
     "KitchenWaitressView": ["waitress"],
+    "AllWaitressView": ["waitress"],
     "BillWaitressView": ["waitress"],
     "BillWaitressDetailView": ["waitress"],
     "EndOrder": ["waitress"],
@@ -47,12 +52,18 @@ VIEW_PERMISSIONS = {
     "ProfilePageView": ["waitress", "chef", "administrator", "employee"],
 
     # CHEF ADMINISTRATOR
-    "HomePageView": ["chef", "administrator", "employee", "samsishnik"],
+    "HomePageView": ["chef", "administrator", "employee", "samsishnik", "chebureki_maker", "cake_maker"],
     "SettingsListView": ["chef", "administrator"],
+    "AverageQuantityMeals": ["chef", "administrator"],
+    "SamsaRestReportView": ["chef", "administrator"],
+    "SamsaRestReportDetailView": ["chef", ],
+    "AnalyticsReportView": ["chef", ],
     "WantToStartShift": ["chef", "administrator", "employee"],
     "ConfirmShiftStart": ["chef", "administrator", "employee"],
     "OrdersInKitchenView": ["chef", "administrator", "employee"],
-    "ControlKitchenOrders": ["chef", "administrator", "employee"],
+    "UyghurKitchenView": ["chef", "administrator", "employee"],
+    "NationalKitchenView": ["chef", "administrator", "employee"],
+    "ControlKitchenOrders": ["chef", "administrator", "employee", "cake_maker"],
     "DeleteOrderView": ["chef", "administrator", "employee", "samsishnik"],
     "ControlDeletedOrderView": ["chef", "administrator"],
     "HistoryBillIsPaidView": ["chef", "administrator"],
@@ -75,9 +86,19 @@ VIEW_PERMISSIONS = {
     "MealInStockView": ["chef", "administrator", "employee"],
     "MeatOrderPageView": ["chef", "administrator", "employee"],
     "EditOrderMeatView": ["chef", "administrator", "employee"],
+    "ProductListView": ["chef", "administrator", "employee"],
+    "BillsAllKitchen": ["chef", "administrator", "employee"],
+    "ReportYesterdayView": ["chef"],
+    "HistoryQuantityOfMealsView": ["chef", "administrator"],
+    "IngredientView": ["chef", "administrator"],
+    "MealIngredientView": ["chef", "administrator"],
+    "ProductPurchaseView": ["chef", "administrator"],
+    "IngredientStockView": ["chef", "administrator"],
 
     # SAMSA KEBAB
     "OrdersSamsaKebabView": ["chef", "administrator", "employee", "samsishnik"],
+    "OrdersSamsaView": ["chef", "administrator", "employee", "samsishnik"],
+    "OrdersKebabView": ["chef", "administrator", "employee", "samsishnik"],
     "ControlSamsaKebabOrders": ["chef", "administrator", "samsishnik"],
     "SamsaReportAddView": ["chef", "administrator", "samsishnik"],
     "SamsaSettingsView": ["chef", "administrator", "samsishnik"],
@@ -91,11 +112,18 @@ VIEW_PERMISSIONS = {
 
     # CHEF
     "SaleDayView": ["chef"],
+    "SaleMonthView": ["chef"],
     "MealReportList": ["chef"],
     "ProductPriceView": ["chef"],
     "MealRecipesView": ["chef"],
     "NotEndedReportView": ["chef"],
     "ReportByHourView": ["chef"],
+    "WaitressControlCrudReport": ["chef"],
+
+    # Cakes
+    "OrderCakesView": ["chef", "cake_maker"],
+    "QuantityOfCakesView": ["chef", "cake_maker"],
+    "ReportCakesView": ["chef", "cake_maker"],
 
     # Add more views and the allowed roles for each
 }

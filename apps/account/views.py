@@ -144,3 +144,40 @@ class EditUserView(CreateView):
             return render(request, 'account/change_password.html', {'form': form, 'error': error})
 
 
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from .models import PushSubscription
+import json
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SaveSubscriptionView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+
+        endpoint = data.get("endpoint")
+        keys = data.get("keys", {})
+        p256dh = keys.get("p256dh")
+        auth = keys.get("auth")
+
+        if not endpoint or not p256dh or not auth:
+            return JsonResponse({'status': 'invalid data'}, status=400)
+
+        subscription, created = PushSubscription.objects.get_or_create(
+            endpoint=endpoint,
+            defaults={
+                'p256dh': p256dh,
+                'auth': auth,
+                'user': request.user if request.user.is_authenticated else None
+            }
+        )
+
+        if not created:
+            # обновим ключи если они поменялись
+            subscription.p256dh = p256dh
+            subscription.auth = auth
+            subscription.save()
+
+        return JsonResponse({'status': 'ok'})

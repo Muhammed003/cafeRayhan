@@ -101,56 +101,163 @@ text-shadow: -1px 1px 0 #41ba45,
   <div class="container">
       {% if have_written and not edit_block %}
 
-      <div class="d-flex justify-content-center align-items-center flex-column text-gradients h-100">
-      {% for item_samsa in samsa_list_of_today %}
-          <h2 class="text display-1">Мясо</h2>
-          <div>{{item_samsa.samsa_meat}} шт</div>
-          <h2 class="text display-1">Картошка</h2>
-          <div>{{item_samsa.samsa_potato}} шт</div>
-          <h2 class="text display-1">Зарплата</h2>
-          <div>{{item_samsa.salary}} сом</div>
-          <h2 class="text display-1">Сабой</h2>
-          <div class="text-dark">{{samsa_result}} сом</div>
+       <div class="d-flex flex-column align-items-center text-center">
 
-      {% endfor %}
-    <h2 class="text-title">Расходы <a href="{% url 'samsa-edit-consumption' %}" class=" text-primary"><i class="fa fa-edit"></i> </a> </h2>
-      {% for consumption in consumption_data %}
-          <h2 class="text">{{consumption.name}}</h2>
-          <div>{{consumption.quantity}} {{consumption.type_samsa}}</div>
-      {% endfor %}
+        {% for item_samsa in samsa_list_of_today %}
+        <div class="card shadow mb-4 w-100" style="max-width: 600px;">
+          <div class="card-body">
+            <h4 class="card-title text-primary fw-bold mb-3">Самса: Сегодня</h4>
+
+            <div class="mb-2">
+              <strong class="text-secondary">Обычный самса:</strong>
+              <span class="text-dark">{{ item_samsa.samsa_meat }} шт</span>
+            </div>
+            <div class="mb-2">
+              <strong class="text-secondary">Тамчы самса:</strong>
+              <span class="text-dark">{{ item_samsa.samsa_little }} шт</span>
+            </div>
+            <div class="mb-2">
+              <strong class="text-secondary">Для Райхан кафе:</strong>
+              <span class="text-dark">{{ item_samsa.for_another_cafe }} шт</span>
+            </div>
+            <div class="mb-2">
+              <strong class="text-secondary">Зарплата:</strong>
+              <span class="text-success">{{ item_samsa.salary }} сом</span>
+            </div>
+            <div class="mb-2">
+              <strong class="text-secondary">Сабой и мбанк:</strong>
+              <span class="text-danger">{{ item_samsa.take_away_summa }} сом</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="w-100 mt-2" style="max-width: 600px;">
+          <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3 mb-2">
+            <h5 class="text-uppercase fw-bold">Расходы</h5>
+            <a href="{% url 'samsa-edit-consumption' %}" class="text-decoration-none text-primary">
+              <i class="fa fa-edit"></i>
+            </a>
+          </div>
+
+          {% for consumption in consumption_data %}
+          <div class="mb-2 px-2 py-1 bg-light rounded shadow-sm">
+            <div class="fw-semibold text-dark">{{ consumption.name }}</div>
+            <small class="text-muted">{{ consumption.quantity }} {{ consumption.type_samsa }}</small>
+          </div>
+          {% endfor %}
+        </div>
 
 
-       </div>
+      </div>
+
+      <div class="border-top pt-3 mt-3 mb-2 text-dark p-2 bg-white rounded ">
+          <h5 class="text-uppercase fw-bold mt-2">Отчёт</h5>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-25">Самса</div>
+              <div>{{samsa_data.samsa_meat}} * {{price_default.samsa_meat_price }}</div>
+              <div>{{samsa_big_summa}}</div>
+          </div>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-25">Тамчы</div>
+              <div>{{samsa_data.samsa_little}} * {{price_default.samsa_tamchi_price}}  </div>
+              <div>{{samsa_little_summa}}</div>
+          </div>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-25">Для райхан</div>
+              <div>{{samsa_data.for_another_cafe}} * {{price_default.samsa_meat_price}}  </div>
+              <div>{{for_another_cafe_samsa_summa}}</div>
+          </div>
+          <div class="d-flex justify-content-between border-bottom border-dark bg-primary text-white p-2">
+              <div class="w-25">Общий</div>
+              <div>{{samsa_big_summa}}+{{samsa_little_summa}}-{{for_another_cafe_samsa_summa}}  =  </div>
+              <div>{{result_samsa_summa}}</div>
+          </div>
+
+          <h2 class="my-2">Результать</h2>
+            <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-50">Сумма официантки</div>
+              <div>{{summa_samsa_waitress|add:count_not_closed_orders_samsa}}</div>
+            </div>
+           <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-50">C саб. и мбанк</div>
+              <div>{{samsa_data.take_away_summa}}</div>
+            </div>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-50">Зарплата</div>
+              <div>{{samsa_data.salary}}</div>
+            </div>
+           <div class="d-flex justify-content-between border-bottom border-dark p-2 bg-danger text-white">
+              <div class="w-50">Остатка мясной самсы</div>
+              <div>{{samsa_data.remainder_samsa_meat}} * {{price_default.samsa_meat_price}} </div>
+               <div>{{summa_remainder_samsa_meat}}</div>
+            </div>
+           <div class="d-flex justify-content-between border-bottom border-dark p-2 bg-danger text-white">
+              <div class="w-50">Остатка тамчы самсы</div>
+                <div>{{samsa_data.remainder_samsa_little}} * {{price_default.samsa_tamchi_price}} </div>
+               <div>{{summa_remainder_samsa_little}}</div>
+            </div>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2">
+              <div class="w-50">Расход</div>
+              <div>{{consumption_result}}</div>
+            </div>
+          <div class="d-flex justify-content-between border-bottom border-dark p-2 bg-success text-white">
+              <div class="w-25">Итого</div>
+<!--              <div>{{summa_samsa_waitress|add:count_not_closed_orders_samsa}}+{{samsa_data.take_away_summa}}+{{summa_remainder_samsa_meat}}+{{summa_remainder_samsa_little}}+{{consumption_result}} =</div>-->
+              <div>  {{result_samsa_summa}}-{{itogo}}={{z_report}}</div>
+            </div>
+
+
+      </div>
+
       {% elif not have_written and not edit_block %}
       <form method="POST" enctype="multipart/form-data" class="text-center">
             {% csrf_token %}
         <div class="input-group">
-            <span class="input-group-text">Мясо</span>
-            <input type="number" inputmode="numeric"   name="meat_quantity" aria-label="" id="meat" class="form-control" required>
-            <span class="input-group-text">Картошка</span>
-            <input type="number" inputmode="numeric"  name="potato_quantity"  aria-label="" id="potato" class="form-control" required>
+            <span class="input-group-text">Обычный самса</span>
+            <input type="number" inputmode="numeric"   name="meat_quantity" aria-label="" id="meat_samsa" class="form-control" required>
+            <span class="input-group-text">Тамчы самса</span>
+            <input type="number" inputmode="numeric"  name="tamchi_quantity"  aria-label="" id="tamchi_samsa" class="form-control" required>
         </div>
           <div  class="btn btn-inline-block mx-auto btn-warning my-2 rounded" onclick="calculate()"><i class="fa-solid fa-calculator"></i></div>
         <div class="input-group">
              <span class="input-group-text">Зарплата</span>
             <input type="number" name="salary" id="salary"  class="form-control" required>
         </div>
+       <div class="input-group my-2">
+         <span class="input-group-text w-50  bg-primary text-white">Райхан кафе</span>
+          <input type="number" inputmode="numeric"  name="for_another_cafe"  aria-label="" id="for_another_cafe" class="form-control" required>
+       </div>
+
+      <div class="input-group my-2">
+             <span class="input-group-text w-50  bg-dark text-white">Мбанк и с сабой </span>
+             <input type="number" name="take_away_summa" value="" id="take_away_summa" class="form-control" required>
+             <span class="input-group-text">сом</span>
+        </div>
+            <div class="input-group">
+            <span class="input-group-text bg-secondary text-white">Ост мясной</span>
+            <input type="number" inputmode="numeric"   name="remainder_samsa_meat" aria-label="" id="remainder_samsa_meat" class="form-control " required>
+            <span class="input-group-text bg-secondary text-white">Ост тамчы</span>
+            <input type="number" inputmode="numeric"  name="remainder_samsa_little"  aria-label="" id="remainder_samsa_little" class="form-control " required>
+        </div>
+
+
         <div class="accordion my-2" id="accordionPanelsStayOpenExample">
         <div class="accordion-item">
-         <h2 class="accordion-header" id="panelsStayOpen-headingOne">
-          <button class="accordion-button collapsed p-2" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-             <strong class="me-auto">Расход</strong>
-          </button>
-        </h2>
-        <div id="flush-collapseOne" class="accordion-collapse collapse show" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
-          <div class="accordion-body">
-              <div class="box-of-input"  id="formulario">
+             <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                  <button class="accordion-button collapsed p-2" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                     <strong class="me-auto">Расход</strong>
+                  </button>
+              </h2>
+            <div id="flush-collapseOne" class="accordion-collapse collapse show" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+              <div class="accordion-body">
+                  <div class="box-of-input"  id="formulario">
+                  </div>
+                  <div class="btn btn-sm  btn-dark rounded" onClick="addInput();">+</div>
               </div>
-              <div class="btn btn-sm  btn-dark rounded" onClick="addInput();">+</div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
              <button class="btn btn-sm btn-info rounded my-2" name="save_samsa_result">Сохранить</button>
 
 
@@ -162,12 +269,12 @@ text-shadow: -1px 1px 0 #41ba45,
             {% csrf_token %}
           {% for item_samsa in samsa_list_of_today %}
                 <div class="input-group my-2">
-                    <span class="input-group-text w-50">Мясо</span>
+                    <span class="input-group-text w-50">Обычный самса</span>
                     <input type="number" inputmode="numeric" id="meat"  name="meat_quantity" aria-label="" value="{{item_samsa.samsa_meat}}" class="form-control" required>
                     <input type="hidden" inputmode="numeric"  name="meat_id" aria-label="" value="{{item_samsa.id}}" class="form-control" required>
                 </div>
                 <div class="input-group my-2">
-                    <span class="input-group-text w-50">Картошка</span>
+                    <span class="input-group-text w-50">Тамчы самса</span>
                     <input type="number" inputmode="numeric" name="potato_quantity" id="potato" aria-label="" value="{{item_samsa.samsa_potato}}" class="form-control" required>
                 </div>
            <div  class="btn btn-inline-block mx-auto btn-warning my-2 rounded" onclick="calculate()"><i class="fa-solid fa-calculator"></i></div>
@@ -176,6 +283,7 @@ text-shadow: -1px 1px 0 #41ba45,
                      <input type="number" name="salary" value="" id="salary" class="form-control" required>
                      <span class="input-group-text">сом</span>
                 </div>
+
           {% endfor %}
              <button class="btn btn-sm btn-info rounded my-2" name="edit_samsa_result">Сохранить</button>
       </form>
@@ -187,12 +295,12 @@ text-shadow: -1px 1px 0 #41ba45,
 {% block scripts %}
     {% if not have_written or edit_block %}
         <script>
-        let meat = document.getElementById('meat');
-        let potato = document.getElementById('potato');
+        let meat = document.getElementById('meat_samsa');
+        let tamchi_samsa = document.getElementById('tamchi_samsa');
         let salary = document.getElementById('salary');
 
         function calculate(){
-            salary.value = (meat.value*{{price_default_meat}})+(potato.value*{{price_default_potato}})
+            salary.value = (meat.value*{{price_default.samsishnik_meat_pay}})+(tamchi_samsa.value*{{price_default.samsishnik_potato_pay}})
 
         }
 
@@ -209,7 +317,7 @@ text-shadow: -1px 1px 0 #41ba45,
                         '<select name="type_samsa" class="form-select" id="inputGroupSelect01" required>'+
                             '<option selected value="">выберите</option>'+
                             '<option value="мясная">мясная</option>'+
-                            '<option value="картошка">картошка</option>'+
+                            '<option value="тамчы">тамчы</option>'+
                           '</select>'+
                       '<input type="button" class="text-danger input-group-text" value="x" onClick="removeInput('+dynamicInput[counter]+');">'+
                   '</div>'

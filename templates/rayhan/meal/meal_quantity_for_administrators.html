@@ -12,9 +12,15 @@
 
 {% block content %}
 
+{% if request.user.roles == "samsishnik" %}
 
-
-<section id="content">
+<h2 class="text-center">Вам запрещено </h2>
+<input class="form-control" type="number" placeholder="Введите код" id="input_code">
+<button id="check_code" class="btn btn-primary mx-auto d-block my-2">Проверить </button>
+<section id="content" style="display: none;">
+{% else %}
+<section>
+{% endif %}
     <div class="container pt-2">
         {% regroup meals_count by name as sorted_meals_count %}
         {% for group in sorted_meals_count %}
@@ -34,6 +40,25 @@
         {% endfor %}
     </div>
 
-</section>
 
+{% if request.user.roles == "samsishnik" %}
+</section>
+{% else %}
+</section>
+{% endif %}
 {% endblock content %}
+{% block scripts %}
+<script>
+    let button = document.getElementById("check_code");
+    button.onclick = function(){
+    let input_code = document.getElementById("input_code").value;
+
+          if (input_code == "0510") {
+            document.getElementById("content").style.display = "block";
+
+        }
+    }
+
+
+</script>
+{% endblock scripts %}

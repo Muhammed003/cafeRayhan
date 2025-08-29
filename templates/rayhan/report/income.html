@@ -1,12 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    {%  for item in meals_report %}
-    <div>{{item.name}}-----{{item.revenue}} {{item.profit}}==={{item.expenses}}</div>
-    {% endfor %}
-</body>
-</html>
+{% extends '../main/base.html' %}
+
+{% load static %}
+{% block style %}
+ <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .report-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .table thead th {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .footer-note {
+            font-size: 14px;
+            color: #888;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+
+{% endblock style %}
+{% block header %}
+<a href="{% url 'main' %}" class="button-menu"><i class="fa-solid fa-angle-left"></i> </a>
+<div class="mx-auto">
+    Доход и прибыль
+</div>
+{% endblock header %}
+{% block content %}
+<div class="container">
+    <div class="report-container">
+        <h2>Отчет по Расходу и Прибыли за Сегодня</h2>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Название Блюда</th>
+                <th>Количество (шт)</th>
+                <th>Расход (кг)</th>
+                <th>Прибыль (сом)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for meal in meals_count %}
+                <tr>
+                    <td>{{ meal.name }}</td>
+                    <td>{{ meal.summa }}</td>
+                    <td>
+                        {% if meal.consumption == 'Нет данных' %}
+                            <span class="text-danger">Нет данных</span>
+                        {% else %}
+                            {{ meal.consumption }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if meal.profit == 'N/A' %}
+                            <span class="text-muted">N/A</span>
+                        {% else %}
+                            {{ meal.profit }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Нет данных за сегодня.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer-note">
+            Сформировано {{ now|date:"d.m.Y H:i" }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

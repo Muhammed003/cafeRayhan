@@ -8,10 +8,11 @@
 {% block content %}
 <div class="bg-light">
     <div class="container pt-2">
-        <a href="{% url 'product-price' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
-        <a href="{% url 'meal-recipes' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🧾🧾 </span>Рецепты</a>
-        <a href="{% url 'meat_order' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
-        <a href="{% url 'meat_order' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Цены продукты </a>
+        <a href="{% url 'product-purchase' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Покупка продукты </a>
+<!--        <a href="{% url 'meal-recipes' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🧾🧾 </span>Рецепты</a>-->
+        <a href="{% url 'ingredient-list' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">🧾🧾 </span>Ингредиенты </a>
+        <a href="{% url 'meal-ingredient' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦</span>Ингредиенты для блюдо </a>
+        <a href="{% url 'ingredient-stock-report' %}" class="d-block border rounded text-dark ps-3 my-1 p-3 fs-5"><span class="w-25 d-inline-block">📦🚚 </span>Остатка продуктов </a>
     </div>
 </div>
 

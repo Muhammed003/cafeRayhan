@@ -11,17 +11,16 @@ a{
 * { padding: 0; margin: 0; }
 
 /*===== Home-main  ======*/
-.header-main{
-    background: #CDB900;
-    width: 100%;
-    padding: 10px;
+.header-main {
+    background: #3FA34D; /* зелёный из логотипа */
+    padding: 12px 20px;
     font-size: 1.2em;
-    position: relative;
     display: flex;
     justify-content: space-between;
-
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    color: #fff;
 }
-
 
 /* ----------home_page style------- */
 .bg-secondary-light{

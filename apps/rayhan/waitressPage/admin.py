@@ -13,7 +13,7 @@ class WaitressAdmin(admin.ModelAdmin):
 
 class OrderMealAdmin(admin.ModelAdmin):
     list_display = [ 'name','id',"code_bill", 'price','quantity', 'number_of_order', 'people_in_desk', 'create_date', 'comments', 'number_of_desk', 'price', 'price_of_service', 'is_paid', 'order_done', 'author']
-    list_filter = ['number_of_order', "code_bill", 'number_of_desk', 'is_paid', 'order_done', 'create_date', 'author', 'price', 'order_done']
+    list_filter = ['number_of_order', 'number_of_desk', 'is_paid', 'order_done', 'create_date', 'author', 'price', 'order_done']
     search_fields = ['name', "code_bill"]
     date_hierarchy = "create_date"
 

@@ -1,29 +1,36 @@
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
+import urllib.parse
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.db.models import Prefetch, Max, Sum, F
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Prefetch, Q, F, ExpressionWrapper
 from apps.account.mixins import RoleRequiredMixin
-
+from django.views.decorators.csrf import csrf_exempt
+from pywebpush import webpush, WebPushException
+import json
 # Create your views here.
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
 
-from apps.account.models import CustomUser, PushNotificationToSubscribedUser, UserTrophyStat, days_left_in_month
+from apps.account.models import CustomUser, PushNotificationToSubscribedUser, UserTrophyStat, days_left_in_month, \
+    PushSubscription
 from apps.account.utils import send_notification
 from apps.rayhan.bread.models import BreadComing, WaitressBread
 from apps.rayhan.homePage.models import Employee
 from apps.rayhan.kitchen.models import SettingsKitchen
-from apps.rayhan.mealList.models import MealsInMenu, StopList, InStockInMeal, Drinks, BlackListToKitchen, RatingMeal
+from apps.rayhan.mealList.models import MealsInMenu, StopList, InStockInMeal, Drinks, BlackListToKitchen, RatingMeal, \
+    UsedIngredient
 from apps.rayhan.report.models import DeskAssignment
 from apps.rayhan.waitressPage.models import *
+
+
 
 
 
@@ -77,7 +84,6 @@ class StartShiftWaitress(RoleRequiredMixin, View):
 
         return HttpResponseRedirect(reverse_lazy("waitress-page"))
 
-
 class StartLateUserShiftWaitress(RoleRequiredMixin, View):
     def get(self, request, price, **kwargs):
         if not Waitress.objects.filter(user=self.request.user, create_date=datetime.now().date()).exists():
@@ -88,13 +94,11 @@ class StartLateUserShiftWaitress(RoleRequiredMixin, View):
                                     create_date=datetime.now().date())
 
         return HttpResponseRedirect(reverse_lazy("waitress-page"))
+
+
 class WaitressPageView(RoleRequiredMixin, TemplateView):
     template_name = 'rayhan/waitressPage/waitress_page.html'
 
-    def get(self, request, *args, **kwargs):
-        if self.request.user.roles != "waitress":
-            return render(request, 'rayhan/forbidden.html')
-        return super(WaitressPageView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +121,6 @@ class WaitressPageView(RoleRequiredMixin, TemplateView):
             waitress = Waitress.objects.get(user=self.request.user, create_date=current_date)
             if waitress.takeaway_food == max_takeaway_food:
                 context["the_best_take_away_food"] = True
-
             context["summa"] = Waitress.objects.get(user=self.request.user, create_date=datetime.now().date())
             if ConsumptionWaitress.objects.filter(user=context["summa"], create_date=datetime.now().date()).exists():
                 context["consumption"] = ConsumptionWaitress.objects.filter(user=context["summa"],
@@ -128,37 +131,33 @@ class WaitressPageView(RoleRequiredMixin, TemplateView):
             else:
                 context["consumption"] = 0
             context["result"] = context["summa"].balance - context["consumption"]
+        username = self.request.user.username
+        if Employee.objects.filter(name=username).exists():
+            employee = Employee.objects.get(name=username)
+            time_employee = employee.work_start  # Extract time part
 
-            username = self.request.user.username
-            s = Employee.objects.filter(name=username)
-            print(s)
-            if Employee.objects.filter(name=username).exists():
-                employee = Employee.objects.get(name=username)
-                time_employee = employee.work_start  # Extract time part
+            # Get the current time (only time, ignoring the date)
+            now = datetime.now().time()
 
-                # Get the current time (only time, ignoring the date)
-                now = datetime.now().time()
+            # Calculate the difference in minutes
+            time_difference = datetime.combine(datetime.today(), now) - datetime.combine(datetime.today(),
+                                                                                         time_employee)
+            late_minutes = time_difference.total_seconds() / 60
 
-                # Calculate the difference in minutes
-                time_difference = datetime.combine(datetime.today(), now) - datetime.combine(datetime.today(),
-                                                                                             time_employee)
-                late_minutes = time_difference.total_seconds() / 60
+            if late_minutes > 0:
+                context["late"] = True
+                context["late_minutes"] = late_minutes  # total late minutes
 
-                if late_minutes > 0:
-                    context["late"] = True
-                    context["late_minutes"] = late_minutes  # total late minutes
-
-                    # Calculate hours and remaining minutes
-                    context["late_hours"] = int(late_minutes // 60)  # whole hours
-                    context["remaining_minutes"] = int(late_minutes % 60)  # remaining minutes after hours
-                else:
-                    context["late"] = False
-
+                # Calculate hours and remaining minutes
+                context["late_hours"] = int(late_minutes // 60)  # whole hours
+                context["remaining_minutes"] = int(late_minutes % 60)  # remaining minutes after hours
+            else:
+                context["late"] = False
         return context
 
 
 class DesksSimpleView(RoleRequiredMixin, TemplateView):
-    template_name = 'rayhan/orderMealPage/desk_copy.html'
+    template_name = 'rayhan/orderMealPage/desks_copy.html'
 
     def get(self, request, *args, **kwargs):
         if self.request.user.roles != "waitress":
@@ -172,16 +171,12 @@ class DesksSimpleView(RoleRequiredMixin, TemplateView):
 
         # Fetch the number of desks from the settings
         context["desk"] = SettingModel.objects.get(name="Количества стол")
+
         return context
 
 
 class DesksView(RoleRequiredMixin, TemplateView):
     template_name = 'rayhan/orderMealPage/desks.html'
-
-    def get(self, request, *args, **kwargs):
-        if self.request.user.roles != "waitress":
-            return render(request, 'rayhan/forbidden.html')
-        return super(DesksView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -269,16 +264,20 @@ class NewOrderView(RoleRequiredMixin, TemplateView, View):
                 order_done = False
                 order_samsa_kebab = True
 
-                try:
-                    black_list_for_kitchen = meal.black_list_to_kitchen
-                    order_done = (
-                            black_list_for_kitchen.name_related_meal.name == meal.name
-                    )
-                    order_samsa_kebab = False
-                    if meal.name in SAMSA_KEBAB_LIST:
-                        samsa_kebab_ordered.append(meal.name)
-                except BlackListToKitchen.DoesNotExist:
-                    pass
+                # try:
+                black_list_for_kitchen = getattr(meal, "black_list_to_kitchen", None)
+
+                if black_list_for_kitchen and black_list_for_kitchen.name_related_meal.name == meal.name:
+                    order_done = True
+                else:
+                    order_done = False
+
+                order_samsa_kebab = False
+                if meal.group_item.name in ["Самсы", "Шашлыки"]:
+                    samsa_kebab_ordered.append(meal.name)
+                    order_done = True
+                # except BlackListToKitchen.DoesNotExist:
+                #     pass
                 try:
                     drinks_for_meal = meal.drinks
                     if drinks_for_meal is not None:
@@ -327,6 +326,7 @@ class NewOrderView(RoleRequiredMixin, TemplateView, View):
                                              comments=comments[i].replace(",", " "))
             messages.success(request, 'Вы успешно добавили заказ')
             if samsa_kebab_ordered:
+                # send_push("самсы", f"Новый заказ {samsa_kebab_ordered}")
                 push_users = PushNotificationToSubscribedUser.objects.filter(is_subscribed=True)
                 for push_user in push_users:
                     if push_user.user.roles == "samsishnik":
@@ -467,12 +467,17 @@ class EditOrderWaitress(RoleRequiredMixin, TemplateView, View):
 
 
                 try:
-                    black_list_for_kitchen = meal.black_list_to_kitchen
-                    order_done = (
-                            black_list_for_kitchen.name_related_meal.name == meal.name
-                    )
-                    if meal.name in SAMSA_KEBAB_LIST:
+                    black_list_for_kitchen = getattr(meal, "black_list_to_kitchen", None)
+
+                    if black_list_for_kitchen and black_list_for_kitchen.name_related_meal.name == meal.name:
+                        order_done = True
+                    else:
+                        order_done = False
+
+                    order_samsa_kebab = False
+                    if meal.group_item.name in ["Самсы", "Шашлыки"]:
                         samsa_kebab_ordered.append(meal.name)
+                        order_done = True
                 except BlackListToKitchen.DoesNotExist:
                     pass  # No black list entry, continue
 
@@ -512,39 +517,24 @@ class EditOrderWaitress(RoleRequiredMixin, TemplateView, View):
 class KitchenWaitressView(ShiftOpenMixin, RoleRequiredMixin, TemplateView, View):
     template_name = 'rayhan/waitressPage/kitchen_waitress.html'
 
-    def get(self, request, **kwargs):
-        if self.request.user.roles != "waitress":
-            return render(request, 'rayhan/forbidden.html')
-        return super(KitchenWaitressView, self).get(request, **kwargs)
+    def get(self, request, pk, **kwargs):
+        self.type_page = pk
+        return super().get(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if Waitress.objects.filter(user=self.request.user, create_date=datetime.now().date(), shift=True).exists():
-            context['user_setting'] = Waitress.objects.get(user=self.request.user,  create_date=datetime.now().date())
-            context['info_waitress'] = Waitress.objects.get(user=self.request.user,  create_date=datetime.now().date())
-            waitress = Waitress.objects.get(user=self.request.user,  create_date=datetime.now().date())
-
-            if waitress.is_blocked and waitress.block_start_time:
-                time_elapsed = timezone.now() - waitress.block_start_time
-
-                total_seconds = time_elapsed.total_seconds()
-
-                minutes = int(total_seconds // 60)
-                seconds = int(total_seconds % 60)
-                context['time_elapsed'] = f'{minutes}:{seconds:02d}'
-                remaining_time = timedelta(minutes=2) - time_elapsed
-                remaining_minutes = int(remaining_time.total_seconds() // 60)
-                remaining_seconds = int(remaining_time.total_seconds() % 60)
-                context['remaining_time'] = f'{remaining_minutes}:{remaining_seconds:02d}'
-
-                if time_elapsed >= timedelta(minutes=2):
-                        # Unblock the waitress
-                        waitress.is_blocked = False
-                        waitress.block_start_time = None
-                        waitress.save()
-                        return {'reload_page': True}
-
-        context['order_meals'] = OrderMeal.objects.filter(username=self.request.user.username, order_done=False,is_paid=False, create_date__date=datetime.now().date()).order_by('number_of_order').order_by('create_date')
+        if self.type_page == "kitchen":
+            context['order_meals'] = OrderMeal.objects.filter(username=self.request.user.username, order_done=False,is_paid=False, create_date__date=datetime.now().date()).order_by('number_of_order').order_by('-create_date')
+        elif self.type_page == "kebab":
+            context['order_meals'] = OrderMeal.objects.filter(username=self.request.user.username,  order_samsa_kebab=False,
+                                                              is_paid=False,
+                                                              create_date__date=datetime.now().date()).order_by(
+                'number_of_order').order_by('-create_date')
+        else:
+            context['order_meals'] = OrderMeal.objects.filter(username=self.request.user.username,
+                                                              is_paid=False,
+                                                              create_date__date=datetime.now().date()).order_by(
+                'number_of_order').order_by('-create_date')
         return context
 
     # def post(self, request):
@@ -579,6 +569,7 @@ class BillWaitressView(ShiftOpenMixin, RoleRequiredMixin, TemplateView, View):
         context["history"] = is_paid
         context['bills'] = OrderMeal.objects.filter(
             create_date__date=datetime.now().date(),
+
             is_paid=is_paid,
             takeaway_food=False,
             author=self.request.user
@@ -605,30 +596,74 @@ class BillWaitressDetailView(ShiftOpenMixin, LoginRequiredMixin, TemplateView, V
             context['type_bill'] = "active"
 
         context['desk'] = self.number_of_desk
+        emp = Employee.objects.filter(name=self.request.user.username).first()
+        context['emp'] = emp
         context['code_bill'] = self.code_bill
         context['meals_in_menu'] = MealsInMenu.objects.all()
         context['service_price'] = SettingModel.objects.get(name="Услуга").number
-        context['info_data'] = OrderMeal.objects.filter(author=self.request.user,
-                                                      number_of_desk=self.number_of_desk,
-                                                      number_of_order=self.number_of_order,
-                                                      code_bill=self.code_bill,
-                                                      is_paid=is_paid,
-                                                      create_date__date=datetime.now().date()).first()
-        context["orders"] = OrderMeal.objects.filter(author=self.request.user,
-                                                     number_of_desk=self.number_of_desk,
-                                                     number_of_order=self.number_of_order,
-                                                     code_bill=self.code_bill,
-                                                     is_paid=is_paid, create_date__date=datetime.now().date())
-        price = OrderMeal.objects.filter(author=self.request.user, number_of_desk=self.number_of_desk,
-                                         code_bill=self.code_bill,
-                                         is_paid=is_paid, create_date__date=datetime.now().date()).extra(
-            select={'desk': 'number_of_desk'}).values('desk') \
+
+        info_data = OrderMeal.objects.filter(
+            author=self.request.user,
+            number_of_desk=self.number_of_desk,
+            number_of_order=self.number_of_order,
+            code_bill=self.code_bill,
+            is_paid=is_paid,
+            create_date__date=datetime.now().date()
+        ).first()
+        context['info_data'] = info_data
+
+        context["orders"] = OrderMeal.objects.filter(
+            author=self.request.user,
+            number_of_desk=self.number_of_desk,
+            number_of_order=self.number_of_order,
+            code_bill=self.code_bill,
+            is_paid=is_paid,
+            create_date__date=datetime.now().date()
+        )
+
+        price = OrderMeal.objects.filter(
+            author=self.request.user,
+            number_of_desk=self.number_of_desk,
+            code_bill=self.code_bill,
+            is_paid=is_paid,
+            create_date__date=datetime.now().date()
+        ).extra(select={'desk': 'number_of_desk'}).values('desk') \
             .annotate(price=Sum('price')).order_by('number_of_desk')
+
         price_of_meal = 0
-        price_of_service = context['info_data'].price_of_service
+        price_of_service = info_data.price_of_service if info_data else 0
         for item in price:
-            price_of_meal = item.get("price")
-        context['bill'] = int(price_of_service) + int(price_of_meal)
+            price_of_meal = item.get("price", 0)
+
+        total_bill = int(price_of_service) + int(price_of_meal)
+        context['bill'] = total_bill
+
+        # 📌 Сформировать QR-ссылку
+        amount = total_bill  # пример: 150 сом = "15000"
+        cleaned_phone = str(self.request.user.phone_number).lstrip('+')
+
+        def format_summa_for_qr(summa):
+            """
+            Принимает сумму в сомах и возвращает строку для вставки в QR-код
+            Пример: 100.0 → '540510000', 1325.0 → '5406132500'
+            """
+            tiyin = int(round(summa * 100))  # Переводим в тыйын
+            tiyin_str = str(tiyin)
+
+            length = len(tiyin_str)
+            if length < 5:
+                tiyin_str = tiyin_str.zfill(5)  # например: 50 → '00050'
+                length = 5
+
+            return f'54{length:02d}{tiyin_str}'
+        print(format_summa_for_qr(amount))
+        cleaned_bill = str(format_summa_for_qr(amount))
+        qr_code_prefix = f"https://app.mbank.kg/qr/#00020101021232440012c2c.mbank.kg0102021012{cleaned_phone}130212520499995303417{cleaned_bill}5911RAIKhAN%20Ch.63043a71"
+        # qr_code_amount = f"0405{amount_str}"
+        # qr_code_suffix = "5911RAIKhAN%20Ch.63043a71"
+        #
+        # full_qr_code_link = f"{qr_code_prefix}{qr_code_amount}{qr_code_suffix}"
+        context['qr_code_bill'] = qr_code_prefix
 
         return context
 
@@ -693,6 +728,8 @@ class EndOrder(RoleRequiredMixin, View):
         sherbet = 0
         drinks = 0
         bread = 0
+        сhebureki = 0
+        cakes = 0
         samsa_potato = 0
         count_meal_in_order = 0
         count_people_quantity_in_desk = True
@@ -723,6 +760,10 @@ class EndOrder(RoleRequiredMixin, View):
                 kebabs += order.price
             elif "самсы" in meal_group_name and "картошка" not in meal_name_lower:
                 samsa += order.price
+            elif "торты" in meal_group_name:
+                cakes += order.price
+            elif "чебуреки" in meal_group_name:
+                сhebureki += order.price
 
             if "чай" in meal_name_lower:
                 tea += order.price
@@ -736,6 +777,7 @@ class EndOrder(RoleRequiredMixin, View):
             order.is_paid = True
             order.order_closed_time = datetime.now()
             order.save()
+            self.deduct_ingredients(order)
             summa += order.price
 
             rating_meal = RatingMeal.objects.filter(
@@ -778,15 +820,15 @@ class EndOrder(RoleRequiredMixin, View):
 
         if count_meal_in_order > self.client.people_in_desk and count_people_quantity_in_desk:
             user = CustomUser.objects.get(username=self.request.user.username)
-            user.rate = round(user.rate - 0.1, 1)
-            RatingControlWaitress.objects.create(
-                author=self.request.user,
-                user=user.username,
-                reason=f"Минус от блокировки {self.number_of_desk}-стола",
-                quantity=0.1,
-                create_date=datetime.now().date(),
-                type="минус"
-            )
+            # user.rate = round(user.rate - 0.1, 1)
+            # RatingControlWaitress.objects.create(
+            #     author=self.request.user,
+            #     user=user.username,
+            #     reason=f"Минус от блокировки {self.number_of_desk}-стола",
+            #     quantity=0.1,
+            #     create_date=datetime.now().date(),
+            #     type="минус"
+            # )
             user.save()
             waitress.error_peoples += count_meal_in_order - self.client.people_in_desk
             waitress.quantity_of_blocked += 1
@@ -809,6 +851,8 @@ class EndOrder(RoleRequiredMixin, View):
         bread = 0
         samsa_potato = 0
         takeaway_summa = 0
+        сhebureki = 0
+        cakes = 0
 
         for order in orders:
             meal = MealsInMenu.objects.get(name=order.name)
@@ -825,6 +869,10 @@ class EndOrder(RoleRequiredMixin, View):
                 kebabs += order.price
             elif meal.group_item.name.lower() == "самсы" and "картошка" not in meal.name.lower():
                 samsa += order.price
+            elif meal.group_item.name.lower() == "торты":
+                cakes += order.price
+            elif meal.group_item.name.lower() == "чебуреки":
+                сhebureki += order.price
 
             if "чай" in meal.name.lower():
                 tea += order.price
@@ -838,6 +886,8 @@ class EndOrder(RoleRequiredMixin, View):
                 bread += order.price
             if "самса картошка" in meal.name.lower():
                 samsa_potato += order.price
+
+
             if order.takeaway_food:
                 takeaway_summa += order.price
             summa += order.price
@@ -850,6 +900,8 @@ class EndOrder(RoleRequiredMixin, View):
         waitress.bread += bread
         waitress.kebab += kebabs
         waitress.samsa += samsa
+        waitress.cakes += cakes
+        waitress.сhebureki += сhebureki
         waitress.samsa_potato += samsa_potato
         waitress.waiter_service = waitress.waiter_service + self.client_price
         waitress.takeaway_food += takeaway_summa
@@ -860,6 +912,23 @@ class EndOrder(RoleRequiredMixin, View):
         if self.cash == "with_card":
             self.update_waitress_bank(summa, self.client_price)
         return waitress
+
+    def deduct_ingredients(self, order):
+        try:
+            meal = MealsInMenu.objects.get(name=order.name)
+        except MealsInMenu.DoesNotExist:
+            return
+
+        for meal_ingr in meal.ingredients.all():
+            used_qty = meal_ingr.amount * order.quantity  # сколько нужно списать
+
+            UsedIngredient.objects.create(
+                meal=meal,
+                ingredient=meal_ingr.ingredient,
+                quantity=used_qty,
+                date=order.create_date.date()
+            )
+
 
     def update_waitress_bank(self, summa, client_price):
         data = WaitressBank.objects.create(user=self.request.user, waitress_service=client_price, summa=summa, number_of_desk=self.number_of_desk, number_of_order=self.number_of_order,create_date=datetime.now())
@@ -998,12 +1067,17 @@ class NewOrderTakeAwayFood(ShiftOpenMixin, RoleRequiredMixin, TemplateView, View
             order_done = False
 
             try:
-                black_list_for_kitchen = meal.black_list_to_kitchen
-                order_done = (
-                        black_list_for_kitchen.name_related_meal.name == meal.name
-                )
-                if meal.name in SAMSA_KEBAB_LIST:
+                black_list_for_kitchen = getattr(meal, "black_list_to_kitchen", None)
+
+                if black_list_for_kitchen and black_list_for_kitchen.name_related_meal.name == meal.name:
+                    order_done = True
+                else:
+                    order_done = False
+
+                order_samsa_kebab = False
+                if meal.group_item.name in ["Самсы", "Шашлыки"]:
                     samsa_kebab_ordered.append(meal.name)
+                    order_done = True
             except BlackListToKitchen.DoesNotExist:
                 pass  # No black list entry, continue
 
@@ -1070,7 +1144,36 @@ class BillTakeAwayFoodView(RoleRequiredMixin, TemplateView, View):
         price_of_service = context['info_data'].price_of_service
         for item in price:
             price_of_meal = item.get("price")
-        context['bill'] = int(price_of_service) + int(price_of_meal)
+        # 📌 Сформировать QR-ссылку
+        total_bill = int(price_of_service) + int(price_of_meal)
+        context['bill'] = total_bill
+        amount = total_bill  # пример: 150 сом = "15000"
+        cleaned_phone = str(self.request.user.phone_number).lstrip('+')
+
+        def format_summa_for_qr(summa):
+            """
+            Принимает сумму в сомах и возвращает строку для вставки в QR-код
+            Пример: 100.0 → '540510000', 1325.0 → '5406132500'
+            """
+            tiyin = int(round(summa * 100))  # Переводим в тыйын
+            tiyin_str = str(tiyin)
+
+            length = len(tiyin_str)
+            if length < 5:
+                tiyin_str = tiyin_str.zfill(5)  # например: 50 → '00050'
+                length = 5
+
+            return f'54{length:02d}{tiyin_str}'
+
+        print(format_summa_for_qr(amount))
+        cleaned_bill = str(format_summa_for_qr(amount))
+        qr_code_prefix = f"https://app.mbank.kg/qr/#00020101021232440012c2c.mbank.kg0102021012{cleaned_phone}130212520499995303417{cleaned_bill}5911RAIKhAN%20Ch.63043a71"
+        # qr_code_amount = f"0405{amount_str}"
+        # qr_code_suffix = "5911RAIKhAN%20Ch.63043a71"
+        #
+        # full_qr_code_link = f"{qr_code_prefix}{qr_code_amount}{qr_code_suffix}"
+        context['qr_code_bill'] = qr_code_prefix
+
 
         return context
 
@@ -1176,12 +1279,17 @@ class EditOrderWaitressTakeAwayView(RoleRequiredMixin, TemplateView, View):
                 order_done = False
 
                 try:
-                    black_list_for_kitchen = meal.black_list_to_kitchen
-                    order_done = (
-                            black_list_for_kitchen.name_related_meal.name == meal.name
-                    )
-                    if meal.name in SAMSA_KEBAB_LIST:
+                    black_list_for_kitchen = getattr(meal, "black_list_to_kitchen", None)
+
+                    if black_list_for_kitchen and black_list_for_kitchen.name_related_meal.name == meal.name:
+                        order_done = True
+                    else:
+                        order_done = False
+
+                    order_samsa_kebab = False
+                    if meal.group_item.name in ["Самсы", "Шашлыки"]:
                         samsa_kebab_ordered.append(meal.name)
+                        order_done = True
                 except BlackListToKitchen.DoesNotExist:
                     pass  # No black list entry, continue
 
@@ -1405,11 +1513,12 @@ class ListOfItemsWaitressView(LoginRequiredMixin,TemplateView):
 class RateWaitressView(LoginRequiredMixin,TemplateView):
     template_name = 'rayhan/waitressPage/waitress_rate.html'
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_month = datetime.now().month
         current_year = datetime.now().year
-
+        send_push("RR", "Всё получилось")
         # Define the threshold for the next level
         trophies_for_next_level = 100  # Update this as needed
 
@@ -1451,3 +1560,79 @@ class RateWaitressView(LoginRequiredMixin,TemplateView):
 
 class RulesWaitressView(LoginRequiredMixin,TemplateView):
     template_name = 'rayhan/waitressPage/rules.html'
+
+class AllWaitressView(ShiftOpenMixin, RoleRequiredMixin, TemplateView, View):
+    template_name = 'rayhan/waitressPage/all_list_orders.html'
+
+class PayWithQr(RoleRequiredMixin, TemplateView, View):
+    template_name = 'rayhan/waitressPage/pay_with_qr.html'
+
+class QrCodeInput(RoleRequiredMixin, TemplateView, View):
+    template_name = 'rayhan/waitressPage/qr_code_input.html'
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        number =int(self.request.GET.get('number'))
+        amount = number  # пример: 150 сом = "15000"
+        cleaned_phone = str(self.request.user.phone_number).lstrip('+')
+
+        def format_summa_for_qr(summa):
+            """
+            Принимает сумму в сомах и возвращает строку для вставки в QR-код
+            Пример: 100.0 → '540510000', 1325.0 → '5406132500'
+            """
+            tiyin = int(round(summa * 100))  # Переводим в тыйын
+            tiyin_str = str(tiyin)
+
+            length = len(tiyin_str)
+            if length < 5:
+                tiyin_str = tiyin_str.zfill(5)  # например: 50 → '00050'
+                length = 5
+
+            return f'54{length:02d}{tiyin_str}'
+
+        print(format_summa_for_qr(amount))
+        cleaned_bill = str(format_summa_for_qr(amount))
+        qr_code_prefix = f"https://app.mbank.kg/qr/#00020101021232440012c2c.mbank.kg0102021012{cleaned_phone}130212520499995303417{cleaned_bill}5911RAIKhAN%20Ch.63043a71"
+        # qr_code_amount = f"0405{amount_str}"
+        # qr_code_suffix = "5911RAIKhAN%20Ch.63043a71"
+        #
+        # full_qr_code_link = f"{qr_code_prefix}{qr_code_amount}{qr_code_suffix}"
+        context['qr_code_bill'] = qr_code_prefix
+        context['bill'] = number
+
+        return context
+
+# notification
+subscriptions = []  # В проде храни в БД
+
+def vapid_public_key(request):
+    return HttpResponse(settings.VAPID_PUBLIC_KEY.strip())
+
+@csrf_exempt
+def save_subscription(request):
+    data = json.loads(request.body)
+    subscriptions.append(data)
+    return HttpResponse("Подписка сохранена")
+
+def send_push(title, message):
+    for sub in PushSubscription.objects.all():
+        try:
+            webpush(
+                subscription_info={
+                    "endpoint": sub.endpoint,
+                    "keys": {
+                        "p256dh": sub.p256dh,
+                        "auth": sub.auth,
+                    }
+                },
+                data=json.dumps({"title": title, "body": message}),
+                vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": "mailto:admin@karavanosh.kg"}
+            )
+        except WebPushException as e:
+            print("Push failed:", repr(e))
+            # Можно удалить недействительную подписку
+            if e.response and e.response.status_code == 410:
+                sub.delete()

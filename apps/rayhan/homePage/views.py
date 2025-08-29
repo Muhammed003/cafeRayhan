@@ -1,34 +1,113 @@
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Sum
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
-
+from django.shortcuts import redirect, get_object_or_404, render
+from .forms import EmployeeForm
 from django.http import HttpResponseRedirect
 from apps.account.mixins import RoleRequiredMixin
-from apps.rayhan.homePage.forms import EmployeeForm
 from apps.rayhan.homePage.models import Employee
 from apps.rayhan.kitchen.models import SettingsKitchen
-from apps.rayhan.waitressPage.models import SettingModel
+from apps.rayhan.waitressPage.models import SettingModel, OrderMeal
+from ..mealList.models import MealsInMenu
 
 
-class Main(LoginRequiredMixin, TemplateView):
-    template_name = "rayhan/main/waitress_page.html"
+class Main(TemplateView):
+    template_name = "rayhan/main/website/content_home.html"
+
 
     def get(self, request, *args, **kwargs):
-        if "chef" in self.request.user.roles or "administrator" in self.request.user.roles or "employee" in self.request.user.roles \
-                or "samsishnik" in self.request.user.roles:
-            return redirect(reverse_lazy("home-page"))
-        elif "butcher" in self.request.user.roles:
-            return redirect(reverse_lazy("butcher-main"))
-            # Add logic for butcher role if needed
-        elif "waitress" in self.request.user.roles:
-            return redirect(reverse_lazy("waitress-page"))
-            # Add logic for waitress role if needed
+        if self.request.user.is_authenticated:
+            if "chef" in self.request.user.roles or "administrator" in self.request.user.roles or "employee" in self.request.user.roles \
+                    or "samsishnik" in self.request.user.roles or "cake_maker" in self.request.user.roles or "chebureki_maker" in self.request.user.roles:
+                return redirect(reverse_lazy("home-page"))
+            elif "butcher" in self.request.user.roles:
+                return redirect(reverse_lazy("butcher-main"))
+                # Add logic for butcher role if needed
+            elif "waitress" in self.request.user.roles:
+                return redirect(reverse_lazy("waitress-page"))
+                # Add logic for waitress role if needed
+            else:
+                return redirect(reverse_lazy("login"))
         else:
-            return redirect(reverse_lazy("login"))
+            pass
         return super(Main, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'home'  # или 'bill', 'info', 'profile'
+        return context
+
+
+class BillCheckPageView(TemplateView):
+    template_name = "rayhan/main/website/check_bill.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["result"] = None  # по умолчанию ничего
+        return context
+
+    def post(self, request, *args, **kwargs):
+        table_number = request.POST.get("table_number")
+        check_code = request.POST.get("check_code")
+        context = self.get_context_data()
+
+        if  OrderMeal.objects.filter(
+            number_of_desk=table_number,
+            code_bill=check_code,
+            is_paid=False,
+            create_date__date=datetime.now().date()
+        ).exists():
+            context["result_cheking"] = "find"
+            # Здесь ты можешь сделать проверку или поиск по БД
+            context['desk'] = table_number
+            context['code_bill'] = check_code
+            context['meals_in_menu'] = MealsInMenu.objects.all()
+            context['service_price'] = SettingModel.objects.get(name="Услуга").number
+
+            info_data = OrderMeal.objects.filter(
+                number_of_desk=table_number,
+                code_bill=check_code,
+                is_paid=False,
+                create_date__date=datetime.now().date()
+            ).first()
+            context['info_data'] = info_data
+
+            context["orders"] = OrderMeal.objects.filter(
+                number_of_desk=table_number,
+                code_bill=check_code,
+                is_paid=False,
+                create_date__date=datetime.now().date()
+            )
+
+            price = OrderMeal.objects.filter(
+                number_of_desk=table_number,
+                code_bill=check_code,
+                is_paid=False,
+                create_date__date=datetime.now().date()
+            ).extra(select={'desk': 'number_of_desk'}).values('desk') \
+                .annotate(price=Sum('price')).order_by('number_of_desk')
+
+            price_of_meal = 0
+            price_of_service = info_data.price_of_service if info_data else 0
+            for item in price:
+                price_of_meal = item.get("price", 0)
+
+            total_bill = int(price_of_service) + int(price_of_meal)
+            context['bill'] = total_bill
+            context["result"] = f"Стол №{table_number}, код чека: {check_code}"
+
+        else:
+            context["result_cheking"] = "not_find"
+        return render(request, self.template_name, context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'bill_check'  # или 'bill', 'info', 'profile'
+        return context
+
 
 
 class HomePageView(RoleRequiredMixin, TemplateView):
@@ -159,7 +238,6 @@ class SettingsProgramView(RoleRequiredMixin, TemplateView):
 
         return HttpResponseRedirect('.')
 
-
 class EmployeeManagementView(TemplateView):
     template_name = 'rayhan/homePage/employees.html'
 
@@ -196,3 +274,7 @@ class EmployeeManagementView(TemplateView):
             print("Form errors:", form.errors)  # Optional: Debug in console
 
         return redirect('employee-manage')
+
+
+class NotInWork(TemplateView):
+    template_name =  'rayhan/homePage/not_in_work.html'

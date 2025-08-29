@@ -8,7 +8,7 @@ class SamsaForm(forms.ModelForm):
 
     class Meta:
         model = Samsa
-        fields = ["samsa_meat", "samsa_potato", "salary"]
+        fields = ["samsa_meat", "salary", "samsa_little", "take_away_summa", "for_another_cafe"]
 
 
 class SamsaDefaultForm(forms.ModelForm):
@@ -17,11 +17,11 @@ class SamsaDefaultForm(forms.ModelForm):
         model = SamsaPriceDefault
         exclude = ['author', 'create_date']
 
-    def save(self, user, samsa_meat_price, samsa_potato_price, samsishnik_meat_pay, samsishnik_potato_pay):
-        return SamsaPriceDefault.objects.create(author=user,
-                                                  samsa_meat_price=samsa_meat_price,
-                                                  samsa_potato_price=samsa_potato_price,
-                                                  samsishnik_meat_pay=samsishnik_meat_pay,
-                                                  samsishnik_potato_pay=samsishnik_potato_pay,
-                                                  create_date=datetime.now().date())
+    # def save(self, user, samsa_meat_price, samsa_potato_price, samsishnik_meat_pay, samsishnik_potato_pay):
+    #     return SamsaPriceDefault.objects.create(author=user,
+    #                                               samsa_meat_price=samsa_meat_price,
+    #                                               samsa_potato_price=samsa_potato_price,
+    #                                               samsishnik_meat_pay=samsishnik_meat_pay,
+    #                                               samsishnik_potato_pay=samsishnik_potato_pay,
+    #                                               create_date=datetime.now().date())
 

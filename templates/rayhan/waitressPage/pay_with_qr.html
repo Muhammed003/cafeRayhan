@@ -1,0 +1,28 @@
+{% extends '../main/base_waitress.html' %}
+{% load static %}
+{% block header %}
+{% include '../waitressPage/components/menu_left_waitress.html' %}
+{% with name_of_page='Оплата' link='main' %}
+  {% include '../waitressPage/components/name_page.html'   %}
+{% endwith %}
+
+
+{% include '../waitressPage/components/dropdown_menu.html' %}
+
+{% endblock header %}
+{% block content %}
+<form action="{% url 'qr_code_input' %}" method="get" class="p-3">
+  <input name="number" class="fs-6 p-4 border-0 border-bottom border-dark border-2 w-100 pointer-0 text-center"
+         style="font-size: 50px !important; outline: none;"
+         type="number" placeholder="0" required>
+  <button type="submit" class="btn btn-primary btn-md mx-auto my-2 d-block"
+          style="font-size: 30px !important;">Добавить</button>
+</form>
+
+
+{% endblock content %}
+
+{% block footer %}
+{% include '../waitressPage/components/footer_waitress.html' %}
+{% endblock footer %}
+

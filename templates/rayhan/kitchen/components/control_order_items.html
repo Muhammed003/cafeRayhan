@@ -32,8 +32,8 @@
                      {% if item.name  != "Лепёшка" and  not deleted_order  %}
                          <div class="px-2 w-25 number-input">
                               <button class="bg-warning h-100" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
-                                <input type="number"  name="quantity" value="{{item.get_int_quantity}}"  id="quantity_{{item.id}}"  class="w-75 text-center border-0 bg-success text-white ">
-                            <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus bg-warning h-100"></button>
+                                <input type="number" {%if plus_disabled%}readonly='True'{%else %}button{% endif %} name="quantity" value="{{item.get_int_quantity}}"  id="quantity_{{item.id}}"  class="w-75 text-center border-0 bg-success text-white ">
+                            <button type="button" {%if plus_disabled%}disabled{%else %}button{% endif %} onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus bg-warning h-100"></button>
                          </div>
                     {% elif deleted_order == "active"%}
                     <div class="p-2  text-white  d-flex align-items-center">{{item.get_int_quantity}}</div>
