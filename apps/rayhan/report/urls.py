@@ -36,6 +36,7 @@ urlpatterns = [
     path('yesterday/',  ReportYesterdayView.as_view(),  name='report-yesterday'),
 
     path('waitress/control_crud/',  WaitressControlCrudReport.as_view(),  name='waitress_crud'),
+    path('waitress/price_of_service/',  WaitressPriceOfServiceMonthlyView.as_view(),  name='waitress-service'),
 
 
 ]
