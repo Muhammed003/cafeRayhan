@@ -1270,7 +1270,6 @@ class WaitressControlCrudReport(RoleRequiredMixin, LoginRequiredMixin, TemplateV
 
 
 
-
 class WaitressPriceOfServiceMonthlyView(
     RoleRequiredMixin,
     LoginRequiredMixin,
@@ -1293,29 +1292,28 @@ class WaitressPriceOfServiceMonthlyView(
             start_date = today.replace(day=1).date()
             end_date = today.date()
 
-        # ===== ОСНОВНОЙ ЗАПРОС =====
+        # ===== ЗАПРОС ПО WAITRESS =====
         qs = (
-            OrderMeal.objects
+            Waitress.objects
             .filter(
-                is_paid=True,
-                create_date__date__range=(start_date, end_date),
-                price_of_service__gt=0
+                create_date__range=(start_date, end_date),
+                waiter_service__gt=0
             )
             .values(
-                'author__username',
-                'create_date__date'
+                'user__username',
+                'create_date'
             )
             .annotate(
-                service_sum=Sum('price_of_service')
+                service_sum=Sum('waiter_service')
             )
-            .order_by('author__username', 'create_date__date')
+            .order_by('user__username', 'create_date')
         )
 
         # ===== ГРУППИРОВКА =====
         report = {}
 
         for row in qs:
-            name = row['author__username']
+            name = row['user__username']
 
             if name not in report:
                 report[name] = {
@@ -1324,7 +1322,11 @@ class WaitressPriceOfServiceMonthlyView(
                     'days_count': 0
                 }
 
-            report[name]['days'].append(row)
+            report[name]['days'].append({
+                'date': row['create_date'],
+                'service_sum': row['service_sum']
+            })
+
             report[name]['total_service'] += row['service_sum']
             report[name]['days_count'] += 1
 
