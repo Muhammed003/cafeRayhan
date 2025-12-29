@@ -1,11 +1,70 @@
 {% extends "../main/base.html" %}
-{% load humanize %}
+{% load static %}
 
 {% block content %}
-<div class="container-fluid py-3">
+<style>
+/* ===== ОБЩЕЕ ===== */
+.report-container {
+    max-width: 1200px;
+    margin: auto;
+}
 
-    <!-- ФИЛЬТР -->
-    <form method="get" class="card p-3 shadow-sm mb-4">
+.filter-card {
+    border-radius: 14px;
+    background: #fff;
+}
+
+.waitress-card {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.waitress-header {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.waitress-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.summary {
+    font-size: 14px;
+    opacity: .9;
+}
+
+.table thead {
+    background: #f3f4f6;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.amount {
+    font-weight: 600;
+    color: #16a34a;
+}
+
+/* ===== МОБИЛКА ===== */
+@media (max-width: 768px) {
+    .waitress-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+}
+</style>
+
+<div class="container-fluid py-3 report-container">
+
+    <!-- ===== ФИЛЬТР ===== -->
+    <form method="get" class="card filter-card shadow-sm mb-4 p-3">
         <div class="row g-2 align-items-end">
             <div class="col-md-4">
                 <label class="form-label">С даты</label>
@@ -23,36 +82,53 @@
         </div>
     </form>
 
-    <!-- ОТЧЁТ -->
+    <!-- ===== ОТЧЁТ ===== -->
     {% for waitress, data in report.items %}
-<div class="card mb-4 shadow">
-  <div class="card-header bg-dark text-white d-flex justify-content-between">
-    <b>{{ waitress }}</b>
-    <span>
-      💰 {{ data.total_service }} сом |
-      📅 {{ data.days_count }} дней
-    </span>
-  </div>
+    <div class="card waitress-card shadow mb-4">
 
-  <table class="table table-sm mb-0">
-    <thead>
-      <tr>
-        <th>Дата</th>
-        <th>Услуга</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for d in data.days %}
-      <tr>
-        <td>{{ d.create_date__date }}</td>
-        <td class="fw-bold text-success">{{ d.service_sum }} сом</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endfor %}
+        <div class="waitress-header">
+            <h5>👩 {{ waitress }}</h5>
+            <div class="summary">
+                💰 {{ data.total_service }} сом &nbsp;|&nbsp;
+                📅 {{ data.days_count }} дней
+            </div>
+        </div>
 
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th class="text-end">Услуга</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in data.days %}
+                    <tr>
+                        <td>{{ day.date|date:"d.m.Y" }}</td>
+                        <td class="text-end amount">
+                            {{ day.service_sum }} сом
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <th>ИТОГО</th>
+                        <th class="text-end fw-bold">
+                            {{ data.total_service }} сом
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </div>
+    {% empty %}
+    <div class="alert alert-warning text-center">
+        Нет данных за выбранный период
+    </div>
+    {% endfor %}
 
 </div>
 {% endblock %}
