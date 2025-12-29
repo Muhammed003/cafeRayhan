@@ -20,6 +20,7 @@ VIEW_PERMISSIONS = {
     "DebtPaidByMonth": ["chef"],
     "SettingsProgramView": ["chef"],
     "InComeView": ["chef"],
+    "WaitressPriceOfServiceMonthlyView": ["chef"],
     # WAITRESS
     "BreadPage": ["chef", "waitress", "administrator", ],
     "EditBreadMainPageView": ["chef", "waitress"],

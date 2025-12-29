@@ -1266,3 +1266,71 @@ class WaitressControlCrudReport(RoleRequiredMixin, LoginRequiredMixin, TemplateV
 
         messages.success(request, f"Официантка {waitress.user.username} и её сегодняшние заказы удалены.")
         return redirect("waitress_crud")
+
+
+
+
+
+class WaitressPriceOfServiceMonthlyView(
+    RoleRequiredMixin,
+    LoginRequiredMixin,
+    TemplateView
+):
+    template_name = 'rayhan/report/waitress_price_of_service.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # ===== ДАТЫ =====
+        start = self.request.GET.get('start')
+        end = self.request.GET.get('end')
+
+        if start and end:
+            start_date = datetime.strptime(start, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end, '%Y-%m-%d').date()
+        else:
+            today = datetime.today()
+            start_date = today.replace(day=1).date()
+            end_date = today.date()
+
+        # ===== ОСНОВНОЙ ЗАПРОС =====
+        qs = (
+            OrderMeal.objects
+            .filter(
+                is_paid=True,
+                create_date__date__range=(start_date, end_date),
+                price_of_service__gt=0
+            )
+            .values(
+                'author__username',
+                'create_date__date'
+            )
+            .annotate(
+                service_sum=Sum('price_of_service')
+            )
+            .order_by('author__username', 'create_date__date')
+        )
+
+        # ===== ГРУППИРОВКА =====
+        report = {}
+
+        for row in qs:
+            name = row['author__username']
+
+            if name not in report:
+                report[name] = {
+                    'days': [],
+                    'total_service': 0,
+                    'days_count': 0
+                }
+
+            report[name]['days'].append(row)
+            report[name]['total_service'] += row['service_sum']
+            report[name]['days_count'] += 1
+
+        context.update({
+            'start_date': start_date,
+            'end_date': end_date,
+            'report': report
+        })
+        return context

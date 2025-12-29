@@ -1,0 +1,58 @@
+{% extends "../main/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <!-- ФИЛЬТР -->
+    <form method="get" class="card p-3 shadow-sm mb-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">С даты</label>
+                <input type="date" name="start" value="{{ start_date }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">По дату</label>
+                <input type="date" name="end" value="{{ end_date }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-dark w-100">
+                    📊 Показать отчёт
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- ОТЧЁТ -->
+    {% for waitress, data in report.items %}
+<div class="card mb-4 shadow">
+  <div class="card-header bg-dark text-white d-flex justify-content-between">
+    <b>{{ waitress }}</b>
+    <span>
+      💰 {{ data.total_service }} сом |
+      📅 {{ data.days_count }} дней
+    </span>
+  </div>
+
+  <table class="table table-sm mb-0">
+    <thead>
+      <tr>
+        <th>Дата</th>
+        <th>Услуга</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in data.days %}
+      <tr>
+        <td>{{ d.create_date__date }}</td>
+        <td class="fw-bold text-success">{{ d.service_sum }} сом</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+
+
+</div>
+{% endblock %}
