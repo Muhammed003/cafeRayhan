@@ -1,5 +1,5 @@
 from django import forms
-from .models import DeskGroup, DeskAssignment
+from .models import DeskGroup, DeskAssignment, BakeryDailyReport
 from ..waitressPage.models import Waitress
 from django.utils import timezone
 
@@ -32,3 +32,11 @@ class DeskAssignmentForm(forms.ModelForm):
         # Set the shift_date field to today's date and disable editing
         self.fields['shift_date'].initial = today
         self.fields['shift_date'].disabled = True
+
+class BakeryDailyReportForm(forms.ModelForm):
+    class Meta:
+        model = BakeryDailyReport
+        exclude = ('cakes_waitress_sum', 'created_at')
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }

@@ -66,3 +66,38 @@ class CountMeals(models.Model):
 
     def __str__(self):
         return f"{self.name} ----{self.create_date.strftime('%d-%m-%Y')}"
+
+
+class BakeryDailyReport(models.Model):
+    create_date = models.DateField(
+        auto_now_add=True,
+        blank=True,
+        null=True,
+        verbose_name="Дата отчёта"
+    )
+
+    # СДЕЛАНО
+    made_pirojki = models.PositiveIntegerField(default=0, verbose_name="Пирожки сделано")
+    made_belyash = models.PositiveIntegerField(default=0, verbose_name="Беляши сделано")
+    made_cheburek = models.PositiveIntegerField(default=0, verbose_name="Чебуреки сделано")
+
+    # ОСТАТОК
+    left_pirojki = models.PositiveIntegerField(default=0, verbose_name="Пирожки остаток")
+    left_belyash = models.PositiveIntegerField(default=0, verbose_name="Беляши остаток")
+    left_cheburek = models.PositiveIntegerField(default=0, verbose_name="Чебуреки остаток")
+
+    # ОПЛАТА
+    cash_som = models.PositiveIntegerField(default=0, verbose_name="Наличные (сом)")
+    mbank = models.PositiveIntegerField(default=0, verbose_name="МБанк")
+
+    # АВТО
+    cakes_waitress_sum = models.PositiveIntegerField(default=0, verbose_name="Десерты официантов")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        self.cafe_sales = self.cash_som + self.mbank
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Отчёт {self.create_date}"

@@ -22,6 +22,24 @@ from apps.rayhan.mealList.models import MealsInMenu, CommentsInMeal, StopList, G
 from apps.rayhan.report.models import CountMeals
 from apps.rayhan.waitressPage.models import OrderMeal
 
+ADMINISTRATOR_MEAL_COUNT = [
+    "Бифштекс",
+    "Гуляш",
+    "Аш",
+    "Блинчики",
+    "Рисовая каша",
+    "Манная каша",
+    "Гарнир",
+    "День и ночь",
+    "Казахский",
+    "Казахский 0,7",
+    "Мастава",
+    "Мастава 0,7",
+    "Чучпара",
+    "Чучпара 0,7",
+    "Шорпо",
+    "Шорпо 1л",
+]
 SAMSA_KEBAB_LIST = [
     "Самса",
     "Самса картошка",
@@ -264,7 +282,15 @@ class QuantityOfMealADay(RoleRequiredMixin, TemplateView, View):
             ).values('day').annotate(
                 summa=Sum('quantity')
             ).values('name', 'day', 'summa', 'is_paid').order_by('-day')
-
+        elif self.request.user.roles == "administrator":
+            context["meals_count"] = OrderMeal.objects.filter(
+                name__in=ADMINISTRATOR_MEAL_COUNT,
+                create_date__date=today
+            ).annotate(
+                day=TruncDay('create_date')
+            ).values('day').annotate(
+                summa=Sum('quantity')
+            ).values('name', 'day', 'summa', 'is_paid').order_by('-day')
         else:
             context["meals_count"] = OrderMeal.objects.filter(
                 create_date__date=today

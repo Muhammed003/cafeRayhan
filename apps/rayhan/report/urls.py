@@ -32,7 +32,7 @@ urlpatterns = [
     path('income/',  InComeView.as_view(),  name='income-report'),
     path('time_cooked/',  TimeCookedView.as_view(),  name='time-cooked'),
 
-    path('cakes_report/',  ReportCakesView.as_view(),  name='report-cakes'),
+    path('cakes_report/', BakeryReportSingleView.as_view(), name='bakery-report-single'),
     path('yesterday/',  ReportYesterdayView.as_view(),  name='report-yesterday'),
 
     path('waitress/control_crud/',  WaitressControlCrudReport.as_view(),  name='waitress_crud'),
