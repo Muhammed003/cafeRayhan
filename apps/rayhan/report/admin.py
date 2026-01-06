@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.rayhan.report.models import DeskGroup, DeskAssignment, SaveEveryDaysReport, CountMeals
+from apps.rayhan.report.models import DeskGroup, DeskAssignment, SaveEveryDaysReport, CountMeals, BakeryDailyReport
 
 
 class DeskGroupAdmin(admin.ModelAdmin):
@@ -23,3 +23,4 @@ admin.site.register(DeskGroup, DeskGroupAdmin)
 admin.site.register(DeskAssignment, DeskAssignmentAdmin)
 admin.site.register(SaveEveryDaysReport)
 admin.site.register(CountMeals, CountMealsAdmin)
+admin.site.register(BakeryDailyReport)

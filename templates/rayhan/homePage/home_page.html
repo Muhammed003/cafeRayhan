@@ -55,6 +55,9 @@ const data = [
       { icon: 'fa-solid fa-star', name: 'Рейтинговая блюд', link: "meal/rating/" },
       { icon: 'fa-solid fa-medal', name: 'Рейтинг официанты', link: "waitress/rate_waitress/" },
       { icon: 'fa-solid fa-list', name: 'Чек', link: "kitchen/bills_kitchen/" },
+      {% if user.roles == "administrator" %}
+       { icon: 'fa-regular fa-window-restore', name: 'Блюда штук', link: "meal/quantity/" },
+      {% endif %}
     ],
   },
   {% endif %}
@@ -78,15 +81,15 @@ const data = [
       {
         subject_name: 'Десерты',
         items: [
-          { icon: 'fa-solid fa-mobile', name: 'Заказ торт', link: "kitchen/cakes/" },
-          { icon: 'fa-solid fa-rotate-left', name: 'История торты', link: "kitchen/control/orders/" },
-          { icon: 'fa-solid fa-window-restore', name: 'Блюда штук торты', link: "meal/cakes/quantity/" },
-          { icon: 'fa-solid fa-book', name: 'Отчет торты', link: "report/cakes_report" },
+          { icon: 'fa-solid fa-mobile', name: 'Заказ пирожки', link: "kitchen/cakes/" },
+          { icon: 'fa-solid fa-rotate-left', name: 'История пирожки', link: "kitchen/control/orders/" },
+          { icon: 'fa-solid fa-window-restore', name: 'Блюда штук пирожки', link: "meal/cakes/quantity/" },
+          { icon: 'fa-solid fa-book', name: 'Отчет пирожки', link: "report/cakes_report" },
         ],
       },
    {% endif %}
 
-  {% if user.roles == "administrator" or user.roles == "chef" %}
+  {% if user.roles == "chef" %}
   {
     subject_name: 'Управление блюдами',
     items: [

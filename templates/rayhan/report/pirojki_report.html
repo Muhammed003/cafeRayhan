@@ -1,0 +1,194 @@
+{% extends "../main/base.html" %}
+
+{% block header %}
+<a href="{% url 'main' %}" class="text-dark">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
+<div class="mx-auto fw-semibold">
+    Пирожки — дневной отчёт
+</div>
+{% endblock header %}
+
+{% block content %}
+<style>
+.card-clean {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+.stat {
+    font-size: 14px;
+    color: #6c757d;
+}
+.stat b {
+    font-size: 20px;
+    color: #000;
+}
+@media (max-width:768px){
+    .grid-3 { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+}
+</style>
+
+<div class="container mt-3">
+
+<!-- ================= СЕГОДНЯ ================= -->
+<div class="card card-clean mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <div class="stat">Сегодня</div>
+            <b>{{ today }}</b>
+        </div>
+        {% if today_report %}
+            <span class="badge bg-success px-3 py-2">Отчёт создан</span>
+        {% else %}
+            <span class="badge bg-warning text-dark px-3 py-2">Нет отчёта</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ================= ФОРМА (ТОЛЬКО ЕСЛИ НЕТ ОТЧЁТА) ================= -->
+{% if not today_report %}
+<form method="post" class="card card-clean mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+
+    <div class="card-body">
+        <h6 class="mb-3">Добавить отчёт</h6>
+
+        <div class="grid-3 mb-3">
+            <input type="number" name="made_pirojki" class="form-control" placeholder="Пирожки" required>
+            <input type="number" name="made_belyash" class="form-control" placeholder="Беляши" required>
+            <input type="number" name="made_cheburek" class="form-control" placeholder="Чебуреки" required>
+        </div>
+
+        <div class="grid-3 mb-3">
+            <input type="number" name="cash_som" class="form-control" placeholder="Наличные" required>
+            <input type="number" name="mbank" class="form-control" placeholder="МБанк" required>
+        </div>
+
+        <div class="grid-3 mb-3">
+            <input type="number" name="left_pirojki" class="form-control" placeholder="Остаток пирожки" >
+            <input type="number" name="left_belyash" class="form-control" placeholder="Остаток беляш" >
+            <input type="number" name="left_cheburek" class="form-control" placeholder="Остаток чебурек" >
+        </div>
+
+        <button class="btn btn-success w-100 py-2">
+            💾 Сохранить отчёт
+        </button>
+    </div>
+</form>
+{% endif %}
+
+<!-- ================= СЕГОДНЯШНИЙ ОТЧЁТ ================= -->
+{% if today_report %}
+<div class="card card-clean mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Сегодняшний отчёт</h6>
+
+        <div class="row text-center">
+            <div class="col">
+                <div class="stat">Сделано</div>
+                <b>{{ today_report.made_pirojki }} / {{ today_report.made_belyash }} / {{ today_report.made_cheburek }}</b>
+            </div>
+            <div class="col">
+                <div class="stat">Факт</div>
+                <b>{{ fact_total }}</b>
+            </div>
+            <div class="col">
+                <div class="stat">План</div>
+                <b>{{ plan_total }}</b>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="alert
+            {% if difference == 0 %}alert-success
+            {% elif difference > 0 %}alert-warning
+            {% else %}alert-danger{% endif %}
+        ">
+            {% if difference == 0 %}
+                ✅ Всё сходится
+            {% elif difference > 0 %}
+                🟢 Лишние деньги: {{ difference }}
+            {% else %}
+                🔴 Не хватает: {{ abs_difference }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<h6 class="mb-2">Факт (как собралась сумма)</h6>
+
+<table class="table table-sm align-middle">
+    <tbody>
+        <tr>
+            <td>💵 Наличные</td>
+            <td class="text-end fw-bold">
+                {{ today_report.cash_som }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>🏦 МБанк</td>
+            <td class="text-end fw-bold">
+                {{ today_report.mbank }}
+            </td>
+        </tr>
+
+
+
+        <tr>
+            <td>🍰 Пирожки (официанты)</td>
+            <td class="text-end fw-bold text-primary">
+                {{cakes_waitress_sum }}
+            </td>
+        </tr>
+
+        <tr class="table-dark">
+            <td><b>ИТОГО факт</b></td>
+            <td class="text-end">
+                <b>{{ fact_total }}</b>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{% endif %}
+
+<!-- ================= ИСТОРИЯ (CHEF) ================= -->
+{% if user.roles == 'chef' %}
+<div class="card card-clean">
+    <div class="card-body">
+        <h6 class="mb-3">История</h6>
+
+        {% for r in reports %}
+        <div class="border mb-2">
+            <div class=" p-2 mb-2 d-flex justify-content-between bg-primary text-white">
+                <div>{{ r.create_date }}</div>
+                <div><b>{{ r.cakes_waitress_sum }}</b></div>
+            </div>
+            <div class="p-2">
+                <div class="d-flex mb-1">
+                    <div class="bg-success p-2  rounded-start text-white w-50">Пирожки</div>
+                    <div class="bg-light p-2  rounded-end text-center w-50">{{ r.made_pirojki }}</div>
+                </div>
+                <div class="d-flex mb-1">
+                    <div class="bg-success p-2  rounded-start text-white w-50">Беляши</div>
+                    <div class="bg-light p-2  rounded-end text-center w-50">{{ r.made_belyash }}</div>
+                </div>
+                  <div class="d-flex mb-1">
+                    <div class="bg-success p-2  rounded-start text-white w-50">Чебуреки</div>
+                    <div class="bg-light p-2  rounded-end text-center w-50">{{ r.made_cheburek }}</div>
+                </div>
+            </div>
+        </div>
+
+            {% empty %}
+            <div class="text-muted text-center">Нет данных</div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

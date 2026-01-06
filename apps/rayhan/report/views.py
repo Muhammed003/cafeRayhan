@@ -19,7 +19,7 @@ from apps.account.models import CustomUser
 from apps.rayhan.bread.models import WaitressBread, BreadComing
 from apps.rayhan.mealList.models import MealsInMenu, MealsToShow, MealRecipes, UyghurMealsToKitchen
 from apps.rayhan.report.forms import AssignDesksForm, DeskAssignmentForm
-from apps.rayhan.report.models import DeskAssignment, SaveEveryDaysReport, CountMeals
+from apps.rayhan.report.models import DeskAssignment, SaveEveryDaysReport, CountMeals, BakeryDailyReport
 from apps.rayhan.samsa_kebab.models import Samsa, SamsaConsumption
 from apps.rayhan.waitressPage.models import Waitress, ConsumptionWaitress, OrderMeal, RatingControlWaitress, \
     SettingModel
@@ -1336,3 +1336,142 @@ class WaitressPriceOfServiceMonthlyView(
             'report': report
         })
         return context
+
+
+
+
+class BakeryReportSingleView(View):
+    template_name = 'rayhan/report/pirojki_report.html'
+
+    def get(self, request):
+        today = timezone.now().date()
+
+        if request.user.roles == 'chef':
+            # Берём только за последний месяц
+            one_month_ago = today - timedelta(days=30)
+            reports = BakeryDailyReport.objects.filter(
+                create_date__gte=one_month_ago
+            ).order_by('-create_date')
+        else:
+            reports = BakeryDailyReport.objects.filter(create_date=today)
+
+        today_report = BakeryDailyReport.objects.filter(create_date=today).first()
+
+
+        # ---------- ПЛАНОВАЯ ВЫРУЧКА ----------
+        plan_total = 0
+        plan_detail = []
+
+        if today_report:
+            items = {
+                'Пирожки': ('пирожки', today_report.made_pirojki),
+                'Беляши': ('беляш', today_report.made_belyash),
+                'Чебуреки': ('чебурек', today_report.made_cheburek),
+            }
+
+            for title, (keyword, qty) in items.items():
+                meal = MealsInMenu.objects.filter(
+                    name__icontains=keyword,
+                    is_active=True
+                ).first()
+
+                if meal:
+                    total = meal.price * qty
+                    plan_total += total
+                    plan_detail.append({
+                        'name': title,
+                        'price': meal.price,
+                        'qty': qty,
+                        'total': total
+                    })
+        if  Waitress.objects.filter(create_date=today).exists():
+            cakes_waitress_sum= (
+                    Waitress.objects
+                    .filter(create_date=today)
+                    .aggregate(total=Sum('cakes'))['total'] or 0
+            )
+        else:
+            cakes_waitress_sum=0
+        # ---------- ФАКТИЧЕСКАЯ ----------
+        fact_total = 0
+        difference = 0
+        abs_difference=0
+        if today_report:
+            fact_total = (
+                    today_report.cash_som +
+                    today_report.mbank +
+                    cakes_waitress_sum
+            )
+            difference = fact_total - plan_total
+            abs_difference = abs(difference)
+
+        return render(request, self.template_name, {
+            'reports': reports,
+
+            'today': today,
+             "cakes_waitress_sum": cakes_waitress_sum,
+            'today_report': today_report,
+            'plan_total': plan_total,
+            'plan_detail': plan_detail,
+            'fact_total': fact_total,
+            'difference': difference,
+            'abs_difference': abs_difference,
+        })
+
+    def post(self, request):
+        action = request.POST.get('action')
+        today = timezone.now().date()
+
+        # ---------- CREATE / UPDATE (ТОЛЬКО СЕГОДНЯ) ----------
+        if action in ['create', 'update']:
+
+            report, created = BakeryDailyReport.objects.get_or_create(
+                create_date=today
+            )
+
+            report.made_pirojki = request.POST.get('made_pirojki', 0)
+            report.made_belyash = request.POST.get('made_belyash', 0)
+            report.made_cheburek = request.POST.get('made_cheburek', 0)
+
+            report.left_pirojki = request.POST.get('left_pirojki', 0)
+            report.left_belyash = request.POST.get('left_belyash', 0)
+            report.left_cheburek = request.POST.get('left_cheburek', 0)
+
+            report.cash_som = request.POST.get('cash_som', 0)
+            report.mbank = request.POST.get('mbank', 0)
+            items = {
+                'Пирожки': ('пирожки', int(request.POST.get('made_pirojki', 0))),
+                'Беляши': ('беляш', int(request.POST.get('made_belyash', 0))),
+                'Чебуреки': ('чебурек', int(request.POST.get('made_cheburek', 0))),
+            }
+            plan_total = 0
+            plan_detail = []
+            for title, (keyword, qty) in items.items():
+                meal = MealsInMenu.objects.filter(
+                    name__icontains=keyword,
+                    is_active=True
+                ).first()
+
+                if meal:
+                    total = int(meal.price) * qty
+                    print(total)
+
+                    plan_total += total
+                    plan_detail.append({
+                        'name': title,
+                        'price': meal.price,
+                        'qty': qty,
+                        'total': total
+                    })
+            print(plan_total)
+            report.cakes_waitress_sum = int(plan_total)
+
+            report.save()
+            return redirect('bakery-report-single')
+
+        # ---------- DELETE (ТОЛЬКО CHEF) ----------
+        if action == 'delete' and request.user.roles == 'chef':
+            BakeryDailyReport.objects.filter(
+                id=request.POST.get('report_id')
+            ).delete()
+            return redirect('bakery-report-single')
