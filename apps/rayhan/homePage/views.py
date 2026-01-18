@@ -11,6 +11,7 @@ from apps.account.mixins import RoleRequiredMixin
 from apps.rayhan.homePage.models import Employee
 from apps.rayhan.kitchen.models import SettingsKitchen
 from apps.rayhan.waitressPage.models import SettingModel, OrderMeal
+from .services.robot_data import collect_today_data
 from ..mealList.models import MealsInMenu
 
 
@@ -278,3 +279,12 @@ class EmployeeManagementView(TemplateView):
 
 class NotInWork(TemplateView):
     template_name =  'rayhan/homePage/not_in_work.html'
+
+class RobotView(RoleRequiredMixin, TemplateView):
+    template_name =  'rayhan/homePage/robot.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['text'] = collect_today_data(self)
+        return context
+

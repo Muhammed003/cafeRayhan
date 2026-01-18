@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Робот-презентация</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  color: white;
+  padding: 20px;
+}
+
+/* SCENE */
+.scene {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+/* ROBOT */
+.robot {
+  position: relative;
+  transform: scale(0.8);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Desktop scale */
+@media (min-width: 768px) {
+  .robot {
+    transform: scale(1);
+  }
+}
+
+/* Animation */
+@keyframes float {
+  0% { transform: translateY(0) scale(var(--s,1)); }
+  50% { transform: translateY(-12px) scale(var(--s,1)); }
+  100% { transform: translateY(0) scale(var(--s,1)); }
+}
+
+/* HEAD */
+.head {
+  width: 120px;
+  height: 100px;
+  background: #d1d1d1;
+  border-radius: 20px;
+  position: relative;
+}
+
+/* EYES */
+.eye {
+  width: 14px;
+  height: 14px;
+  background: #000;
+  border-radius: 50%;
+  position: absolute;
+  top: 30px;
+  animation: blink 4s infinite;
+}
+
+.eye.left { left: 30px; }
+.eye.right { right: 30px; }
+
+@keyframes blink {
+  0%, 95%, 100% { height: 14px; }
+  96%, 99% { height: 2px; }
+}
+
+/* MOUTH */
+.mouth {
+  width: 40px;
+  height: 10px;
+  background: #000;
+  border-radius: 10px;
+  position: absolute;
+  bottom: 20px;
+  left: 40px;
+}
+
+/* BODY */
+.body {
+  width: 100px;
+  height: 120px;
+  background: #bdbdbd;
+  border-radius: 20px;
+  margin: auto;
+}
+
+/* ARMS */
+.arm {
+  width: 20px;
+  height: 80px;
+  background: #cfcfcf;
+  position: absolute;
+  top: 120px;
+}
+
+.arm.left {
+  left: -20px;
+  animation: wave 2s infinite;
+}
+
+.arm.right {
+  right: -20px;
+}
+
+/* Animations */
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(25deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  max-width: 320px;
+  padding: 15px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #00c6ff;
+  color: #000;
+  transition: transform 0.1s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* Desktop button */
+@media (min-width: 768px) {
+  button {
+    width: auto;
+    padding: 12px 25px;
+  }
+}
+
+</style>
+<body>
+
+<div class="scene">
+  <div class="robot">
+    <div class="head">
+      <div class="eye left"></div>
+      <div class="eye right"></div>
+      <div class="mouth"></div>
+    </div>
+
+    <div class="body"></div>
+
+    <div class="arm left"></div>
+    <div class="arm right"></div>
+  </div>
+</div>
+
+<button id="talkBtn">🤖 Говорить</button>
+<script>
+const btn = document.getElementById("talkBtn");
+const mouth = document.querySelector(".mouth");
+
+let speaking = false;
+
+// Разделяем текст на массив предложений
+function splitText(text) {
+  return text.match(/[^\.!\?]+[\.!\?]+/g) || [text];
+}
+
+function speakRobot() {
+  if (speaking) return;
+  speechSynthesis.cancel();
+
+  const fullText = `{{text}}`;
+  const sentences = splitText(fullText);
+
+  speaking = true;
+
+  let i = 0;
+
+  function speakNext() {
+    if (i >= sentences.length) {
+      mouth.style.height = "10px";
+      speaking = false;
+      return;
+    }
+
+    const speech = new SpeechSynthesisUtterance(sentences[i]);
+    speech.lang = "ru-RU";
+    speech.rate = 1;
+    speech.pitch = 1;
+
+    // Анимация рта
+    const interval = setInterval(() => {
+      mouth.style.height =
+        mouth.style.height === "10px" ? "20px" : "10px";
+    }, 140);
+
+    speech.onend = () => {
+      clearInterval(interval);
+      mouth.style.height = "10px";
+      i++;
+      speakNext(); // переходим к следующему предложению
+    };
+
+    speech.onerror = (e) => {
+      console.error("Speech error", e);
+      clearInterval(interval);
+      mouth.style.height = "10px";
+      i++;
+      speakNext();
+    };
+
+    speechSynthesis.speak(speech);
+  }
+
+  speakNext();
+}
+
+btn.addEventListener("click", speakRobot);
+btn.addEventListener("touchstart", speakRobot);
+
+</script>
+
+</body>
+</html>
