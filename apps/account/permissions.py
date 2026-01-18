@@ -10,6 +10,7 @@ ROLE_PERMISSIONS = {
 VIEW_PERMISSIONS = {
     # CHEF PERMISSIONS
     "ReportNoteBook": ["chef"],
+    "RobotView": ["chef"],
     "HistoryReportView": ["chef"],
     "HistoryDetailReportView": ["chef"],
     "RequestToCloseShiftWaitress": ["chef"],

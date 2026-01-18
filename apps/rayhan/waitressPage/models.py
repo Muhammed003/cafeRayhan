@@ -46,6 +46,12 @@ class Waitress(models.Model):
             summa.append(i.summa)
         return self.balance - sum(summa)
 
+    def sum_today_food(self):
+        today = datetime.now().date()
+        # фильтруем только сегодняшнюю запись, если create_date используется
+        if self.create_date == today:
+            return self.takeaway_food + self.kebab + self.samsa + self.kitchen
+        return 0
 
     class Meta:
         verbose_name = 'Официантка'
