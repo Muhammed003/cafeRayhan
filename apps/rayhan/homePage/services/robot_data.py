@@ -98,7 +98,7 @@ def collect_today_data(self):
         f"Шашлик гошт: {uzbek_number(int(total_kebab/2))} сом.\n"
         f"Общий хисобласак расход: {uzbek_number(total_consumption)} сом.\n"
         f"Общий соовдадан айримиз: {uzbek_number(uzb_total_sum)} минус {uzbek_number(total_consumption)} сом.\n"
-        f"Шунда сизга{uzbek_number(report_all)} сом фойда колди.\n"
+        # f"Шунда сизга{uzbek_number(report_all)} сом фойда колди.\n"
     )
 
 
