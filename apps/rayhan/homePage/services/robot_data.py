@@ -64,13 +64,13 @@ def collect_today_data(self):
     total_kitchen = Waitress.objects.filter(create_date=today).aggregate(Sum('kitchen'))['kitchen__sum'] or 0
     cakes = Waitress.objects.filter(create_date=today).aggregate(Sum('cakes'))['cakes__sum'] or 0
     bread = BreadComing.objects.filter(create_date=today).aggregate(Sum('quantity'))['quantity__sum'] or 0
-    meat = MeatOrder.objects.filter(create_date=yesterday).aggregate(Sum('weight'))['weight__sum'] or 0
+    meat = int(MeatOrder.objects.filter(create_date=yesterday).aggregate(Sum('weight'))['weight__sum'] or 0)
     meat_price = meat*880
     orders = OrderMeal.objects.filter(create_date__date=today)
     total_sum =  orders.aggregate(s=Sum('price'))['s'] or 0
     uzb_total_sum = int(total_sum)+int(plan_total-cakes)
-
-    total_consumption = 10500+4500+5500+4800+19500+(bread*27)+18000+12000+meat_price+(4*750)+int(total_kebab/2)
+    price_of_service = int(uzb_total_sum % 5)
+    total_consumption = 10500+4500+5500+4800+19500+(bread*27)+18000+12000+meat_price+(4*750)+int(total_kebab/2)-price_of_service
     report_all = int(uzb_total_sum)-int(total_consumption)
     text = (
         f"Ассаламу алайкум {self.request.user.username} ака.\n"
@@ -86,6 +86,7 @@ def collect_today_data(self):
         f"Мойка ва сервировка ва загатовка: {uzbek_number(5500)} сом.\n"
         f"Шашликчилар: {uzbek_number(4500)} сом.\n"
         f"Пирожки ойлик: {uzbek_number(4800)} сом.\n"
+        f"Официантка ойлик: {uzbek_number(price_of_service)} сом.\n"
         f"Общий ойлик: {uzbek_number(24300)} сом.\n"
         f"Новвойга: {uzbek_number(bread*27)} сом.\n"
         f"Аренда налог ва бошка коммуналный услугалар: {uzbek_number(18000)} сом.\n"
