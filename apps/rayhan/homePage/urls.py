@@ -1,4 +1,5 @@
 from django.urls import path, include
+from .services.robot_ai import generate_audio_report
 from .views import *
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
   path('check_bill/', BillCheckPageView.as_view(), name='check_bill_web'),
 
   path('robot/', RobotView.as_view(), name='robot-view'),
+  path('robot-ai-generate/', generate_audio_report, name='robot-generate'),
 ]

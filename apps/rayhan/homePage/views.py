@@ -22,7 +22,7 @@ class Main(TemplateView):
     def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             if "chef" in self.request.user.roles or "administrator" in self.request.user.roles or "employee" in self.request.user.roles \
-                    or "samsishnik" in self.request.user.roles or "cake_maker" in self.request.user.roles or "chebureki_maker" in self.request.user.roles:
+                    or "samsishnik" in self.request.user.roles or "cake_maker" in self.request.user.roles or "chebureki_maker" in self.request.user.roles or "kassa" in self.request.user.roles:
                 return redirect(reverse_lazy("home-page"))
             elif "butcher" in self.request.user.roles:
                 return redirect(reverse_lazy("butcher-main"))

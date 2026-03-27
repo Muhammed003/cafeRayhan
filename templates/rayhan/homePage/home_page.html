@@ -61,6 +61,15 @@ const data = [
     ],
   },
   {% endif %}
+  {% if user.roles == "kassa" or user.username == "Али" %}
+      {
+        subject_name: 'Касса',
+        items: [
+         { icon: 'fa-solid fa-book', name: 'Отчет пирожки', link: "report/cakes_report" },
+         { icon: 'fa-solid fa-list', name: 'Заказ напитки', link: "kitchen/drinks" },
+        ],
+      },
+  {% endif %}
    {% if user.roles == "samsishnik" or user.roles == "chef" %}
       {
         subject_name: 'Самса и Шашлыки',

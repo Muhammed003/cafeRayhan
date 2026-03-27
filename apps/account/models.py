@@ -57,6 +57,7 @@ class CustomUser(AbstractUser, PermissionsMixin):
         ("samsishnik", "Cамсышник"),
         ("cake_maker", "Тортышник"),
         ("chebureki_maker", "Чебурешник"),
+        ("kassa", "Кассир"),
         ("waitress", "Официант"),
         ("butcher", "Мясник"),
         ("demo", "Демо"),
