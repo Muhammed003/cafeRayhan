@@ -23,7 +23,7 @@ def uzbek_number(n):
 
     return str(n)
 
-def collect_today_data(self):
+def collect_today_data(request):
     today = timezone.now().date()
 
     total_takeaway_food = Waitress.objects.filter(create_date=today).aggregate(Sum('takeaway_food'))[
@@ -73,7 +73,7 @@ def collect_today_data(self):
     total_consumption = 10500+4500+5500+4800+19500+(bread*27)+18000+12000+meat_price+(4*750)+int(total_kebab/2)-price_of_service
     report_all = int(int(uzb_total_sum)-int(total_consumption))
     text = (
-        f"Ассаламу алайкум {self.request.user.username} ака.\n"
+        f"Ассаламу алайкум ака.\n"
         f"Мен роботман 🤖\n"
         f"Бугунги соода: {uzbek_number(uzb_total_sum)} сом.\n"
         f"Собой олиб кетганлар: {uzbek_number(total_takeaway_food)} сом.\n"

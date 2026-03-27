@@ -10,6 +10,7 @@ urlpatterns = [
   path('national/orders/', NationalKitchenView.as_view(), name='national-kitchen'),
 
   path('cakes/', OrderCakesView.as_view(), name='cakes-order'),
+  path('drinks/', OrderDrinksView.as_view(), name='drinks-order'),
 
   path('control/orders/', ControlKitchenOrders.as_view(), name='control-orders-in-kitchen'),
 

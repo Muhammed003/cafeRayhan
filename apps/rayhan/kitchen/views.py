@@ -512,6 +512,28 @@ class OrderCakesView(RoleRequiredMixin, TemplateView):
             total_quantity=Sum('quantity')
         ).order_by('name')
 
+        return
+
+
+
+class OrderDrinksView(RoleRequiredMixin, TemplateView):
+    template_name = "rayhan/cakes/drinks.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['settings_kitchen'] = SettingsKitchen.objects.all()
+        context["name_of_page"] = "drinks-order"
+        cakes_meal_names = MealsInMenu.objects.filter(group_item__name="Напитки").values_list('name', flat=True)
+        orders_today = OrderMeal.objects.filter(
+            name__in=cakes_meal_names,  # Only include cakes
+            order_cakes=False,
+            create_date__date=datetime.now().date()
+        )
+        context['order_meals'] = orders_today.order_by('number_of_order', 'create_date')
+        context['meal_quantities'] = orders_today.values('name').annotate(
+            total_quantity=Sum('quantity')
+        ).order_by('name')
+
         return context
 
 
