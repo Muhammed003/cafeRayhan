@@ -9,6 +9,7 @@ urlpatterns = [
 
     path("z_report/", ZReportView.as_view(), name="z-report"),
     path("analytics/", AnalyticsReportView.as_view(), name="analytics-report"),
+    path("analytics/shift/", ShiftAnalyticsView.as_view(), name="shift-analytics"),
     path('api/meal-hourly-quantity/', MealHourlyQuantityAPIView.as_view(), name='meal-hourly-quantity-api'),
     path("z_report  /detail/<str:pk>/", ZReportDetailView.as_view(), name="z-report-detail"),
     path("request_to_close_shift/", RequestToCloseShiftWaitress.as_view(), name="request-close-shift"),
