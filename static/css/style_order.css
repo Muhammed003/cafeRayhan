@@ -26,7 +26,169 @@
     display:block;
 }
 
+/* === BASE === */
+body {
+    background: #f5f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
+/* === CONTAINER === */
+.order-main {
+    padding: 6px;
+}
+
+/* === ORDER CARD === */
+.order-controller {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: 0.2s;
+}
+
+.order-controller:hover {
+    transform: translateY(-2px);
+}
+
+/* === HEADER === */
+.header-order {
+    gap: 6px;
+    align-items: center;
+
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 10px;
+    border-radius: 14px 14px 0 0;
+    font-size: 13px;
+}
+
+#username {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+#time {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+#number_of_order {
+    font-weight: bold;
+}
+
+/* === BUTTON === */
+.link_order_header {
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    transition: 0.2s;
+}
+
+.link_order_header:hover {
+    transform: scale(1.05);
+}
+
+/* === ORDER ITEM === */
+.body-order {
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: 0.2s;
+    margin-bottom: 6px;
+}
+
+.body-order:hover {
+    background: #f9fafc;
+}
+
+/* === MEAL NAME === */
+.name-meal {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* === EDITED ORDER === */
+.bg-order-edited {
+    background: #f59e0b;
+}
+
+/* === TAKEAWAY === */
+.bg-primary {
+    background: #6366f1 !important;
+}
+
+/* === QUANTITY === */
+.quantity_of_meal {
+    font-weight: bold;
+    font-size: 15px;
+    min-width: 40px;
+    justify-content: center;
+}
+
+/* === DONE BUTTON === */
+.body-order a {
+    background: #10b981 !important;
+    border: none;
+    transition: 0.2s;
+}
+
+.body-order a:hover {
+    background: #059669 !important;
+}
+
+/* === COMMENTS === */
+.text-danger {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+/* === MOBILE OPTIMIZATION === */
+@media (max-width: 768px) {
+
+    .header-order {
+        grid-template-columns: 1fr auto;
+        row-gap: 4px;
+        font-size: 12px;
+    }
+
+    #time, #number_of_order {
+        display: none;
+    }
+
+    .body-order {
+        font-size: 13px;
+    }
+
+    .name-meal {
+        width: 60%;
+    }
+
+    .quantity_of_meal {
+        font-size: 14px;
+    }
+}
+
+/* === EXTRA SMALL (phones) === */
+@media (max-width: 480px) {
+
+    .header-order {
+        padding: 8px;
+    }
+
+    .name-meal {
+        font-size: 13px;
+    }
+
+    .quantity_of_meal {
+        font-size: 13px;
+    }
+
+    .link_order_header {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+}
 @media (max-width: 768px) {
     .order-main{
         column-count: 1;

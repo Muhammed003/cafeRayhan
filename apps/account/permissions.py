@@ -58,6 +58,7 @@ VIEW_PERMISSIONS = {
     "SettingsListView": ["chef", "administrator"],
     "OrderDrinksView": ["chef", "kassa"],
     "AverageQuantityMeals": ["chef", "administrator"],
+    "ShiftAnalyticsView": ["chef"],
     "SamsaRestReportView": ["chef", "administrator"],
     "SamsaRestReportDetailView": ["chef", ],
     "AnalyticsReportView": ["chef", ],

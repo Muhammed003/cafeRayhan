@@ -275,8 +275,6 @@ class EndRequestShiftDetailView(RoleRequiredMixin, View):
         # if waitress.balance == max_balance:
         #     self.update_user_rate(user, "Лучшая сумма скопления", 0.2)
 
-        if waitress.takeaway_food == max_takeaway_food:
-            self.update_user_rate(user, "Лучшая сумма скопления с собой", 0.2)
 
         # Update waitress object and user's balance
         waitress.shift = False
@@ -291,9 +289,9 @@ class EndRequestShiftDetailView(RoleRequiredMixin, View):
                 reason=reason,
                 create_date=datetime.now().date()
         ).exists():
-            user.rate += Decimal(str(quantity))  # Convert quantity to Decimal
-            user.rate = min(user.rate, Decimal('10'))  # Ensure rate doesn't exceed 10
-            user.save()
+            # user.rate += Decimal(str(quantity))  # Convert quantity to Decimal
+            # user.rate = min(user.rate, Decimal('10'))  # Ensure rate doesn't exceed 10
+            # user.save()
             RatingControlWaitress.objects.create(
                 author=self.request.user,
                 user=user.username,
@@ -1475,3 +1473,95 @@ class BakeryReportSingleView(View):
                 id=request.POST.get('report_id')
             ).delete()
             return redirect('bakery-report-single')
+
+
+
+class ShiftAnalyticsView(RoleRequiredMixin, LoginRequiredMixin, TemplateView):
+    template_name = 'rayhan/report/shift_analytics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Выбор даты
+        selected_date = self.request.GET.get("date")
+        if selected_date:
+            selected_date = date.fromisoformat(selected_date)
+        else:
+            selected_date = datetime.now().date()
+        context["selected_date"] = selected_date
+
+        start_day = datetime.combine(selected_date, datetime.min.time())
+        shift_change = datetime.combine(selected_date, datetime.strptime("17:00", "%H:%M").time())
+        end_day = datetime.combine(selected_date, datetime.max.time())
+
+        # --- Заказы по сменам ---
+        first_shift_orders = OrderMeal.objects.filter(
+            create_date__gte=start_day,
+            create_date__lt=shift_change,
+            is_paid=True
+        ).values('name', 'price', 'is_paid')
+
+        second_shift_orders = OrderMeal.objects.filter(
+            create_date__gte=shift_change,
+            create_date__lte=end_day,
+            is_paid=True
+        ).values('name', 'price', 'is_paid')
+
+        # --- Общая статистика ---
+        def analyze(orders):
+            total = sum(o['price'] for o in orders)
+            count = len(orders)
+            avg = round(total / count, 1) if count else 0
+            return total, count, avg
+
+        first_total, first_count, first_avg = analyze(first_shift_orders)
+        second_total, second_count, second_avg = analyze(second_shift_orders)
+
+        if first_total > second_total:
+            better_shift = "Первая смена (00:00 - 17:00)"
+        elif second_total > first_total:
+            better_shift = "Вторая смена (17:00 - 00:00)"
+        else:
+            better_shift = "Обе смены работали одинаково"
+
+        context.update({
+            "first_total": first_total,
+            "first_count": first_count,
+            "first_avg": first_avg,
+            "second_total": second_total,
+            "second_count": second_count,
+            "second_avg": second_avg,
+            "better_shift": better_shift,
+        })
+
+        # --- Разбивка по кухням ---
+        kitchen_meals = set(MealsInMenu.objects.filter(group_item__name="Кухня").values_list('name', flat=True))
+        faster_meals = set(MealsInMenu.objects.filter(group_item__name="Быстрый заказы").values_list('name', flat=True))
+        samsa_meals = set(MealsInMenu.objects.filter(group_item__name="Самсы").values_list('name', flat=True))
+        shashlyk_meals = set(MealsInMenu.objects.filter(group_item__name="Шашлыки").values_list('name', flat=True))
+        uyghur_meals = set(UyghurMealsToKitchen.objects.values_list('name_related_meal__name', flat=True))
+
+        def calculate_shift_breakdown(orders):
+            data = {"uyghur": 0, "national": 0, "shashlyk": 0, "samsa": 0, "total": 0}
+            for order in orders:
+                name = order['name']
+                price = order['price']
+                if name in uyghur_meals:
+                    data["uyghur"] += price
+                elif name in kitchen_meals or name in faster_meals:
+                    data["national"] += price
+                elif name in samsa_meals:
+                    data["samsa"] += price
+                elif name in shashlyk_meals:
+                    data["shashlyk"] += price
+                data["total"] += price
+            return data
+
+        context["shift1"] = calculate_shift_breakdown(first_shift_orders)
+        context["shift2"] = calculate_shift_breakdown(second_shift_orders)
+
+        # --- Средний чек ---
+        context["avg_shift1"] = round(first_total / first_count, 1) if first_count else 0
+        context["avg_shift2"] = round(second_total / second_count, 1) if second_count else 0
+
+        return context

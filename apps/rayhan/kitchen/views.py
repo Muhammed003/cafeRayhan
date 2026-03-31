@@ -218,6 +218,12 @@ class ControlKitchenOrders(RoleRequiredMixin, TemplateView, View):
                 name__in=cake_group_names
             ).order_by("-number_of_order", "-id")
             context["plus_disabled"] = True
+
+        elif self.request.user.roles == "chef":
+            context["list_of_orders"] = OrderMeal.objects.filter(
+                is_paid=False,
+                create_date__date=datetime.now().date()
+            ).order_by("-number_of_order", "-id")
         else:
             # Исключаем торты
             context["list_of_orders"] = OrderMeal.objects.filter(
@@ -512,7 +518,7 @@ class OrderCakesView(RoleRequiredMixin, TemplateView):
             total_quantity=Sum('quantity')
         ).order_by('name')
 
-        return
+        return context
 
 
 
