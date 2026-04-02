@@ -1,0 +1,110 @@
+{% extends '../main/base.html' %}
+{% block content %}
+
+<style>
+body{
+    background:#0f172a;
+    color:#fff;
+}
+
+/* Карточка */
+.card-report{
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
+    border-radius:15px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Заголовок */
+.title{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+/* Строка */
+.row-item{
+    display:flex;
+    justify-content:space-between;
+    margin:5px 0;
+}
+
+/* Итог */
+.total{
+    background:#020617;
+    padding:15px;
+    border-radius:15px;
+    margin-top:20px;
+}
+
+.green{color:#22c55e;}
+.red{color:#ef4444;}
+.yellow{color:#facc15;}
+</style>
+
+<div class="container mt-3">
+
+<h2 class="text-center mb-4">💰 Отчёт официанток</h2>
+
+{% for w in report %}
+<div class="card-report">
+
+    <div class="title">👩 {{ w.name }}</div>
+
+    <div class="row-item">
+        <div>Баланс:</div>
+        <div class="green">{{ w.balance }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Расход:</div>
+        <div class="red">{{ w.consumption }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Результат:</div>
+        <div class="green">{{ w.result }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>5%:</div>
+        <div class="yellow">{{ w.percent_5 }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Остаток кассы:</div>
+        <div class="green">{{ w.cash_stayed }}</div>
+    </div>
+
+</div>
+{% endfor %}
+
+<div class="total">
+
+    <div class="row-item">
+        <div>Общий баланс:</div>
+        <div class="green">{{ total_balance }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Общий расход:</div>
+        <div class="red">{{ total_consumption }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Итог:</div>
+        <div class="green">{{ total_result }}</div>
+    </div>
+
+    <div class="row-item">
+        <div>Касса:</div>
+        <div class="green">{{ total_cash }}</div>
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}

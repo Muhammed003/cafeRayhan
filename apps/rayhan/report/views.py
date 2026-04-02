@@ -32,6 +32,11 @@ from .tasks import login_and_fetch_data  # Импортируйте вашу ф�
 from decouple import config
 from decimal import Decimal
 
+from ..kitchen.models import SettingsKitchen
+from django.db.models import Min
+from django.contrib.postgres.aggregates import BoolOr
+from django.views.decorators.csrf import csrf_exempt
+
 russian_month_names = {
             1: 'января',
             2: 'февраля',
@@ -1603,5 +1608,156 @@ class BreadYearView(TemplateView):
         context['chef_total'] = chef_total
         context['baker_total'] = baker_total
         context['waitress_bread'] = waitress_bread
+
+        return context
+
+
+
+
+class KassaOrdersView(RoleRequiredMixin, LoginRequiredMixin, TemplateView):
+    template_name = 'rayhan/kassa/kassa_orders.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        today = datetime.now().date()
+
+        orders_today = OrderMeal.objects.filter(
+
+            is_paid=False,
+            create_date__date=today,
+            order_kassa=False
+
+        )
+        context['order_meals'] = orders_today.order_by('number_of_order').order_by('create_date')
+
+        try:
+            context['tax'] = SettingsKitchen.objects.get(name="Налог")
+        except:
+            pass
+            # 🔥 ЗАНЯТЫЕ СТОЛЫ (1 стол = 1 запись)
+        busy_desks = (
+            OrderMeal.objects
+            .filter(
+                is_paid=False,
+                create_date__date=today
+            )
+            .values('number_of_desk')
+            .annotate(
+                number_of_order=Min('number_of_order'),
+                code_bill=Min('code_bill'),
+                waitress=Min('author__username'),
+                printed=BoolOr('printed'),
+                tax_sent=BoolOr('tax_sent'),
+                order_kassa=BoolOr('order_kassa'),
+            )
+            .order_by('number_of_desk')
+        )
+
+        context['busy_desks'] = busy_desks
+
+        # 🧾 налог — количество чеков
+        context['tax_sent_total'] = (
+            OrderMeal.objects
+            .filter(tax_sent=True, create_date__date=today)
+            .values('number_of_order')
+            .distinct()
+            .count()
+        )
+
+        # 💰 налог — сумма (1 раз на чек)
+        context['tax_price_sum'] = (
+                                       OrderMeal.objects
+                                       .filter(tax_sent=True, create_date__date=today)
+                                       .values('number_of_order')
+                                       .annotate(order_sum=Sum('price'))
+                                       .aggregate(total=Sum('order_sum'))
+                                   )['total'] or 0
+
+        context['bills'] = OrderMeal.objects.filter(
+            create_date__date=datetime.now().date(),
+            is_paid=False,
+            number_of_desk=0,
+            takeaway_food=True,
+            person_in_desk_order=False,
+        ).distinct('number_of_order').order_by('-number_of_order', 'create_date')
+
+        return context
+
+
+class SendTaxToGNSView(LoginRequiredMixin, View):
+    def post(self, request, number_of_order):
+        OrderMeal.objects.filter(
+            number_of_order=number_of_order
+        ).update(
+            tax_sent=True
+        )
+        return redirect(request.META.get('HTTP_REFERER'))
+
+class OrderKassaDoneView(LoginRequiredMixin, View):
+    def post(self, request, number_of_order):
+        OrderMeal.objects.filter(
+            number_of_order=number_of_order
+        ).update(
+            order_kassa=True,
+        )
+        return redirect(request.META.get('HTTP_REFERER'))
+
+
+@csrf_exempt
+def mark_order_printed(request, order_id):
+    if request.method == "POST":
+        try:
+            order = OrderMeal.objects.get(pk=order_id)
+            order.printed = True
+            order.save()
+            return JsonResponse({"success": True})
+        except OrderMeal.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Order not found"})
+    return JsonResponse({"success": False, "error": "Invalid request"})
+#
+from django.views.generic import TemplateView
+from datetime import datetime
+from django.db.models import Sum
+
+class WaitressReportKassaView(TemplateView):
+    template_name = "rayhan/kassa/waitress_kassa.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        today = datetime.now().date()
+
+        waitresses = Waitress.objects.filter(create_date=today, shift=False)
+
+        report = []
+
+        for w in waitresses:
+
+            balance = w.balance
+            consumption = w.consumption
+
+            result = balance - consumption
+
+            percent_5 = balance * 0.05
+
+            cash_stayed = result - percent_5
+
+            report.append({
+                "name": w.user.username,
+                "balance": balance,
+                "consumption": consumption,
+                "result": result,
+                "percent_5": int(percent_5),
+                "cash_stayed": int(cash_stayed),
+            })
+
+        # Общие суммы
+        context['total_balance'] = sum([x['balance'] for x in report])
+        context['total_consumption'] = sum([x['consumption'] for x in report])
+        context['total_result'] = sum([x['result'] for x in report])
+        context['total_cash'] = sum([x['cash_stayed'] for x in report])
+
+        context['report'] = report
 
         return context

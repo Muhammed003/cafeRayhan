@@ -56,7 +56,14 @@ VIEW_PERMISSIONS = {
     # CHEF ADMINISTRATOR
     "HomePageView": ["chef", "administrator", "employee", "samsishnik", "chebureki_maker", "cake_maker", "kassa"],
     "SettingsListView": ["chef", "administrator"],
+    #KASSA
     "OrderDrinksView": ["chef", "kassa"],
+    "KassaOrdersView": ["chef", "kassa"],
+    "OrderKassaDoneView": ["chef", "kassa"],
+
+
+
+
     "AverageQuantityMeals": ["chef", "administrator"],
     "ShiftAnalyticsView": ["chef"],
     "SamsaRestReportView": ["chef", "administrator"],

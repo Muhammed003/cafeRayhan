@@ -131,6 +131,7 @@ class WaitressPageView(RoleRequiredMixin, TemplateView):
             else:
                 context["consumption"] = 0
             context["result"] = context["summa"].balance - context["consumption"]
+            context["my_salary"] = int(context["summa"].balance / 100 * 5)
         username = self.request.user.username
         if Employee.objects.filter(name=username).exists():
             employee = Employee.objects.get(name=username)

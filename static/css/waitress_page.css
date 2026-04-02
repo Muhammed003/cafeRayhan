@@ -13,14 +13,15 @@ a{
 
 /*===== Home-main  ======*/
 .header-main {
-    background: #3FA34D; /* зелёный из логотипа */
+    background: #8A2387;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #F27121, #E94057, #8A2387);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #F27121, #E94057, #8A2387); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     padding: 12px 20px;
     font-size: 1.2em;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    color: #fff;
 }
 
 
@@ -42,7 +43,9 @@ background: #c5d9d8;
 
 .footer{
     padding: 5px;
-    background: #D8F0FA;
+    background: #8A2387;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #F27121, #E94057, #8A2387);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #F27121, #E94057, #8A2387); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     box-shadow: 0px 0px 35px -7px #333;
     display: flex;
     position: absolute;
@@ -58,14 +61,15 @@ background: #c5d9d8;
 }
 .footer a,
 .footer__block__icon{
-    color: #2a3166ad;
+        color: #fff !important;
+
 }
 
 
 .footer .active,
 .active .footer__block__icon{
     /* Styles for when the link is being clicked */
-    color: #223097 !important; /* You can use any color you want */
+    color: #000 !important; /* You can use any color you want */
     transform: scale(1.05);
 }
 

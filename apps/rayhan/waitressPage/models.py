@@ -111,6 +111,7 @@ class OrderMeal(models.Model):
     order_done = models.BooleanField(default=False)
     order_samsa_kebab= models.BooleanField(default=False)
     order_cakes= models.BooleanField(default=False)
+    order_kassa = models.BooleanField(default=False)
     order_is_edited = models.BooleanField(default=False)
     takeaway_food = models.BooleanField(default=False)
     order_closed_time = models.DateTimeField(auto_now_add=False, verbose_name="Время завершения заказа",null=True)
@@ -121,6 +122,7 @@ class OrderMeal(models.Model):
     person_in_desk_order = models.BooleanField(default=False)
     code_bill = models.PositiveIntegerField()
     printed = models.BooleanField(default=False)
+    tax_sent = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Заказ блюда'

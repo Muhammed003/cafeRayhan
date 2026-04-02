@@ -39,6 +39,17 @@ urlpatterns = [
     path('waitress/control_crud/',  WaitressControlCrudReport.as_view(),  name='waitress_crud'),
     path('waitress/price_of_service/',  WaitressPriceOfServiceMonthlyView.as_view(),  name='waitress-service'),
     path('bread/year/',  BreadYearView.as_view(),  name='bread-month'),
+    # KASSA
+
+    # urls.py
+    path('kassa/orders/', KassaOrdersView.as_view(), name='kassa-orders'),
+
+    path('kassa/tax/<int:number_of_order>/', SendTaxToGNSView.as_view(), name='kassa-tax-send'),
+    path('waitress_report_kassa/', WaitressReportKassaView.as_view(), name='kassa-report-view'),
+    path('kassa/done/<int:number_of_order>/', OrderKassaDoneView.as_view(), name='kassa-order-done'),
+    # path('kassa/toggle-tax/', toggle_tax, name='toggle_tax'),
+    # path('kassa/report/', ReportKassaView.as_view(), name='report_kassa'),
+    path('kassa/mark-printed/<int:order_id>/', mark_order_printed, name='mark_order_printed'),
 
 
 ]

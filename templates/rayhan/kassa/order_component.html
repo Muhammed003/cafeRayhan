@@ -1,0 +1,332 @@
+{% load static %}
+<style>
+  /* ===== ROOT ===== */
+:root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --primary: #0d6efd;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --radius: 14px;
+}
+
+body {
+    background: var(--bg);
+}
+
+/* ===== GRID ===== */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 14px;
+    padding: 10px;
+}
+
+/* ===== ORDER CARD ===== */
+.order-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.25s ease-in;
+}
+
+/* ===== HEADER ===== */
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #e5e7eb;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+
+.order-user {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.order-time {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.desk-badge {
+    background: var(--success);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.desk-badge.takeaway {
+    background: var(--primary);
+}
+
+/* ===== ITEMS ===== */
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-left: 4px solid transparent;
+}
+
+.order-item.edited {
+    border-left-color: var(--warning);
+    background: #fff7ed;
+}
+
+.order-item.takeaway {
+    border-left-color: var(--primary);
+    background: #eff6ff;
+}
+
+.meal-name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.meal-qty {
+    font-weight: 700;
+    background: #e5e7eb;
+    padding: 4px 10px;
+    border-radius: 8px;
+    min-width: 38px;
+    text-align: center;
+}
+
+/* ===== COMMENTS ===== */
+.meal-comment {
+    font-size: 13px;
+    color: var(--danger);
+    margin-top: 4px;
+    padding-left: 6px;
+}
+.btn-kassa {
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 6px 12px;
+    transition: 0.2s ease;
+}
+
+.btn-kassa:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+.badge.bg-success {
+    border-radius: 10px;
+    font-size: 13px;
+}
+    .desk-screen {
+    position: fixed;
+    inset: 0;
+    background: #0f172a;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+</style>
+<style>
+@page {
+    size: 80mm auto;
+    margin: 0;
+}
+
+@media print {
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 80mm;
+        height: auto;
+        overflow: hidden;
+    }
+
+    body div, .header {
+        display: none !important;
+    }
+
+    body div#print-area {
+        display: block !important;
+        width: 80mm;
+        font-family: monospace;
+        font-size: 13px;
+        font-weight: 600;
+
+    }
+
+    .print-block {
+        padding: 4mm;
+        page-break-inside: avoid;
+    }
+
+    /* ❌ УБИРАЕМ ПУСТУЮ СТРАНИЦУ */
+    .print-block:last-child {
+        page-break-after: auto !important;
+    }
+}
+</style>
+{% include './desks.html'   %}
+
+<div class="order-main mt-2">
+    <div class="user-select-none orders-grid" id="orders-here">
+
+        {% regroup order_meals by number_of_order as objects_by_number_of_order %}
+        {% for group in objects_by_number_of_order %}
+
+        <div class="order-card" id="{{ group.grouper }}">
+
+            {% for item in group.list %}
+            {% ifchanged item.number_of_order and item.author %}
+
+            <!-- HEADER -->
+            <div class="order-header">
+    <div class="order-user">
+        <span class="user-name">{{ item.author.username }}</span>
+        <span class="order-time">{{ item.whenpublished }}</span>
+    </div>
+
+    <div class="order-actions d-flex gap-2 align-items-center">
+
+        {% if item.number_of_desk != 0 %}
+            <span class="desk-badge">Стол {{ item.number_of_desk }}</span>
+        {% else %}
+            <span class="desk-badge takeaway">С собой</span>
+        {% endif %}
+
+        <!-- ГНС -->
+        {% if not item.tax_sent %}
+        <form method="post" action="{% url 'kassa-tax-send' item.number_of_order %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-danger">
+                ГНС
+            </button>
+        </form>
+        {% else %}
+            <span class="badge bg-success">ГНС ✓</span>
+        {% endif %}
+
+        <!-- КАССА -->
+        {% if not item.order_kassa %}
+            <form method="post" action="{% url 'kassa-order-done' item.number_of_order %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-primary btn-kassa  {{ tax.is_active|yesno:'disabled,``' }}">
+                    🧾 В кассу
+                </button>
+            </form>
+            {% else %}
+            <span class="badge bg-success px-3 py-2">
+                ✔ В кассе
+            </span>
+            {% endif %}
+
+    </div>
+</div>
+
+
+            <textarea class="d-none speak-textarea textarea_{{ group.grouper }}">
+                {{ item.author.username }}.
+                {% for s in group.list %}
+                {{ s.name }} {{ s.get_int_quantity }} {{ s.get_comments }}
+                {% endfor %}
+            </textarea>
+
+            {% endifchanged %}
+
+            <!-- ITEM -->
+            <div class="order-item
+                {% if item.order_is_edited %} edited{% endif %}
+                {% if item.takeaway_food %} takeaway{% endif %}
+            ">
+                <div class="meal-name">{{ item.name }}</div>
+                <div class="meal-qty">{{ item.get_int_quantity }}</div>
+            </div>
+
+            {% if item.comments %}
+            <div class="meal-comment">{{ item.comments }}</div>
+            {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+
+
+<script type="module" src="{% static 'javascript/speechUtils.js' %}"></script>
+<script>
+    const audioSrc = "{% static 'audio/new_order.mp3' %}";
+
+    function openDeskScreen() {
+    document.getElementById('desk-screen').classList.remove('d-none');
+}
+
+function closeDeskScreen() {
+    document.getElementById('desk-screen').classList.add('d-none');
+}
+function openTakeAwayScreen() {
+    document.getElementById('take-away-screen').classList.remove('d-none');
+}
+
+function closeTakeAwayScreen() {
+    document.getElementById('take-away-screen').classList.add('d-none');
+}
+</script>
+<script>
+document.getElementById("taxToggleBtn")?.addEventListener("click", function () {
+    fetch("", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.is_active) {
+            this.className = "btn btn-sm fw-bold btn-success";
+            this.innerText = "Доставка";
+            document.getElementById("taxStatus").className =
+                "p-2 rounded fw-bold bg-success text-white";
+            document.getElementById("taxStatus").innerText =
+                "Налог: ВКЛЮЧЕН";
+        } else {
+            this.className = "btn btn-sm fw-bold btn-danger";
+            this.innerText = "Доставка";
+            document.getElementById("taxStatus").className =
+                "p-2 rounded fw-bold bg-dark text-light";
+            document.getElementById("taxStatus").innerText =
+                "Налог: ВЫКЛЮЧЕН";
+        }
+    });
+});
+</script>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+<script type="module" src="{% static 'javascript/js_order.js' %}"></script>
+

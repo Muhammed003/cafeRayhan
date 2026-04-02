@@ -1,217 +1,321 @@
 {% extends '../main/base_waitress.html' %}
 {% load static %}
+
 {% block style %}
 <style>
-.letter-selector {
-    overflow-x: auto;
-    white-space: nowrap;
-    padding: 0.5rem;
-}
-.letter-btn {
-    min-width: 50px;
-    font-size: 1.3rem;
-    border-radius: 50px;
-    transition: all 0.3s ease-in-out;
-}
-.letter-btn.active {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
-}
-.blocked-desk, .assigned-table, .inner-table {
-    padding: 1.2rem;
-    font-weight: bold;
-    font-size: 1.5rem;
-    text-align: center;
-    border-radius: 12px;
-    cursor: pointer;
-}
-.blocked-desk {
-    background-color: #dc3545 !important;
-    color: white;
-}
-.assigned-table {
-    background-color: #28a745;
-    color: white;
-}
-.inner-table {
-    background-color: #f8f9fa;
-    color: #333;
-    border: 2px dashed #ccc;
+
+.tables-grid{
+    display:grid;
+    gap:8px;
+    justify-content:center;
 }
 
-/* Стили для группы букв */
-.group-letter {
-    text-align: center;
-    display: block;
-    font-weight: bold;
-    color: #fff;
-    background: linear-gradient(45deg, #007bff, #00c6ff);
-    padding: 0.5rem 1rem;
-    margin: 1rem auto;
-    border-radius: 12px;
-    width: max-content;
-    box-shadow: 0 0 15px rgba(0, 123, 255, 0.6);
-    border: 3px solid white;
-    animation: pulse 1s ease-in-out;
+#hallA{grid-template-columns:repeat(4,70px);}
+#hallB{grid-template-columns:repeat(2,70px);}
+#street{grid-template-columns:repeat(4,70px);}
+
+.inner-table,.busy-table,.alien,.blocked-desk{
+    padding:1.2rem;
+    text-align:center;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:1.2rem;
+    border:2px solid #ccc;
 }
 
-@keyframes pulse {
-    0% {
-        transform: scale(0.9);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 0.9;
-    }
+.inner-table{background:#f8f9fa;color:#333;}
+.busy-table{background:#dc3545;color:#fff;}
+.alien{background:#0dcaf0;color:#fff;}
+.blocked-desk{background:#000;}
+
+.section-title{
+    font-weight:bold;
+    font-size:1.4rem;
+    text-align:center;
+    margin:1rem 0 .5rem;
+    color:#fff;
+    background:linear-gradient(45deg,#0d6efd,#00c6ff);
+    border-radius:10px;
+    padding:.3rem;
 }
+
+.box-radio{z-index:1025}
+
 </style>
 {% endblock style %}
-{% block header %}
-<a href="{% url 'waitress-kitchen' %}"><i class="fa-solid fa-angle-left"></i> </a>
-    <div class="mx-auto">
-        {% if request.user.rate > 9.7 %} <span>👑</span> {% endif %} {{ request.user.username }}
-{% if messages %}
-    {% for message in messages %}
-           <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
-    {% endfor %}
-{% endif %}
-    </div>
-<div  class="button-menu cursor-pointer"><i class="fa-solid fa-ellipsis-vertical"></i></div>
 
+
+{% block header %}
+<a href="{% url 'waitress-kitchen' %}" class="btn btn-dark">
+<i class="fa-solid fa-angle-left"></i>
+</a>
+<div class="mx-auto">{{request.user.username}}</div>
 {% endblock header %}
 
-{% block position %}
-<!--    <div class="fs-5 menu-in-new-order-meal">-->
-<!--        <div class="list-group w-50">-->
-<!--          <a href="" class="list-group-item list-group-item-action">Изменить к. клиента</a>-->
-<!--        </div>-->
-
-<!--    </div>-->
-{% endblock %}
 
 {% block content %}
 
-<section id="content-tables">
-    <div class="content-tables__box">
-        <div class="container mt-2">
-            <h3 class="text-center border-bottom p-2">Номер стола</h3>
-            <div class="row tables">
-              <div class="group-letter w-100">Группа A</div>
+<div class="container mt-2 text-center">
+
+<div class="btn-group w-100 mb-3">
+<button id="btnHall" class="btn btn-primary">Зал</button>
+<button id="btnStreet" class="btn btn-outline-primary">Улица</button>
+</div>
+
+</div>
 
 
-            </div>
+<div class="container mt-2">
 
-        </div>
-    </div>
-</section>
+<div id="hallSection">
+
+<div class="section-title">Зал • Блок A</div>
+<div id="hallA" class="tables-grid"></div>
+
+<div class="section-title mt-3">Зал • Блок B</div>
+<div id="hallB" class="tables-grid"></div>
+
+</div>
+
+
+<div id="streetSection" style="display:none;">
+
+<div class="section-title mt-4">Улица</div>
+<div id="street" class="tables-grid"></div>
+
+</div>
+
+</div>
+
+
 <section id="people">
-    <div class="box-radio">
-        <h3 class="text-center text-warning p-2 bg-dark fs-2"><span class="float-start back-to-desk"><i class="fa fa-angle-left text-white"></i> </span><span class="choosed-desk"></span>-стол</h3>
-        <h2 class="text-center border-bottom p-2">Сколько человек</h2>
-            <div class="people-quantity">
-            </div>
 
-    </div>
+<div class="box-radio">
+
+<h3 class="text-center text-warning p-2 bg-dark fs-2">
+<span class="float-start back-to-desk">
+<i class="fa fa-angle-left text-white"></i>
+</span>
+<span class="choosed-desk"></span>-стол
+</h3>
+
+<h2 class="text-center border-bottom p-2 bg-success text-white">
+Сколько человек
+</h2>
+
+<div class="people-quantity"></div>
+
+</div>
 
 </section>
+
 {% endblock content %}
 
+
 {% block scripts %}
-<script type="text/javascript">
-const alphabet = "BCDEFGHIJKLMNOPQRSTUVWXYZ";
-let groupIndex = 0;
+<script>
+
+/* ===== Layout ===== */
+
+const hallLayoutA=[
+[null,1,2,3],
+[21,15,9,4],
+[22,16,10,5],
+[23,17,11,6],
+[24,18,12,7],
+[25,19,13,8],
+[26,20,14,null],
+
+];
 
 
-const busy_desks_box=[];
-const busy_desks_box_others=[];
-const busy_desks_box_usernames=[];
+const hallLayoutB=[
+[27,null],
+[28,31],
+[29,30],
+
+];
+
+
+const streetLayout=[
+
+[null,null,null,null],
+];
+
+
+/* ===== Busy desks from Django ===== */
+
+const busy_desks_box=[]
+const busy_desks_box_others=[]
+const busy_desks_box_usernames=[]
+
 {% for desk in busy_desks %}
-    {% ifchanged desk.number_of_desk %}
-        {% if request.user == desk.author %}
-            busy_desks_box.push({{ desk.number_of_desk }} );
-        {% else %}
-            busy_desks_box_others.push({{ desk.number_of_desk }} );
-            busy_desks_box_usernames.push('{{ desk.author.username }}');
-        {% endif %}
-    {% endifchanged %}
+{% ifchanged desk.number_of_desk %}
+{% if request.user == desk.author %}
+busy_desks_box.push({{desk.number_of_desk}})
+{% else %}
+busy_desks_box_others.push({{desk.number_of_desk}})
+busy_desks_box_usernames.push('{{desk.author.username}}')
+{% endif %}
+{% endifchanged %}
 {% endfor %}
-let tables = document.querySelector('.tables');
-let button_menu = document.querySelector('.button-menu');
-let menu_in_new_order_meal = document.querySelector('.menu-in-new-order-meal');
-let people_quantity = document.querySelector('.people-quantity');
-let a_link_people = document.querySelector('.people-quantity a');
-let box_radio = document.querySelector('.box-radio');
-let back_to_desk = document.querySelector('.back-to-desk');
-const quantity_of_tables = {{ desk.number }};
-const quantity_of_chair = 10;
 
-button_menu.onclick = function() {
-    menu_in_new_order_meal.style.display = "flex";
-};
 
-<!--menu_in_new_order_meal.onclick = function() {-->
-<!--    menu_in_new_order_meal.style.display = "none";-->
-<!--};-->
+/* ===== Render function ===== */
 
-for (let i = 1; i <= quantity_of_tables; i++) {
-    if (busy_desks_box.includes(i)) {
-        let a_href = "{% url 'edit-order-waitress' pk=909877 %}".replace(909877, i);
-        tables.innerHTML += `<a href="${a_href}" class="col p-2"><div class="bg-danger text-dark" id="${i}">${i}</div></a>`;
-    } else if (busy_desks_box_others.includes(i)) {
-        const username = busy_desks_box_usernames[busy_desks_box_others.indexOf(i)];
-        tables.innerHTML += `<div class="col p-2"><div class="alien my-bg-1" id="${i}" data-username="${username}">${i}</div></div>`;
-    } else {
-        tables.innerHTML += `<div class="col p-2"><div class="inner-table" id="${i}">${i}</div></div>`;
-    }
+function renderTable(layout,containerId){
 
-     if (i % 10 === 0) {
-        const groupLetter = alphabet[groupIndex] || "?";
-        tables.innerHTML += `<div class="group-letter w-100">Группа ${groupLetter}</div>`;
-        groupIndex++;
-    }
+const container=document.getElementById(containerId)
+container.innerHTML=''
+
+layout.forEach(row=>{
+row.forEach(num=>{
+
+const div=document.createElement('div')
+
+if(num===null){
+div.classList.add('blocked-desk')
 }
 
-if (busy_desks_box.includes(1000)) {
-    let a_href = "{% url 'edit-order-waitress' pk=909877 %}".replace(909877, 1000);
-    tables.innerHTML += `<a href="${a_href}" class="col p-2"><div class="bg-danger text-white"><i class="fa-solid fa-industry"></i></div></a>`;
-} else if (busy_desks_box_others.includes(1000)) {
-    tables.innerHTML += `<div class="col p-2"><div class="alien my-bg-1"><i class="fa-solid fa-industry"></i></div></div>`;
-}
-if (busy_desks_box.includes(2000)) {
-    let a_href = "{% url 'edit-order-waitress' pk=909877 %}".replace(909877, 2000);
-    tables.innerHTML += `<a href="${a_href}" class="col p-2"><div class="bg-danger text-white"><i class="fa-solid fa-shop"></i></div></a>`;
-} else if (busy_desks_box_others.includes(2000)) {
-    tables.innerHTML += `<div class="col p-2"><div class="alien my-bg-1"><i class="fa-solid fa-shop"></i></div></div>`;
-}
+else{
 
-if (document.querySelectorAll(".alien")) {
-    document.querySelectorAll(".alien").forEach(div =>
-        div.onclick = function() {
-            const username = this.dataset.username;
-            alert(`Владелец стола: ${username}`);
-        });
+div.id=num
+
+if(busy_desks_box.includes(num)){
+
+div.classList.add('busy-table')
+
+const a_href="{% url 'edit-order-waitress' pk=909877 %}".replace("909877",num)
+
+div.onclick=()=>window.location.href=a_href
 }
 
-document.querySelectorAll(".inner-table").forEach(div => {
-    div.onclick = function() {
-        box_radio.style.display = "block";
-        for (let i = 1; i <= quantity_of_chair; i++) {
-            people_quantity.innerHTML += `<a href="{% url 'new-order-meal' %}?desk=${this.id}&&people=${i}" id="${i}" class="btn btn-outline-success btn-block w-100 fs-3 mb-2">${i} человек</a>`;
-        }
-        people_quantity.style.display = "block";
-        document.querySelector('.choosed-desk').innerHTML = this.id;
-    };
-});
+else if(busy_desks_box_others.includes(num)){
 
-back_to_desk.onclick = function() {
-    box_radio.style.display = "none";
-};
+div.classList.add('alien')
+
+div.dataset.username=
+busy_desks_box_usernames[
+busy_desks_box_others.indexOf(num)
+]
+
+div.onclick=()=>alert(`Владелец стола: ${div.dataset.username}`)
+}
+
+else{
+
+div.classList.add('inner-table')
+div.onclick=()=>openPeopleSelect(num)
+
+}
+
+div.textContent=num
+}
+
+container.appendChild(div)
+
+})
+})
+
+}
+
+
+/* ===== Render tables ===== */
+
+renderTable(hallLayoutA,"hallA")
+renderTable(hallLayoutB,"hallB")
+renderTable(streetLayout,"street")
+
+
+/* ===== People select ===== */
+
+function openPeopleSelect(deskId){
+
+const peopleBox=document.querySelector(".people-quantity")
+const boxRadio=document.querySelector(".box-radio")
+const choosedDesk=document.querySelector(".choosed-desk")
+
+choosedDesk.textContent=deskId
+peopleBox.innerHTML=""
+boxRadio.style.display="block"
+
+for(let i=1;i<=10;i++){
+
+const a=document.createElement("a")
+
+a.href=`{% url 'new-order-meal' %}?desk=${deskId}&people=${i}`
+
+a.className="btn btn-outline-success w-100 fs-4 mb-2"
+a.textContent=`${i} человек`
+
+peopleBox.appendChild(a)
+
+}
+
+}
+
+
+/* ===== Back ===== */
+
+document.querySelector(".back-to-desk").onclick=function(){
+document.querySelector(".box-radio").style.display="none"
+}
+
+
+/* ===== Toggle Hall / Street ===== */
+
+const hallSection=document.getElementById("hallSection")
+const streetSection=document.getElementById("streetSection")
+
+const btnHall=document.getElementById("btnHall")
+const btnStreet=document.getElementById("btnStreet")
+
+
+function showHall(){
+
+hallSection.style.display="block"
+streetSection.style.display="none"
+
+btnHall.classList.add("btn-primary")
+btnHall.classList.remove("btn-outline-primary")
+
+btnStreet.classList.add("btn-outline-primary")
+btnStreet.classList.remove("btn-primary")
+
+localStorage.setItem("selectedArea","hall")
+
+}
+
+
+function showStreet(){
+
+hallSection.style.display="none"
+streetSection.style.display="block"
+
+btnStreet.classList.add("btn-primary")
+btnStreet.classList.remove("btn-outline-primary")
+
+btnHall.classList.add("btn-outline-primary")
+btnHall.classList.remove("btn-primary")
+
+localStorage.setItem("selectedArea","street")
+
+}
+
+
+btnHall.onclick=showHall
+btnStreet.onclick=showStreet
+
+
+document.addEventListener("DOMContentLoaded",function(){
+
+const savedArea=localStorage.getItem("selectedArea")
+
+if(savedArea==="street"){showStreet()}
+else{showHall()}
+
+})
+
 </script>
 {% endblock scripts %}
