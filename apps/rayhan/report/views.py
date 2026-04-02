@@ -89,7 +89,7 @@ class ReportNoteBook(RoleRequiredMixin, TemplateView):
             if WaitressBread.objects.filter(create_date=datetime.now().date()).exists():
                 context["bread_waitress"] = WaitressBread.objects.filter(create_date=datetime.now().date()).extra(
                 select={'author': 'author'}).values("waitress_bread_type_id") \
-                .annotate(quantity=Sum('quantity') * 30)
+                .annotate(quantity=Sum('quantity') * 35)
         if not Waitress.objects.filter(create_date=datetime.now().date(), shift=True).exists():
             meals = OrderMeal.objects.filter(create_date__date=datetime.now().date()).annotate(
                 day=TruncDay('create_date')).values('day').annotate(
@@ -173,7 +173,7 @@ class RequestShiftDetailView(RoleRequiredMixin, TemplateView):
                     waitress_bread_type_id=self.pk,
                     create_date=datetime.now().date()
                 ).annotate(
-                    quantity_multiplied=F('quantity') * 30
+                    quantity_multiplied=F('quantity') * 35
                 ).values(
                     "waitress_bread_type_id"
                 ).annotate(
@@ -943,7 +943,7 @@ class ReportYesterdayView(RoleRequiredMixin, TemplateView):
                 total_bread=Sum("quantity"))["total_bread"] or 0
 
             # Calculate the result
-            result = (total_sum - bread_price) + (sum_bread*30)
+            result = (total_sum - bread_price) + (sum_bread*35)
 
             waitress_data.append({
                 "waitress": waitress,
@@ -1018,7 +1018,7 @@ class HistoryDetailReportView(RoleRequiredMixin, LoginRequiredMixin, TemplateVie
             if WaitressBread.objects.filter(create_date=my_date).exists():
                 context["bread_waitress"] = WaitressBread.objects.filter(create_date=my_date).extra(
                     select={'author': 'author'}).values("waitress_bread_type_id") \
-                    .annotate(quantity=Sum('quantity') * 30)
+                    .annotate(quantity=Sum('quantity') * 35)
         if not Waitress.objects.filter(create_date=my_date, shift=True).exists():
             meals = OrderMeal.objects.filter(create_date__date=my_date).annotate(
                 day=TruncDay('create_date')).values('day').annotate(
@@ -1563,5 +1563,45 @@ class ShiftAnalyticsView(RoleRequiredMixin, LoginRequiredMixin, TemplateView):
         # --- Средний чек ---
         context["avg_shift1"] = round(first_total / first_count, 1) if first_count else 0
         context["avg_shift2"] = round(second_total / second_count, 1) if second_count else 0
+
+        return context
+
+from django.views.generic import TemplateView
+from django.db.models import Sum
+from datetime import datetime
+
+class BreadYearView(TemplateView):
+    template_name = "rayhan/year_bread_report.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        current_year = datetime.now().year
+
+        # ===== 1. Сколько пришло хлеба =====
+        bread_coming = BreadComing.objects.filter(create_date__year=current_year)
+
+        chef_total = bread_coming.filter(name="Шеф").aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+
+        baker_total = bread_coming.filter(name="Пекар").aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+
+        # ===== 2. Сколько взяли официантки =====
+        waitress_bread = (
+            WaitressBread.objects
+            .filter(create_date__year=current_year)
+            .values(
+                'waitress_bread_type__user__username'
+            )
+            .annotate(total=Sum('quantity'))
+            .order_by('-total')
+        )
+
+        context['chef_total'] = chef_total
+        context['baker_total'] = baker_total
+        context['waitress_bread'] = waitress_bread
 
         return context
