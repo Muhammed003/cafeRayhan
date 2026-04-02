@@ -1,0 +1,29 @@
+<h2>📊 Годовой отчет по лепешкам</h2>
+
+<div style="display:flex; gap:20px;">
+    <div style="background:#16a34a; padding:15px; color:#fff;">
+        Шеф: {{ chef_total }}
+    </div>
+
+    <div style="background:#2563eb; padding:15px; color:#fff;">
+        Пекарь: {{ baker_total }}
+    </div>
+</div>
+
+<hr>
+
+<h3>👩‍🍳 Официантки</h3>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Имя</th>
+        <th>Сколько взяла</th>
+    </tr>
+
+    {% for w in waitress_bread %}
+    <tr>
+        <td>{{ w.waitress_bread_type__user__username }}</td>
+        <td>{{ w.total }}</td>
+    </tr>
+    {% endfor %}
+</table>
