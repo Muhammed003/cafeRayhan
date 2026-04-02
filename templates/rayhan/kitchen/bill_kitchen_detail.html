@@ -1,172 +1,303 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 {% load static %}
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{% block title %}{% endblock title %} Кафе </title>
-    <meta name="description" content="Roxy">
-    <meta name="google" content="notranslate">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Предварительный чек</title>
 
-    <!-- External CSS -->
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.2.0/css/bootstrap.min.css' %}">
-    <link href="https://fonts.googleapis.com/css?family=Lato:300,400|Work+Sans:300,400,700" rel="stylesheet">
-    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'css/waitress_page.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet">
+<link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: 'Lato', sans-serif;
-            font-size: 14px;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-            width: 80mm; /* Printer width */
-            height: 100%;
-            background-color: #fff;
-        }
+<style>
+@page {
+    size: 80mm auto;
+    margin: 0;
+}
 
-        .header {
-            text-align: center;
-            margin-bottom: 10mm;
-        }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fff;
+}
 
-        .header img {
-            max-width: 80%;
-            margin-bottom: 5mm;
-        }
+.receipt {
+    width: 80mm;
+    padding: 4mm;
+    margin-bottom: 60px; /* чтобы bottom-bar не накрывал чек */
+}
 
-        .header h4, .header h5, .header h6 {
-            margin: 0;
-            font-size: 1.2em;
-        }
+.center { text-align: center; }
+.bold { font-weight: 700; }
+.line { border-top: 2px dashed #000; margin: 4px 0; }
+.row, .item { display: flex; justify-content: space-between; margin: 2px 0; }
+.item-name { width: 60%; }
+.item-qty { width: 15%; text-align: right; }
+.item-price { width: 25%; text-align: right; }
+.total { font-weight: 800; font-size: 14px; margin-top: 4px; }
+.footer { text-align: center; margin-top: 6px; font-size: 12px; }
 
-        #content {
-            padding: 5mm;
-        }
+.print-btn {
+    width: 80mm;
+    padding: 10px;
+    margin: 10px auto;
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    background: #000;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
 
-        .content-item {
-            margin: 3mm 0;
-            display: flex;
-            justify-content: space-between;
-        }
+/* ===== BOTTOM BAR ===== */
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border-top: 2px solid #ffb347;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+}
+.bottom-bar button,
+.bottom-bar a {
+    border-radius: 14px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+.bottom-bar .cut { background: #17a2b8; color: #fff; border: 0; }
+.bottom-bar .cash { background: #28a745; color: #fff; }
+.bottom-bar .card { background: #ffc107; color: #2d2d2d; }
+.bottom-bar a:hover, .bottom-bar button:hover { transform: scale(1.05); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
 
-        .content-item div {
-            font-size: 1em;
-        }
+/* ===== MODAL CALCULATOR ===== */
+.modal-bg {
+    display: none;
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+*{
+    box-sizing: border-box;
+}
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    width: 320px;
+    max-width: 90%;
+}
+.modal-header {
+    font-weight: bold;
+    font-size: 1.3rem;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg,#0d6efd,#00c6ff);
+    color: white;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+}
+.modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
+.modal-body input {
+    width: 100%;
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 2px solid #ccc;
+    text-align: center;
+}
+.modal-body input:read-only { background: #f0f0f0; }
+.quick-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px; }
+.quick-buttons button { background: #ddd; font-weight: bold; padding: 8px; border-radius: 6px; }
+#payBtn { width: 100%; background: #007bff; color: white; padding: 10px; font-weight: bold; border-radius: 8px; }
+#payBtn:disabled { background: #aaa; }
 
-        .text-end {
-            text-align: right;
-        }
-
-        .total {
-            font-weight: bold;
-            font-size: 1.4em;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 15mm;
-        }
-
-        .print-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            font-size: 1em;
-            margin-top: 10mm;
-            text-align: center;
-        }
-
-        .print-button:hover {
-            background-color: #0056b3;
-        }
-
-        @media print {
-            .print-button {
-                display: none;
-            }
-            body {
-                padding: 0;
-                width: 80mm;
-                height: auto;
-            }
-            #content {
-                padding: 5mm;
-            }
-        }
-    </style>
+/* ===== PRINT ===== */
+@media print {
+    .print-btn, .bottom-bar, .modal-bg { display: none; }
+}
+</style>
 </head>
+
 <body>
 
-<section class="header">
-    <h4 class="fw-bold text-uppercase text-center">
-         <a href="{% url 'bills-all-kitchen' %}" />
-          <img src="{% static 'account/r.png' %}" alt="Кафе Райхан Logo" height="100">
-         </a>
+<div class="receipt">
 
-    </h4>
-    <h4 class="fw-bold text-uppercase">КАФЕ КАРАВАН</h4>
-    <h5 class="text-uppercase">Предварительный</h5>
-    <h6 class="text-uppercase">Код чека: № <span class="px-2 border-bottom border-dark">{{code_bill}}</span></h6>
-</section>
+    <div class="center bold">ПРЕДВАРИТЕЛЬНЫЙ ЧЕК</div>
+    <div class="center bold">КАФЕ «КАРАВАН»</div>
+    <div class="center">г. Ош, ул. Осмонова Б. 5</div>
 
-<section id="content">
-    <div class="d-flex justify-content-between">
-        <div>Дата: {{info_data.create_date|date:"d.m.Y"}}</div>
-        <div>Время: {{info_data.create_date|date:"H:i:s"}}</div>
+    <div class="line"></div>
+
+    <div class="row">
+        <span>Дата:</span>
+        <span>{{ info_data.create_date|date:"d.m.Y" }}</span>
     </div>
-    <div>Место: Стол № {{info_data.number_of_desk}}</div>
-    <div>Официант:  {{info_data.author.username}}</div>
-    <h6 class="text-center my-3">Наименование блюд и товаров</h6>
+    <div class="row">
+        <span>Время:</span>
+        <span>{{ info_data.create_date|date:"H:i:s" }}</span>
+    </div>
+    <div class="row">
+        <span>Стол:</span>
+        <span>{{ info_data.number_of_desk }}</span>
+    </div>
+    <div class="row">
+        <span>Официант:</span>
+        <span>{{ info_data.author.username }}</span>
+    </div>
+
+    <div class="line"></div>
 
     {% for order in orders %}
-    <div class="content-item">
-        <div>{{ forloop.counter }}.</div>
-        <div class="w-50 ps-1">{{order.name}}</div>
-        <div class="w-25">{{order.quantity}}
-            {% for item in meals_in_menu %}
-                {% if order.name == item.name %}
-                    *<span class="p-2">{{item.price}}</span>
-                {% endif %}
-            {% endfor %}
-        </div>
-        <div class="w-25 text-end">= {{order.price}}</div>
+    <div class="item">
+        <div class="item-name">{{ forloop.counter }}. {{ order.name }}</div>
+        <div class="item-qty">{{ order.quantity }}×</div>
+        <div class="item-price">{{ order.price }}</div>
     </div>
     {% endfor %}
 
-    <div class="content-item">
-        <div>#</div>
-        <div class="w-50 ps-1">ОБСЛУЖИВАНИЕ</div>
-        <div class="w-25">{{info_data.people_in_desk}} * {{service_price}}</div>
-        <div class="w-25 text-end">= {{info_data.price_of_service}}</div>
+    <div class="item">
+        <div class="item-name">Обслуживание</div>
+        <div class="item-qty">{{ info_data.people_in_desk }}×</div>
+        <div class="item-price">{{ info_data.price_of_service }}</div>
     </div>
 
-    <div class="total text-end">ВСЕГО: <span class="ps-3">{{bill}}</span></div>
-    <div class="total text-end">ИТОГО К ОПЛАТЕ: <span class="ps-3">{{bill}}</span></div>
+    <div class="line"></div>
+
+    <div class="row total">
+        <span>ИТОГО:</span>
+        <span>{{ bill }}</span>
+    </div>
+
+    <div class="line"></div>
 
     <div class="footer">
-        <div>Всегда мы рады вам !!!</div>
+        <strong>Не является фискальным документом</strong><br>
+        ККМ чек предоставляется по запросу клиента<br><br>
+        Спасибо, что выбираете нас!
     </div>
-</section>
 
-<button class="print-button" onclick="window.print();">Печать чека</button>
+</div>
 
-<script src="{% static 'fontawesomefree/js/all.min.js' %}"></script>
-<script src="{% static 'vendor/bootstrap-5.2.0/js/bootstrap.bundle.min.js' %}"></script>
+<button class="print-btn"
+        data-order-id="{{ info_data.id }}"
+        onclick="printBill(this)">Печать</button>
+{% if type_bill != "history" %}
+<div class="bottom-bar">
+    <button class="cut" onclick="openPayModal({{ bill }})"><i class="fa-solid fa-calculator"></i></button>
+    <a href="" class="cash">Наличные</a>
+    <a data-bs-toggle="offcanvas" href="#offcanvasExample" class="card"><i class="fa-solid fa-credit-card"></i></a>
+</div>
+{% endif %}
+
+<!-- MODAL CALCULATOR -->
+<div class="modal-bg" id="payModal">
+  <div class="modal">
+      <div class="modal-header">Оплата</div>
+      <div class="modal-body">
+          <label>К оплате</label>
+          <input type="text" id="totalSum" readonly>
+
+          <label>Клиент дал</label>
+          <input type="number" id="givenSum" oninput="calcChange()">
+
+          <label>Сдача</label>
+          <input type="text" id="changeSum" readonly>
+
+          <div class="quick-buttons">
+              <button onclick="quickPay(500)">500</button>
+              <button onclick="quickPay(1000)">1000</button>
+              <button onclick="quickPay(2000)">2000</button>
+          </div>
+      </div>
+      <button id="payBtn" disabled>✅ Оплатить</button>
+  </div>
+</div>
 
 <script>
-    history.pushState(null, null, location.href);
-    window.onpopstate = function(event) {
-        history.go(1); // Go forward one step, effectively preventing going back more than one page
-    };
-</script>
+let currentTotal = 0;
 
+const modalBg = document.getElementById("payModal");
+const totalSumInput = document.getElementById("totalSum");
+const givenSumInput = document.getElementById("givenSum");
+const changeSumInput = document.getElementById("changeSum");
+const payBtn = document.getElementById("payBtn");
+
+function openPayModal(sum){
+    currentTotal = Number(sum);
+    totalSumInput.value = currentTotal.toFixed(2);
+    givenSumInput.value = "";
+    changeSumInput.value = "0.00";
+    changeSumInput.className = "";
+    payBtn.disabled = true;
+    modalBg.style.display = "flex";
+}
+
+function calcChange(){
+    const given = Number(givenSumInput.value);
+    if(!given || given < currentTotal){
+        changeSumInput.value = "Недостаточно";
+        changeSumInput.className = "text-danger";
+        payBtn.disabled = true;
+        return;
+    }
+    const change = given - currentTotal;
+    changeSumInput.value = change.toFixed(2);
+    changeSumInput.className = "text-success";
+    payBtn.disabled = false;
+}
+
+function quickPay(amount){
+    givenSumInput.value = amount;
+    calcChange();
+}
+
+payBtn.onclick = () => {
+    modalBg.style.display = "none";
+}
+
+function printBill(btn){
+    const orderId = btn.dataset.orderId;
+
+    // Отправляем fetch на сервер, чтобы пометить printed=True
+    fetch(`/report/kassa/mark-printed/${orderId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ printed: true })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            console.log("Заказ отмечен как напечатанный ✅");
+        } else {
+            console.error("Ошибка при отметке печати");
+        }
+
+        // После отметки открываем окно печати
+        window.print();
+    })
+    .catch(err => {
+        console.error("Ошибка fetch:", err);
+        window.print(); // на случай ошибки печатаем всё равно
+    });
+}
+</script>
 </body>
 </html>

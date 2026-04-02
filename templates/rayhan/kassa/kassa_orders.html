@@ -1,0 +1,52 @@
+{% extends '../main/base.html' %}
+{% load static %}
+{% block title %}Заказ кухня{% endblock title %}
+{% block style %}
+  {% include '../kitchen/menu_kitchen/menu_left_style.css'   %}
+        {% if tax.is_active %}
+            <style>
+                .header-main{
+                    background: #333 !important;
+                }
+            </style>
+        {% endif %}
+
+{% endblock style %}
+
+{% block header %}
+ <a href="{% url 'main' %}" class="btn btn-dark me-2">
+  <i class="fa-solid fa-arrow-left-long"></i>
+</a>
+<button class="btn btn-dark" onclick="openDeskScreen()">
+    Столы
+</button>
+<button class="btn btn-primary" onclick="openTakeAwayScreen()">
+    С собой
+</button>
+<button id="taxToggleBtn"
+        class="btn btn-sm fw-bold {{ tax.is_active|yesno:'btn-success,btn-danger' }}">
+    Доставка
+</button>
+
+<div class="text-success fw-bold">Продажа: {{tax_price_sum}}</div>
+<div class="text-danger fw-bold">Чек: {{tax_sent_total}}</div>
+
+
+{% endblock header %}
+
+{% block content %}
+  {% include '../kitchen/menu_kitchen/menu_left_kitchen.html'   %}
+  {% include '../kitchen/menu_kitchen/menu_top_kitchen.html'   %}
+  {% include './order_component.html' with name_of_page=name_of_page %}
+
+
+
+{% endblock content %}
+{% block position %}
+
+{% endblock position %}
+
+
+{% block scripts %}
+{% endblock scripts %}
+

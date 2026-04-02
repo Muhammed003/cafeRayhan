@@ -1,49 +1,188 @@
 {% extends '../main/base_waitress.html' %}
 {% load static %}
 
+{% block style %}
+<style>
+body{
+    background:#0f172a;
+    color:#fff;
+    font-family:'Segoe UI', sans-serif;
+}
+
+/* Контейнер */
+.section-info-bar{
+    padding:10px;
+}
+
+/* Карточка счета */
+.bill-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-radius:15px;
+    margin-bottom:12px;
+    overflow:hidden;
+    text-decoration:none;
+    color:#fff;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    transition:0.3s;
+
+    opacity:0;
+    transform:translateY(20px);
+    animation:fadeInUp 0.4s forwards;
+}
+
+.bill-card:hover{
+    transform:translateY(-4px) scale(1.01);
+}
+
+/* Анимация задержка */
+.bill-card:nth-child(1){animation-delay:.1s;}
+.bill-card:nth-child(2){animation-delay:.2s;}
+.bill-card:nth-child(3){animation-delay:.3s;}
+.bill-card:nth-child(4){animation-delay:.4s;}
+.bill-card:nth-child(5){animation-delay:.5s;}
+
+/* Левая часть */
+.bill-left{
+    padding:12px 15px;
+    font-weight:700;
+    min-width:90px;
+    text-align:center;
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+/* Центр */
+.bill-center{
+    flex:1;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+}
+
+.bill-time{
+    font-size:14px;
+    color:#94a3b8;
+}
+
+/* Правая часть */
+.bill-right{
+    display:flex;
+    flex-direction:column;
+    text-align:right;
+    padding:10px;
+}
+
+.bill-code{
+    font-size:14px;
+    background:#e2e8f0;
+    color:#000;
+    padding:3px 8px;
+    border-radius:8px;
+    margin-bottom:5px;
+}
+
+.bill-order{
+    font-weight:bold;
+    color:#38bdf8;
+}
+
+/* Пусто */
+.empty-state{
+    height:80vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    opacity:0.7;
+}
+
+/* Анимация */
+@keyframes fadeInUp{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* Mobile */
+@media(max-width:576px){
+    .bill-left{
+        font-size:14px;
+        padding:10px;
+    }
+}
+</style>
+{% endblock style %}
+
 {% block header %}
 {% include '../waitressPage/components/menu_left_waitress.html' %}
+
 {% if history %}
     {% with name_of_page='История' link='main' %}
-      {% include '../waitressPage/components/name_page.html'   %}
+      {% include '../waitressPage/components/name_page.html' %}
     {% endwith %}
 {% else %}
     {% with name_of_page='Счёт' link='main' %}
-        {% include '../waitressPage/components/name_page.html'   %}
+        {% include '../waitressPage/components/name_page.html' %}
     {% endwith %}
 {% endif %}
 
 {% include '../waitressPage/components/dropdown_menu.html' %}
-
 {% endblock header %}
+
 {% block content %}
 <section id="info" class="section-info-bar">
+
     {% if bills %}
         <div class="container pt-2">
+
             {% for bill in bills %}
             {% if bill.number_of_desk != 0 or bill.number_of_desk == 1000 or bill.number_of_desk == 2000 %}
-                <a href="{% url 'order-bill-detail' bill.number_of_desk bill.number_of_order bill.code_bill history %}" class="d-flex fs-5 justify-content-between my-2 border rounded">
+
+            <a href="{% url 'order-bill-detail' bill.number_of_desk bill.number_of_order bill.code_bill history %}" class="bill-card">
+
+                <!-- ЛЕВО -->
+                <div class="bill-left">
                     {% if bill.number_of_desk == 1000 %}
-                    <div class="bg-success px-3 py-2 text-white rounded-start">Цех</div>
+                        Цех
                     {% elif bill.number_of_desk == 2000 %}
-                    <div class="bg-success px-3 py-2 text-white rounded-start">Магазин</div>
+                        Магазин
                     {% else %}
-                    <div class="bg-success px-3 py-2 text-white rounded-start">{{bill.number_of_desk}}- cтол</div>
+                        {{bill.number_of_desk}} стол
                     {% endif %}
-                    <div class="px-3 py-2">{{bill.create_date|date:"H:i"}}</div>
-                    <div class="bg-light rounded-end px-3 py-2 text-dark">{{bill.code_bill}}</div>
-                    <div class="bg-info rounded-end px-3 py-2 text-dark">{{bill.number_of_order}}</div>
-                </a>
+                </div>
+
+                <!-- ЦЕНТР -->
+                <div class="bill-center">
+                    <div>Заказ #{{bill.number_of_order}}</div>
+                    <div class="bill-time">{{bill.create_date|date:"H:i"}}</div>
+                </div>
+
+                <!-- ПРАВО -->
+                <div class="bill-right">
+                    <div class="bill-code">{{bill.code_bill}}</div>
+                </div>
+
+            </a>
+
             {% endif %}
-                {% endfor %}
+            {% endfor %}
+
         </div>
+
     {% else %}
-        <div class="jumbotron vh-100 d-flex" style="background-image: url({% static 'account/r.png' %})">
-          <div class="container mt-2 align-items-center d-flex mb-5 pb-5">
-              <h1  class="display-3 fs-3 mb-4 w-100 text-danger text-shadow">Пока нет заказов</h1>
-          </div>
+
+        <div class="empty-state">
+            <h2>😴 Пока нет заказов</h2>
+            <p>Ожидаем клиентов...</p>
         </div>
+
     {% endif %}
+
 </section>
 {% endblock content %}
 

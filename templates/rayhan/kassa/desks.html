@@ -1,0 +1,190 @@
+<style>
+
+.desk-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:16px;
+color:#fff;
+background:#020617;
+}
+.table-printed {
+    background: orange !important;
+    color: white;
+    font-weight: bold;
+}
+.tables-grid{
+display:grid;
+gap:10px;
+justify-content:center;
+}
+
+#hallA,#hallB{grid-template-columns:repeat(5,80px);}
+#street{grid-template-columns:repeat(4,80px);}
+
+.table-box{
+position:relative;
+height:80px;
+border-radius:12px;
+font-weight:bold;
+font-size:20px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:default;
+}
+
+.table-free{
+background:#16a34a;
+color:white;
+}
+
+.table-busy{
+background:#dc2626;
+color:white;
+cursor:pointer;
+}
+
+.waitress-name{
+position:absolute;
+top:3px;
+font-size:10px;
+opacity:.85;
+}
+
+</style>
+
+
+<div id="desk-screen" class="desk-screen d-none">
+
+<div class="desk-header">
+<h4>Столы</h4>
+<button class="btn btn-light" onclick="closeDeskScreen()">✕</button>
+</div>
+
+<div class="container mt-2">
+
+<h4 class="text-center mb-2 text-white">Зал • Блок A</h4>
+<div id="hallA" class="tables-grid"></div>
+
+<h4 class="text-center mt-4 mb-2 text-white">Зал • Блок B</h4>
+<div id="hallB" class="tables-grid"></div>
+
+<h4 class="text-center mt-4 mb-2 text-white">Улица</h4>
+<div id="street" class="tables-grid"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ===== Layout ===== */
+
+const hallLayoutA = [
+[5,6,12,18,24],
+[4,7,13,19,25],
+[3,8,14,20,26],
+[2,9,15,21,27],
+[1,10,16,22,28],
+[null,11,17,23,29],
+[null,null,null,31,30],
+];
+const hallLayoutB=[
+[105,106,112,118,124],
+[104,107,113,119,125],
+[103,108,114,120,126],
+[102,109,115,121,127],
+[101,110,116,122,128],
+[null,111,117,123,129],
+[null,null,null,131,130],
+];
+
+const streetLayout=[
+[32,33,34,null],
+[35,38,43,null],
+[36,39,44,null],
+[37,40,45,null],
+[null ,41,46,null],
+[null,42,null,null],
+];
+
+
+
+/* ===== DATA FROM DJANGO ===== */
+
+const busyDesks = {};
+
+{% for desk in busy_desks %}
+busyDesks[{{desk.number_of_desk}}] = {
+order: {{desk.number_of_order}},
+bill: {{desk.code_bill}},
+waitress: "{{desk.waitress}}",
+printed: {{desk.printed|yesno:"true,false"}},
+tax: {{desk.tax_sent|yesno:"true,false"}},
+kassa: {{desk.order_kassa|yesno:"true,false"}}
+};
+{% endfor %}
+
+
+/* ===== Render ===== */
+
+function render(layout,containerId){
+
+const container=document.getElementById(containerId)
+container.innerHTML=""
+
+layout.forEach(row=>{
+row.forEach(num=>{
+
+if(num===null){
+
+const empty=document.createElement("div")
+container.appendChild(empty)
+return
+}
+
+const div=document.createElement("div")
+div.classList.add("table-box")
+
+if(busyDesks[num]){
+    div.classList.add("table-busy");
+
+    // если напечатан — оранжевый фон
+    if(busyDesks[num].printed){
+        div.classList.add("table-printed");
+    }
+
+    div.innerHTML = `
+        <div class="waitress-name">${busyDesks[num].waitress}</div>
+        ${num}
+        ${busyDesks[num].printed ? "🖨" : ""}
+        ${busyDesks[num].tax ? "🧾" : ""}
+    `;
+
+    div.onclick=()=>{
+        window.location.href=
+        `{% url 'kitchen-bill-detail' 0 0 0 False %}`
+        .replace("/0/0/0/",`/${num}/${busyDesks[num].order}/${busyDesks[num].bill}/`)
+    }
+} else {
+    div.classList.add("table-free")
+    div.textContent=num
+}
+
+container.appendChild(div)
+
+})
+})
+
+}
+
+
+/* ===== Render tables ===== */
+
+render(hallLayoutA,"hallA")
+render(hallLayoutB,"hallB")
+render(streetLayout,"street")
+
+</script>
