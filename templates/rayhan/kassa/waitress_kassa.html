@@ -1,4 +1,17 @@
 {% extends '../main/base.html' %}
+
+{% block header %}
+<div class="header-main">
+<a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
+    <div class="mx-auto text-dark">
+        {% if messages %}
+            {% for message in messages %}
+                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock header %}
 {% block content %}
 
 <style>

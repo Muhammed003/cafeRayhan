@@ -19,7 +19,8 @@ gap:10px;
 justify-content:center;
 }
 
-#hallA,#hallB{grid-template-columns:repeat(5,80px);}
+#hallA{grid-template-columns:repeat(4,80px);}
+#hallB{grid-template-columns:repeat(2,80px);}
 #street{grid-template-columns:repeat(4,80px);}
 
 .table-box{
@@ -82,32 +83,27 @@ opacity:.85;
 
 /* ===== Layout ===== */
 
-const hallLayoutA = [
-[5,6,12,18,24],
-[4,7,13,19,25],
-[3,8,14,20,26],
-[2,9,15,21,27],
-[1,10,16,22,28],
-[null,11,17,23,29],
-[null,null,null,31,30],
+const hallLayoutA=[
+[null,1,2,3],
+[21,15,9,4],
+[22,16,10,5],
+[23,17,11,6],
+[24,18,12,7],
+[25,19,13,8],
+[26,20,14,null],
+
 ];
+
+
 const hallLayoutB=[
-[105,106,112,118,124],
-[104,107,113,119,125],
-[103,108,114,120,126],
-[102,109,115,121,127],
-[101,110,116,122,128],
-[null,111,117,123,129],
-[null,null,null,131,130],
+[27,null],
+[28,31],
+[29,30],
+
 ];
 
 const streetLayout=[
-[32,33,34,null],
-[35,38,43,null],
-[36,39,44,null],
-[37,40,45,null],
-[null ,41,46,null],
-[null,42,null,null],
+[null,null,null,null],
 ];
 
 
