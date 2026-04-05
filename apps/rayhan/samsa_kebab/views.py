@@ -160,38 +160,44 @@ class OrdersKebabView(OrdersByGroupView):
 #         context['meal_quantities'] = meal_quantities
 #
 #         return context
+from django.db.models import Q
+from datetime import datetime
 
-class ControlSamsaKebabOrders(RoleRequiredMixin,WorkTimePermissionMixin, TemplateView, View):
+class ControlSamsaKebabOrders(RoleRequiredMixin, WorkTimePermissionMixin, TemplateView, View):
     template_name = "rayhan/samsa_kebab/control_orders_in_samsa_kebab.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = super().get_context_data(**kwargs)
 
-        # List of meal names to display
-        list_to_display = list_to_display_samsa_kebab
+        today = datetime.now().date()
 
-        # Construct a filter condition dynamically for the meal names
-        filter_condition = Q()
-        for name in list_to_display:
-            filter_condition |= Q(name__icontains=name)
-
-        # Filter meals based on the condition
         orders_today = OrderMeal.objects.filter(
             is_paid=False,
-            create_date__date=datetime.now().date(),
-        ).filter(filter_condition).order_by("-number_of_order").order_by("-id")
+            create_date__date=today,
+
+            # 🔥 ВАЖНОЕ МЕСТО
+            name__in=MealsInMenu.objects.filter(
+                group_item__name__in=["Шашлыки", "Самсы"]
+            ).values_list("name", flat=True)
+
+        ).order_by("-id")
+
         context["list_of_orders"] = orders_today
         return context
 
     def post(self, request):
-        meal = request.POST.get('meal')
+        meal_id = request.POST.get('meal')
         quantity = request.POST.get('quantity')
-        data = OrderMeal.objects.get(id=meal)
-        data.quantity = quantity
-        default_price = MealsInMenu.objects.get(name=data.name)
-        data.price = int(default_price.price) * int(quantity)
-        data.save()
+
+        order = OrderMeal.objects.get(id=meal_id)
+
+        order.quantity = quantity
+
+        default_price = MealsInMenu.objects.get(name=order.name)
+        order.price = int(default_price.price) * int(quantity)
+
+        order.save()
+
         return HttpResponseRedirect(".")
 
 class SamsaReportAddView(RoleRequiredMixin, WorkTimePermissionMixin, CreateView):
