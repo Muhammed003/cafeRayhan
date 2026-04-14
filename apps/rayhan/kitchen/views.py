@@ -513,7 +513,7 @@ class OrderCakesView(RoleRequiredMixin, TemplateView):
             order_cakes=False,
             create_date__date=datetime.now().date()
         )
-        context['order_meals'] = orders_today.order_by('number_of_order', 'create_date')
+        context['order_meals'] = orders_today.order_by('number_of_order').order_by('create_date')
         context['meal_quantities'] = orders_today.values('name').annotate(
             total_quantity=Sum('quantity')
         ).order_by('name')
