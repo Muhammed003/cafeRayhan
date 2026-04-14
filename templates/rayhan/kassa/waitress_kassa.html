@@ -1,16 +1,9 @@
 {% extends '../main/base.html' %}
 
 {% block header %}
-<div class="header-main">
 <a href="{% url 'main' %}"><i class="fa-solid fa-arrow-left"></i> </a>
-    <div class="mx-auto text-dark">
-        {% if messages %}
-            {% for message in messages %}
-                   <div class="position-absolute top-50 start-50 translate-middle fs-6 w-75 alert alert-success">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    </div>
-</div>
+<div>Отчёт официанток </div>
+    <div></div>
 {% endblock header %}
 {% block content %}
 
@@ -66,10 +59,10 @@ body{
 
     <div class="title">👩 {{ w.name }}</div>
 
-    <div class="row-item">
-        <div>Баланс:</div>
-        <div class="green">{{ w.balance }}</div>
-    </div>
+<!--    <div class="row-item">-->
+<!--        <div>Баланс:</div>-->
+<!--        <div class="green">{{ w.balance }}</div>-->
+<!--    </div>-->
 
     <div class="row-item">
         <div>Расход:</div>
@@ -96,10 +89,10 @@ body{
 
 <div class="total">
 
-    <div class="row-item">
-        <div>Общий баланс:</div>
-        <div class="green">{{ total_balance }}</div>
-    </div>
+<!--    <div class="row-item">-->
+<!--        <div>Общий баланс:</div>-->
+<!--        <div class="green">{{ total_balance }}</div>-->
+<!--    </div>-->
 
     <div class="row-item">
         <div>Общий расход:</div>

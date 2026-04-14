@@ -14,25 +14,27 @@
 {% block content %}
 <div class="container my-3 p-0">
 <!--    """""""""""""""""""""BLOCK-HEADER""""""""""""""""""""""-->
-     <div class="d-flex mb-2 p-1">
-        <a href="{% url 'orders-in-kitchen' %}" class="w-25">
-            <div class="text-center"><i class="fa-solid fa-kitchen-set"></i></div>
-            <div class="text-center">Заказ кухня</div>
-        </a>
-         <a href="{% url 'uyghur-kitchen' %}" class="w-25">
-            <div class="text-center"><i class="fa-solid fa-plate-wheat"></i></div>
-            <div class="text-center">Уйгурская кухня</div>
-        </a>
-         <a href="{% url 'national-kitchen' %}" class="w-25">
-            <div class="text-center"><i class="fa-solid fa-feather-pointed"></i></div>
-            <div class="text-center">Нац кухня</div>
-        </a>
-         <a href="{% url 'list-of-nomination' %}" class="w-25">
-            <div class="text-center"><i class="fa-solid fa-bolt"></i></div>
-            <div class="text-center">Заказать</div>
-        </a>
+     <div class="top-menu">
+    <a href="{% url 'orders-in-kitchen' %}">
+        <i class="fa-solid fa-kitchen-set"></i>
+        <div>Заказы</div>
+    </a>
 
-    </div>
+    <a href="{% url 'uyghur-kitchen' %}">
+        <i class="fa-solid fa-plate-wheat"></i>
+        <div>Уйгур</div>
+    </a>
+
+    <a href="{% url 'national-kitchen' %}">
+        <i class="fa-solid fa-feather"></i>
+        <div>Нац</div>
+    </a>
+
+    <a href="{% url 'list-of-nomination' %}">
+        <i class="fa-solid fa-bolt"></i>
+        <div>Заказать</div>
+    </a>
+</div>
 
     <!--    """""""""""""""""""""END-BLOCK-HEADER""""""""""""""""""""""-->
 
@@ -162,33 +164,39 @@ const data = [
 // Function to create a single block item
 function createBlockItem(icon, name, link) {
   return `
-    <a href="/${link}" class="block__item d-flex p-2 fs-5 border-bottom">
-      <div class="block__inner_item__icon me-4"><i class="${icon}"></i></div>
-      <div class="block__inner_item__name">${name}</div>
+    <a href="/${link}" class="block__item">
+      <div class="block__icon">
+        <i class="${icon}"></i>
+      </div>
+      <div class="block__text">${name}</div>
     </a>
   `;
 }
 
-// Function to create the entire block
 function createBlock(data) {
-  const blockContainer = document.getElementById('blockContainer');
+  const container = document.getElementById('blockContainer');
   let html = '';
-  for (const block of data) {
+
+  data.forEach(block => {
     html += `
       <div class="block">
-        <div class="block__subject_name bg-secondary-light p-2 text-center">
-          ${block.subject_name}
-        </div>
+        <div class="block__subject_name">${block.subject_name}</div>
+        <div class="block__card">
     `;
-    for (const item of block.items) {
+
+    block.items.forEach(item => {
       html += createBlockItem(item.icon, item.name, item.link);
-    }
-    html += `</div>`;
-  }
-  blockContainer.innerHTML = html;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
-// Call the function to generate the blocks
 createBlock(data);
 </script>
 {% endblock %}
