@@ -11,7 +11,9 @@
     display: flex;
     justify-content: between;
 }
-
+.bg-order-edited{
+    background: linear-gradient(to right, #ec2F4B, #009FFF);
+}
 .header-order div:first-child {
     width: 35%;
 }
