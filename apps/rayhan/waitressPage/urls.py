@@ -51,6 +51,7 @@ urlpatterns = [
 
   path('save-subscription/', save_subscription, name='save_subscription'),
   path('vapid-public-key/', vapid_public_key, name='vapid_public_key'),
+  path('menu_order/<int:pk>/', MenuOrderClientView.as_view(), name='new-order-client'),
 
 
 ]
