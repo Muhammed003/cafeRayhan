@@ -1,0 +1,248 @@
+{% extends '../main/base_report.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+
+body{
+    background:#0f172a;
+    color:#fff;
+    font-family:Arial;
+}
+
+/* CATEGORY TITLE */
+.category{
+    padding:10px;
+    font-size:18px;
+    font-weight:bold;
+    color:#38bdf8;
+}
+
+/* GRID */
+.menu{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    padding:10px;
+}
+
+.card{
+    background:#020617;
+    padding:10px;
+    border-radius:12px;
+}
+
+.name{
+    font-size:14px;
+}
+
+.price{
+    color:#38bdf8;
+    margin-top:5px;
+}
+
+.add-btn{
+    margin-top:8px;
+    width:100%;
+    padding:8px;
+    background:#22c55e;
+    border:none;
+    border-radius:8px;
+    color:#fff;
+}
+
+/* CART */
+.cart{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#020617;
+    padding:10px;
+}
+.cart-panel{
+    position:fixed;
+    bottom:-100%;
+    left:0;
+    width:100%;
+    height:70%;
+    background:#020617;
+    transition:0.3s;
+    padding:10px;
+    overflow:auto;
+    border-top-left-radius:15px;
+    border-top-right-radius:15px;
+}
+
+.cart-panel.active{
+    bottom:0;
+}
+
+.cart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+}
+
+.cart-item{
+    background:#0f172a;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.qty-btn{
+    background:#1e293b;
+    border:none;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:6px;
+}
+
+.order-btn{
+    width:100%;
+    margin-top:10px;
+    padding:10px;
+    background:#22c55e;
+    border:none;
+    color:#fff;
+    border-radius:10px;
+}
+</style>
+
+{% for category, items in grouped_menu.items %}
+
+<div class="category">
+    📌 {{ category }}
+</div>
+
+<div class="menu">
+
+    {% for item in items %}
+    <div class="card">
+
+        <div class="name">
+            {{ item.menu_item.name }}
+        </div>
+
+        <div class="price">
+            {{ item.menu_item.price }} сом
+        </div>
+
+        <button class="add-btn"
+            onclick="addToCart('{{ item.menu_item.name }}', {{ item.menu_item.price }})">
+            +
+        </button>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endfor %}
+
+<!-- CART -->
+<div class="cart" onclick="toggleCart()">
+    🛒 <span id="count">0</span> |
+    <span id="total">0</span> сом
+</div>
+
+<!-- CART PANEL -->
+<div id="cartPanel" class="cart-panel">
+
+    <div class="cart-header">
+        <h3>🛒 Корзина</h3>
+        <button onclick="toggleCart()">✖</button>
+    </div>
+
+    <div id="cartItems"></div>
+
+    <div class="cart-footer">
+        <b>Итого: <span id="cartTotal">0</span> сом</b>
+        <button class="order-btn">Заказать</button>
+    </div>
+
+</div>
+
+<script>
+
+
+let cart = [];
+
+function addToCart(name, price){
+
+    let item = cart.find(i => i.name === name);
+
+    if(item){
+        item.qty += 1;
+    } else {
+        cart.push({name, price, qty:1});
+    }
+
+    updateCart();
+}
+
+function updateCart(){
+
+    let count = 0;
+    let total = 0;
+
+    let html = "";
+
+    cart.forEach((item, index) => {
+
+        count += item.qty;
+        total += item.qty * item.price;
+
+        html += `
+        <div class="cart-item">
+            <div>
+                <b>${item.name}</b><br>
+                ${item.price} сом
+            </div>
+
+            <div>
+                <button class="qty-btn" onclick="minusItem(${index})">-</button>
+                <b>${item.qty}</b>
+                <button class="qty-btn" onclick="plusItem(${index})">+</button>
+                <button class="qty-btn" onclick="removeItem(${index})">🗑</button>
+            </div>
+        </div>
+        `;
+    });
+
+    document.getElementById("count").innerText = count;
+    document.getElementById("total").innerText = total;
+    document.getElementById("cartTotal").innerText = total;
+    document.getElementById("cartItems").innerHTML = html;
+}
+
+function plusItem(i){
+    cart[i].qty++;
+    updateCart();
+}
+
+function minusItem(i){
+    cart[i].qty--;
+    if(cart[i].qty <= 0){
+        cart.splice(i,1);
+    }
+    updateCart();
+}
+
+function removeItem(i){
+    cart.splice(i,1);
+    updateCart();
+}
+
+function toggleCart(){
+    document.getElementById("cartPanel").classList.toggle("active");
+}
+
+</script>
+
+{% endblock %}

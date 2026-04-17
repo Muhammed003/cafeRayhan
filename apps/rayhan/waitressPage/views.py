@@ -26,7 +26,7 @@ from apps.rayhan.bread.models import BreadComing, WaitressBread
 from apps.rayhan.homePage.models import Employee
 from apps.rayhan.kitchen.models import SettingsKitchen
 from apps.rayhan.mealList.models import MealsInMenu, StopList, InStockInMeal, Drinks, BlackListToKitchen, RatingMeal, \
-    UsedIngredient
+    UsedIngredient, MealsToShow
 from apps.rayhan.report.models import DeskAssignment
 from apps.rayhan.waitressPage.models import *
 
@@ -1637,3 +1637,24 @@ def send_push(title, message):
             # Можно удалить недействительную подписку
             if e.response and e.response.status_code == 410:
                 sub.delete()
+
+
+class MenuOrderClientView(TemplateView):
+    template_name = 'rayhan/waitressPage/menu_all_meals.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        items = MealsToShow.objects.filter(is_active=True).select_related(
+            'menu_item__filter_by'
+        )
+
+        # ГРУППИРОВКА ПО CATEGORY (GroupByOther через MealsInMenu)
+        grouped = {}
+
+        for item in items:
+            category = item.menu_item.filter_by.name  # GroupByOther
+            grouped.setdefault(category, []).append(item)
+
+        context['grouped_menu'] = grouped
+        return context
