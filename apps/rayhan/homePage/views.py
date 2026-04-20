@@ -288,3 +288,4 @@ class RobotView(RoleRequiredMixin, TemplateView):
         context['text'] = collect_today_data(self)
         return context
 
+

@@ -4,14 +4,12 @@
 {% block content %}
 
 <style>
-
 body{
     background:#0f172a;
     color:#fff;
     font-family:Arial;
 }
 
-/* CATEGORY TITLE */
 .category{
     padding:10px;
     font-size:18px;
@@ -19,7 +17,6 @@ body{
     color:#38bdf8;
 }
 
-/* GRID */
 .menu{
     display:grid;
     grid-template-columns:repeat(2,1fr);
@@ -33,14 +30,8 @@ body{
     border-radius:12px;
 }
 
-.name{
-    font-size:14px;
-}
-
-.price{
-    color:#38bdf8;
-    margin-top:5px;
-}
+.name{font-size:14px;}
+.price{color:#38bdf8;margin-top:5px;}
 
 .add-btn{
     margin-top:8px;
@@ -59,7 +50,9 @@ body{
     width:100%;
     background:#020617;
     padding:10px;
+    cursor:pointer;
 }
+
 .cart-panel{
     position:fixed;
     bottom:-100%;
@@ -70,19 +63,11 @@ body{
     transition:0.3s;
     padding:10px;
     overflow:auto;
-    border-top-left-radius:15px;
-    border-top-right-radius:15px;
+    border-radius:15px 15px 0 0;
 }
 
 .cart-panel.active{
     bottom:0;
-}
-
-.cart-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:10px;
 }
 
 .cart-item{
@@ -92,7 +77,6 @@ body{
     margin-top:10px;
     display:flex;
     justify-content:space-between;
-    align-items:center;
 }
 
 .qty-btn{
@@ -114,71 +98,54 @@ body{
 }
 </style>
 
+<!-- MENU -->
 {% for category, items in grouped_menu.items %}
-
-<div class="category">
-    📌 {{ category }}
-</div>
+<div class="category">📌 {{ category }}</div>
 
 <div class="menu">
+{% for item in items %}
+<div class="card">
 
-    {% for item in items %}
-    <div class="card">
+<div class="name">{{ item.menu_item.name }}</div>
+<div class="price">{{ item.menu_item.price }} сом</div>
 
-        <div class="name">
-            {{ item.menu_item.name }}
-        </div>
-
-        <div class="price">
-            {{ item.menu_item.price }} сом
-        </div>
-
-        <button class="add-btn"
-            onclick="addToCart('{{ item.menu_item.name }}', {{ item.menu_item.price }})">
-            +
-        </button>
-
-    </div>
-    {% endfor %}
+<button class="add-btn"
+onclick="addToCart('{{ item.menu_item.name }}', {{ item.menu_item.price }})">
++
+</button>
 
 </div>
-
+{% endfor %}
+</div>
 {% endfor %}
 
 <!-- CART -->
 <div class="cart" onclick="toggleCart()">
-    🛒 <span id="count">0</span> |
-    <span id="total">0</span> сом
+🛒 <span id="count">0</span> | <span id="total">0</span> сом
 </div>
 
 <!-- CART PANEL -->
 <div id="cartPanel" class="cart-panel">
 
-    <div class="cart-header">
-        <h3>🛒 Корзина</h3>
-        <button onclick="toggleCart()">✖</button>
-    </div>
+<h3>🛒 Корзина</h3>
 
-    <div id="cartItems"></div>
+<div id="cartItems"></div>
 
-    <div class="cart-footer">
-        <b>Итого: <span id="cartTotal">0</span> сом</b>
-        <button class="order-btn">Заказать</button>
-    </div>
+<b>Итого: <span id="cartTotal">0</span> сом</b>
+
+<button class="order-btn" onclick="checkout()">Заказать</button>
 
 </div>
-
 <script>
-
 
 let cart = [];
 
+// ADD
 function addToCart(name, price){
-
     let item = cart.find(i => i.name === name);
 
     if(item){
-        item.qty += 1;
+        item.qty++;
     } else {
         cart.push({name, price, qty:1});
     }
@@ -186,11 +153,11 @@ function addToCart(name, price){
     updateCart();
 }
 
+// UPDATE
 function updateCart(){
 
     let count = 0;
     let total = 0;
-
     let html = "";
 
     cart.forEach((item, index) => {
@@ -200,14 +167,10 @@ function updateCart(){
 
         html += `
         <div class="cart-item">
-            <div>
-                <b>${item.name}</b><br>
-                ${item.price} сом
-            </div>
+            <div>${item.name} x${item.qty}</div>
 
             <div>
                 <button class="qty-btn" onclick="minusItem(${index})">-</button>
-                <b>${item.qty}</b>
                 <button class="qty-btn" onclick="plusItem(${index})">+</button>
                 <button class="qty-btn" onclick="removeItem(${index})">🗑</button>
             </div>
@@ -221,11 +184,13 @@ function updateCart(){
     document.getElementById("cartItems").innerHTML = html;
 }
 
+// PLUS
 function plusItem(i){
     cart[i].qty++;
     updateCart();
 }
 
+// MINUS
 function minusItem(i){
     cart[i].qty--;
     if(cart[i].qty <= 0){
@@ -234,13 +199,63 @@ function minusItem(i){
     updateCart();
 }
 
+// REMOVE
 function removeItem(i){
     cart.splice(i,1);
     updateCart();
 }
 
+// TOGGLE CART
 function toggleCart(){
     document.getElementById("cartPanel").classList.toggle("active");
+}
+
+// CHECKOUT (🔥 FIXED table_id)
+function checkout(){
+
+    if(cart.length === 0){
+        alert("Добавьте блюда!");
+        return;
+    }
+
+    fetch("/waitress/client/order/{{table_id}}/", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            items: cart,
+            total: document.getElementById("cartTotal").innerText
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+    console.log({{table_id}});
+
+        alert("Заказ отправлен ✅");
+
+        cart = [];
+        updateCart();
+        toggleCart();
+
+    });
+}
+
+// CSRF
+function getCookie(name){
+    let cookieValue = null;
+    if(document.cookie){
+        let cookies = document.cookie.split(';');
+        for(let i=0;i<cookies.length;i++){
+            let c = cookies[i].trim();
+            if(c.startsWith(name + '=')){
+                cookieValue = decodeURIComponent(c.substring(name.length+1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
 </script>

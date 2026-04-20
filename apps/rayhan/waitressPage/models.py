@@ -291,3 +291,16 @@ class WaitressBank(models.Model):
     class Meta:
         verbose_name = 'Банк официанта'
         verbose_name_plural = 'Банк официантов'
+
+
+class ClientOrder(models.Model):
+    table_id = models.IntegerField()
+    items = models.JSONField()  # список блюд
+    total = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_checked = models.BooleanField(default=False)  # проверила официантка
+    is_sent = models.BooleanField(default=False)     # отправлено в OrderMeal
+
+    def __str__(self):
+        return f"Стол {self.table_id} | {self.total} сом"

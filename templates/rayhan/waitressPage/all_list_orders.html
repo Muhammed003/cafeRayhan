@@ -15,6 +15,11 @@
 {% block content %}
      <div class="container">
         <div class="my-3">
+            <a href="{% url 'client_order_student' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
+                🧑🏻‍🎓 <span class="ps-3">Заказ студенты</span>
+            </a>
+        </div>
+        <div class="my-3">
             <a href="{% url 'orders_waitress_kitchen' 'kitchen' %}" class="bg-secondary mx-auto p-3 fs-2 rounded w-75 d-block text-left text-decoration-none text-white">
                 🍽️ <span class="ps-3">Кухня</span>
             </a>

@@ -20,4 +20,5 @@ urlpatterns = [
 
   path('robot/', RobotView.as_view(), name='robot-view'),
   path('robot-ai-generate/', generate_audio_report, name='robot-generate'),
+
 ]
