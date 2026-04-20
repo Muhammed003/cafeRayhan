@@ -1645,16 +1645,174 @@ class MenuOrderClientView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        context["table_id"] = self.kwargs.get("table_id") or 0  # 🔥 FIX
         items = MealsToShow.objects.filter(is_active=True).select_related(
             'menu_item__filter_by'
         )
 
-        # ГРУППИРОВКА ПО CATEGORY (GroupByOther через MealsInMenu)
         grouped = {}
-
         for item in items:
-            category = item.menu_item.filter_by.name  # GroupByOther
+            category = item.menu_item.filter_by.name
             grouped.setdefault(category, []).append(item)
 
         context['grouped_menu'] = grouped
         return context
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+
+@csrf_exempt
+def client_order(request, table_id):
+    if request.method == "POST":
+
+        data = json.loads(request.body)
+
+        print(f"cnjk{table_id}")
+        # items validation
+        items = data.get("items")
+        total = data.get("total")
+
+        if not items:
+            return JsonResponse({"error": "items empty"}, status=400)
+
+        ClientOrder.objects.create(
+            table_id=table_id,
+            items=items,
+            total=total
+        )
+
+        return JsonResponse({"status": "ok"})
+    
+class WaitressClientOrdersView(TemplateView):
+    template_name = "rayhan/waitressPage/client_orders.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["orders"] = ClientOrder.objects.filter(is_checked=False)
+        return context
+
+
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect
+from django.db.models import Max
+
+def confirm_order(request, order_id):
+
+    order = get_object_or_404(ClientOrder, id=order_id)
+
+    waitress = Waitress.objects.filter(user=request.user).first()
+
+    if not waitress:
+        return redirect("client_order_student")
+
+    # номер заказа (как у тебя в системе)
+    last_number = OrderMeal.objects.filter(
+        create_date__date=timezone.now().date()
+    ).aggregate(Max('number_of_order'))['number_of_order__max']
+
+    number_of_order = (last_number or 0) + 1
+
+    # bill code
+    def generate_bill_code(length: int, number_range: str):
+        from django.utils.crypto import get_random_string
+        return get_random_string(length, number_range)
+
+    code_bill = generate_bill_code(6, "123456789")
+
+    samsa_kebab_ordered = []
+
+    # 🔥 ITEMS LOOP
+    for item in order.items:
+
+        meal = MealsInMenu.objects.filter(name=item["name"]).first()
+
+        if not meal:
+            continue
+
+        order_done = False
+        order_samsa_kebab = False
+
+        # =========================
+        # 🔥 LOGIC (как у официанта)
+        # =========================
+
+        # blacklist kitchen
+        black_list_for_kitchen = getattr(meal, "black_list_to_kitchen", None)
+
+        if black_list_for_kitchen and black_list_for_kitchen.name_related_meal.name == meal.name:
+            order_done = True
+        else:
+            order_done = False
+
+        # samsa / kebab
+        if meal.group_item.name in ["Самсы", "Шашлыки"]:
+            samsa_kebab_ordered.append(meal.name)
+            order_samsa_kebab = True
+            order_done = True
+
+        # drinks
+        try:
+            if meal.drinks:
+                order_done = True
+        except:
+            pass
+
+        # =========================
+        # 🔥 STOCK / STOP LIST
+        # =========================
+
+        if InStockInMeal.objects.filter(
+            name_related_meal=meal.id,
+            create_date__date=timezone.now().date()
+        ).exists():
+
+            stock = InStockInMeal.objects.get(
+                name_related_meal=meal.id,
+                create_date__date=timezone.now().date()
+            )
+
+            stock.quantity -= int(item.get("qty", 1))
+            stock.save()
+
+            if stock.quantity <= 0:
+                StopList.objects.create(
+                    name=meal,
+                    is_stopped=True,
+                    create_date=timezone.now().date(),
+                    time_create_date=timezone.now()
+                )
+
+        # =========================
+        # 🔥 CREATE ORDERMEAL
+        # =========================
+
+        OrderMeal.objects.create(
+            author=waitress.user,
+            username=waitress.user.username,
+            name=meal.name,
+            number_of_desk=order.table_id,
+            people_in_desk=1,
+            price_of_service=0,
+            price=int(item["price"]) * int(item.get("qty", 1)),
+            quantity=item.get("qty", 1),
+            create_date=timezone.now(),
+            number_of_order=number_of_order,
+            order_done=order_done,
+            order_samsa_kebab=order_samsa_kebab,
+            code_bill=code_bill,
+            comments=""
+        )
+
+    # =========================
+    # 🔥 UPDATE CLIENT ORDER
+    # =========================
+
+    order.is_checked = True
+    order.is_sent = True
+    order.save()
+
+    return redirect("client_order_student")

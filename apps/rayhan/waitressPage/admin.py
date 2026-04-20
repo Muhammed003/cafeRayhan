@@ -32,6 +32,7 @@ class ConsumptionWaitressAdmin(admin.ModelAdmin):
 
 admin.site.register(SettingModel)
 admin.site.register(WaitressBank)
+admin.site.register(ClientOrder)
 admin.site.register(OrderMeal, OrderMealAdmin)
 admin.site.register(DeletedMeal, DeletedMealAdmin)
 admin.site.register(Waitress, WaitressAdmin)
