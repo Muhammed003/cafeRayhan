@@ -1646,6 +1646,8 @@ class MenuOrderClientView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["table_id"] = self.kwargs.get("table_id") or 0  # 🔥 FIX
+        if SettingsKitchen.objects.filter(name="Студенты").exists():
+            context["student"] = SettingsKitchen.objects.get(name="Студенты")  # 🔥 FIX
         items = MealsToShow.objects.filter(is_active=True).select_related(
             'menu_item__filter_by'
         )
@@ -1749,9 +1751,9 @@ def confirm_order(request, order_id):
             order_done = False
 
         # samsa / kebab
+
         if meal.group_item.name in ["Самсы", "Шашлыки"]:
             samsa_kebab_ordered.append(meal.name)
-            order_samsa_kebab = True
             order_done = True
 
         # drinks

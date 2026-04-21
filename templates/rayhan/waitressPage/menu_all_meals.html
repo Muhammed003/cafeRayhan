@@ -96,8 +96,15 @@ body{
     color:#fff;
     border-radius:10px;
 }
+    .closed{
+        display: flex;
+       justify-content: center;
+       align-items: center;
+       height: 100vh;
+       margin: 0;
+    }
 </style>
-
+{% if student.is_active %}
 <!-- MENU -->
 {% for category, items in grouped_menu.items %}
 <div class="category">📌 {{ category }}</div>
@@ -123,7 +130,9 @@ onclick="addToCart('{{ item.menu_item.name }}', {{ item.menu_item.price }})">
 <div class="cart" onclick="toggleCart()">
 🛒 <span id="count">0</span> | <span id="total">0</span> сом
 </div>
-
+{% else %}
+<h3 class="closed">Онлайн заказ закрыть</h3>
+{% endif %}
 <!-- CART PANEL -->
 <div id="cartPanel" class="cart-panel">
 
