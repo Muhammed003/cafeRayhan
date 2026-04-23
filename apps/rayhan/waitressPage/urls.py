@@ -53,6 +53,7 @@ urlpatterns = [
   path('vapid-public-key/', vapid_public_key, name='vapid_public_key'),
   path('menu_order/<int:table_id>/', MenuOrderClientView.as_view(), name='new-order-client'),
   path('client/order/<int:table_id>/', client_order, name='client-order'),
+  path('client/order/delete/<int:order_id>/', DeleteClientOrderView.as_view(), name='client-order-delete'),
   path('order_client_student/', WaitressClientOrdersView.as_view(), name='client_order_student'),
   path('confirm_order/<int:order_id>/', confirm_order, name='confirm-order-student'),
 

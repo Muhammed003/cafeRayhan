@@ -182,20 +182,32 @@ class DesksView(RoleRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Fetch the busy desks for today's date (unpaid orders)
-        context["busy_desks"] = OrderMeal.objects.filter(is_paid=False, create_date__date=date.today())
+        today = date.today()
 
-        # Fetch the number of desks from the settings
+        # занятые столы
+        context["busy_desks"] = OrderMeal.objects.filter(
+            is_paid=False,
+            create_date__date=today
+        )
+
+        # настройки
         context["desk"] = SettingModel.objects.get(name="Количества стол")
 
-        # Get the desks assigned to the logged-in waitress for today's shift
-        assigned_groups = DeskAssignment.objects.filter(waitress__user=self.request.user, shift_date=date.today())
-        # Combine all assigned desks from the groups and convert comma-separated values into a list
-        assigned_desks = []
-        for assignment in assigned_groups:
-            desks = assignment.desk_group.desks.split(',')
-            assigned_desks.extend([int(desk) for desk in desks if desk.strip().isdigit()])  # Convert to integers
-        context['assigned_desks'] = assigned_desks  # Send assigned desks to the template
+        # 👇 ВАЖНО: столы только для этой официантки
+        assignments = DeskAssignment.objects.filter(
+            waitress__user=self.request.user,
+            shift_date=today
+        ).select_related("desk_group")
+
+        allowed_desks = set()
+
+        for a in assignments:
+            # если desks хранятся как "1,2,3"
+            for d in str(a.desk_group.desks).split(","):
+                if d.strip().isdigit():
+                    allowed_desks.add(int(d.strip()))
+
+        context["allowed_desks"] = list(allowed_desks)
 
         return context
 
@@ -1638,56 +1650,132 @@ def send_push(title, message):
             if e.response and e.response.status_code == 410:
                 sub.delete()
 
+from django.utils import timezone
+from django.db.models import Prefetch
 
 class MenuOrderClientView(TemplateView):
     template_name = 'rayhan/waitressPage/menu_all_meals.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["student"] = SettingsKitchen.objects.filter(name="Студенты").first()
+        table_id = self.kwargs.get("table_id") or 0
+        context["table_id"] = table_id
 
-        context["table_id"] = self.kwargs.get("table_id") or 0  # 🔥 FIX
-        if SettingsKitchen.objects.filter(name="Студенты").exists():
-            context["student"] = SettingsKitchen.objects.get(name="Студенты")  # 🔥 FIX
-        items = MealsToShow.objects.filter(is_active=True).select_related(
-            'menu_item__filter_by'
+        # 🔥 ORDERS
+        orders = OrderMeal.objects.filter(
+            number_of_desk=table_id,
+            is_paid=False,
+            create_date__date=timezone.now().date()
         )
 
-        grouped = {}
-        for item in items:
-            category = item.menu_item.filter_by.name
-            grouped.setdefault(category, []).append(item)
+        context["orders"] = orders
+        context["total"] = sum(i.price for i in orders)
 
-        context['grouped_menu'] = grouped
+        # 🔥 STOP LIST (полный запрет)
+        stop_qs = StopList.objects.filter(
+            create_date=timezone.now().date()
+        ).select_related('name')
+
+        stop_list = set(i.name.name for i in stop_qs)
+
+        # 🔥 STOCK (ограничение количества)
+        stock_qs = InStockInMeal.objects.filter(
+            create_date__date=timezone.now().date()
+        ).select_related('name_related_meal')
+
+        stock_map = {}
+
+        for i in stock_qs:
+            name = i.name_related_meal.name
+            stock_map[name] = i.quantity  # 🔥 сколько можно заказать
+
+        # 🔥 MENU
+        meals = MealsToShow.objects.filter(
+            is_active=True
+        ).select_related('menu_item__filter_by')
+
+        grouped = {}
+
+        for item in meals:
+            name = item.menu_item.name
+            category = item.menu_item.filter_by.name
+
+            # ❌ STOP LIST → вообще не показываем
+            if name in stop_list:
+                continue
+
+            # 📦 STOCK → передаём лимит (если есть)
+            max_qty = stock_map.get(name, None)
+
+            grouped.setdefault(category, []).append({
+                "obj": item,
+                "max_qty": max_qty
+            })
+        context["grouped_menu"] = grouped
+        context["stop_list"] = stop_list
+        context["stock_map"] = stock_map
+
         return context
 
 
+from django.http import JsonResponse
 
+import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
-
 
 @csrf_exempt
 def client_order(request, table_id):
-    if request.method == "POST":
 
-        data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
 
-        print(f"cnjk{table_id}")
-        # items validation
-        items = data.get("items")
-        total = data.get("total")
+    data = json.loads(request.body)
+    items = data.get("items", [])
 
-        if not items:
-            return JsonResponse({"error": "items empty"}, status=400)
+    if not items:
+        return JsonResponse({"error": "items empty"}, status=400)
 
-        ClientOrder.objects.create(
-            table_id=table_id,
-            items=items,
-            total=total
-        )
+    total = 0
+    clean_items = []
 
-        return JsonResponse({"status": "ok"})
+    for item in items:
+
+        name = item.get("name")
+        qty = item.get("qty", 1)
+
+        if not name:
+            continue
+
+        meal = MealsToShow.objects.select_related("menu_item").filter(
+            menu_item__name=name
+        ).first()
+
+        if not meal:
+            continue
+
+        price = meal.menu_item.price
+
+        total += price * qty
+
+        clean_items.append({
+            "name": name,
+            "qty": qty,
+            "price": price
+        })
+
+    order = ClientOrder.objects.create(
+        table_id=table_id,
+        items=clean_items,
+        total=total
+    )
+
+    return JsonResponse({
+        "status": "ok",
+        "total": total,
+        "order_id": order.id
+    })
     
 class WaitressClientOrdersView(TemplateView):
     template_name = "rayhan/waitressPage/client_orders.html"
@@ -1697,7 +1785,19 @@ class WaitressClientOrdersView(TemplateView):
         context["orders"] = ClientOrder.objects.filter(is_checked=False)
         return context
 
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteClientOrderView(View):
+
+    def post(self, request, order_id):
+        try:
+            order = ClientOrder.objects.get(id=order_id)
+            order.delete()
+
+            return JsonResponse({"status": "ok"})
+        except ClientOrder.DoesNotExist:
+            return JsonResponse({"status": "error"}, status=404)
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Max
@@ -1711,20 +1811,35 @@ def confirm_order(request, order_id):
     if not waitress:
         return redirect("client_order_student")
 
-    # номер заказа (как у тебя в системе)
-    last_number = OrderMeal.objects.filter(
-        create_date__date=timezone.now().date()
-    ).aggregate(Max('number_of_order'))['number_of_order__max']
 
-    number_of_order = (last_number or 0) + 1
+    if not OrderMeal.objects.filter(
+        create_date__date=timezone.now().date(),
+        number_of_desk = order.table_id,
+        is_paid=False,
+    ).exists():
+        # номер заказа (как у тебя в системе)
+        last_number = OrderMeal.objects.filter(
+            create_date__date=timezone.now().date()
+        ).aggregate(Max('number_of_order'))['number_of_order__max']
 
-    # bill code
-    def generate_bill_code(length: int, number_range: str):
-        from django.utils.crypto import get_random_string
-        return get_random_string(length, number_range)
+        number_of_order = (last_number or 0) + 1
 
-    code_bill = generate_bill_code(6, "123456789")
+        # bill code
+        def generate_bill_code(length: int, number_range: str):
+            from django.utils.crypto import get_random_string
+            return get_random_string(length, number_range)
 
+        code_bill = generate_bill_code(6, "123456789")
+        order_is_edited = False
+    else:
+        editing_data=OrderMeal.objects.filter(
+        create_date__date=timezone.now().date(),
+        number_of_desk = order.table_id,
+        is_paid=False,
+    ).first()
+        number_of_order = editing_data.number_of_order
+        code_bill = editing_data.code_bill
+        order_is_edited = True
     samsa_kebab_ordered = []
 
     # 🔥 ITEMS LOOP
@@ -1806,6 +1921,8 @@ def confirm_order(request, order_id):
             order_done=order_done,
             order_samsa_kebab=order_samsa_kebab,
             code_bill=code_bill,
+            order_is_edited=order_is_edited,
+            online_order=True,
             comments=""
         )
 
