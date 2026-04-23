@@ -5,187 +5,404 @@
 
 <style>
 body{
-    background:#0f172a;
+    margin:0;
+    background:#0b1220;
     color:#fff;
-    font-family:Arial;
+    font-family:system-ui, -apple-system, Arial;
 }
 
+/* HEADER */
+.header{
+    padding:15px;
+    font-size:20px;
+    font-weight:700;
+}
+
+/* CATEGORY */
 .category{
-    padding:10px;
-    font-size:18px;
-    font-weight:bold;
-    color:#38bdf8;
+    padding:10px 15px 5px;
+    font-size:16px;
+    color:#94a3b8;
 }
 
+/* MENU GRID */
 .menu{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-    padding:10px;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    padding:10px 15px;
 }
 
+/* CARD */
 .card{
-    background:#020617;
-    padding:10px;
-    border-radius:12px;
+    background:rgba(255,255,255,0.03);
+    backdrop-filter: blur(10px);
+    border-radius:16px;
+    padding:12px;
+    transition:0.2s;
 }
 
-.name{font-size:14px;}
-.price{color:#38bdf8;margin-top:5px;}
+.card:hover{
+    transform:translateY(-2px);
+}
 
+/* TEXT */
+.name{
+    font-size:14px;
+    font-weight:600;
+}
+
+.price{
+    margin-top:5px;
+    color:#38bdf8;
+    font-size:13px;
+}
+
+/* BUTTON */
 .add-btn{
-    margin-top:8px;
+    margin-top:10px;
     width:100%;
     padding:8px;
     background:#22c55e;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     color:#fff;
+    font-size:13px;
 }
 
-/* CART */
+/* CART BAR */
 .cart{
     position:fixed;
     bottom:0;
     width:100%;
-    background:#020617;
-    padding:10px;
-    cursor:pointer;
+    background:#22c55e;
+    padding:14px;
+    display:flex;
+    justify-content:space-between;
+    font-weight:600;
+    z-index:20;
 }
 
+/* CART PANEL */
 .cart-panel{
     position:fixed;
     bottom:-100%;
     left:0;
     width:100%;
-    height:70%;
-    background:#020617;
+    height:100%;
+    background:#0b1220;
     transition:0.3s;
-    padding:10px;
+    padding:15px;
     overflow:auto;
-    border-radius:15px 15px 0 0;
+    border-radius:20px 20px 0 0;
+    z-index:30;
 }
 
 .cart-panel.active{
     bottom:0;
 }
 
+/* CART ITEM */
 .cart-item{
-    background:#0f172a;
+    background:#111827;
     padding:10px;
     border-radius:10px;
     margin-top:10px;
     display:flex;
     justify-content:space-between;
+    align-items:center;
 }
 
+/* QTY */
 .qty-btn{
-    background:#1e293b;
+    background:#1f2937;
     border:none;
     color:#fff;
     padding:5px 10px;
     border-radius:6px;
 }
 
+/* CHECKOUT */
 .order-btn{
     width:100%;
-    margin-top:10px;
-    padding:10px;
+    margin-top:12px;
+    padding:12px;
     background:#22c55e;
     border:none;
     color:#fff;
+    border-radius:12px;
+}
+
+/* BILL BUTTON */
+.bill-btn{
+    position:fixed;
+    bottom:70px;
+    right:15px;
+}
+
+/* OVERLAY */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    z-index:40;
+}
+
+.overlay.active{display:block;}
+
+/* OFFCANVAS */
+.offcanvas{
+    position:fixed;
+    right:-100%;
+    top:0;
+    width:90%;
+    max-width:400px;
+    height:100%;
+    background:#0b1220;
+    transition:0.3s;
+    padding:15px;
+    z-index:50;
+}
+
+.offcanvas.active{right:0;}
+
+.offcanvas-header{
+    display:flex;
+    justify-content:space-between;
+    font-size:18px;
+    margin-bottom:10px;
+}
+
+/* TOTAL */
+.total-box{
+    margin-top:15px;
+    padding:10px;
+    background:#111827;
     border-radius:10px;
 }
-    .closed{
-        display: flex;
-       justify-content: center;
-       align-items: center;
-       height: 100vh;
-       margin: 0;
+    .glow-btn{
+    position:fixed;
+    border-radius:12px;
+    font-weight:600;
+    box-shadow:0 0 10px rgba(34,197,94,0.6);
+    animation: glowPulse 1.8s infinite ease-in-out;
+}
+
+/* мягкое свечение */
+@keyframes glowPulse {
+    0% {
+        box-shadow:0 0 5px rgba(34,197,94,0.4),
+                   0 0 10px rgba(34,197,94,0.3);
+        transform:scale(1);
     }
+    50% {
+        box-shadow:0 0 15px rgba(34,197,94,0.8),
+                   0 0 30px rgba(34,197,94,0.5);
+        transform:scale(1.05);
+    }
+    100% {
+        box-shadow:0 0 5px rgba(34,197,94,0.4),
+                   0 0 10px rgba(34,197,94,0.3);
+        transform:scale(1);
+    }
+}
+    .glow-btn::after{
+    content:"";
+    position:absolute;
+    top:-20px;
+    left:-20px;
+    right:-20px;
+    bottom:-20px;
+    background:radial-gradient(circle, rgba(34,197,94,0.4), transparent 70%);
+    opacity:0;
+    animation:shine 2s infinite;
+}
+
+@keyframes shine{
+    0%{opacity:0;}
+    50%{opacity:1;}
+    100%{opacity:0;}
+}
+.card{
+    position:relative;
+}
+
+.card[disabled]{
+    opacity:0.4;
+    pointer-events:none;
+}
 </style>
+
 {% if student.is_active %}
-<!-- MENU -->
+
+<div class="header">🍽 Меню</div>
+
 {% for category, items in grouped_menu.items %}
-<div class="category">📌 {{ category }}</div>
+
+<div class="category">{{ category }}</div>
 
 <div class="menu">
-{% for item in items %}
+{% for data in items %}
 <div class="card">
 
-<div class="name">{{ item.menu_item.name }}</div>
-<div class="price">{{ item.menu_item.price }} сом</div>
+    {% with item=data.obj.menu_item %}
 
-<button class="add-btn"
-onclick="addToCart('{{ item.menu_item.name }}', {{ item.menu_item.price }})">
-+
-</button>
+    <div class="name">
+        {{ item.name }}
+    </div>
+
+    <div class="price">
+        {{ item.price }} сом
+    </div>
+
+    {% endwith %}
+
+    {% if data.max_qty %}
+        <div style="margin-top:6px; font-size:12px; color:#fbbf24;">
+            📦 Осталось: {{ data.max_qty }}
+        </div>
+    {% endif %}
+
+    {% if data.max_qty == 0 %}
+        <div style="color:#ef4444; font-size:12px; margin-top:5px;">
+            ❌ Нет в наличии
+        </div>
+    {% else %}
+        <button class="add-btn"
+            onclick="addToCart(
+                '{{ data.obj.menu_item.name }}',
+                {{ data.obj.menu_item.price }},
+                {{ data.max_qty|default:'null' }}
+            )">
+            ➕ Добавить
+        </button>
+    {% endif %}
 
 </div>
 {% endfor %}
 </div>
+
 {% endfor %}
 
 <!-- CART -->
-<div class="cart" onclick="toggleCart()">
-🛒 <span id="count">0</span> | <span id="total">0</span> сом
-</div>
-{% else %}
-<h3 class="closed">Онлайн заказ закрыть</h3>
-{% endif %}
-<!-- CART PANEL -->
-<div id="cartPanel" class="cart-panel">
 
-<h3>🛒 Корзина</h3>
+<div class="cart" onclick="toggleCart()">
+    <span>🛒 <span id="count">0</span></span>
+    <span><span id="total">0</span> сом</span>
+</div>
+
+<!-- BILL BUTTON -->
+{% if orders %}
+<button class="btn btn-success position-fixed glow-btn"
+        style="bottom:70px; right:15px; z-index:1050;"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#orderOffcanvas">
+    🧾 Счёт
+</button>
+{% endif %}
+{% else %}
+
+<h3 style="text-align:center;margin-top:50%;">Закрыто</h3>
+{% endif %}
+
+<!-- CART PANEL -->
+
+<div id="cartPanel" class="cart-panel">
+    <div class="d-flex justify-content-between">
+        <h3>Корзина</h3>
+    <h3 id="close_cart"><i class="fa-solid fa-xmark"></i> </h3>
+    </div>
 
 <div id="cartItems"></div>
-
-<b>Итого: <span id="cartTotal">0</span> сом</b>
-
+<b>Итого: <span id="cartTotal">0</span></b>
 <button class="order-btn" onclick="checkout()">Заказать</button>
-
 </div>
+<div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="orderOffcanvas">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">🧾 Ваш заказ</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+
+        {% if orders %}
+            {% for item in orders %}
+            <div class="d-flex justify-content-between mb-2 p-2 rounded" style="background:#1e293b;">
+                <div class="w-50">{{ item.name }}</div>
+                <div>* {{ item.quantity }}</div>
+                <div>{{ item.price }} сом</div>
+            </div>
+            {% endfor %}
+
+            <hr>
+
+            <div class="d-flex justify-content-between">
+                <b>Итого:</b>
+                <b>{{ total }} сом</b>
+            </div>
+
+        {% else %}
+            <p>Нет заказов</p>
+        {% endif %}
+
+    </div>
+</div>
+
 <script>
-
 let cart = [];
+function addToCart(name, price, maxQty = null){
 
-// ADD
-function addToCart(name, price){
     let item = cart.find(i => i.name === name);
 
     if(item){
+
+        // 🔥 проверка лимита
+        if(maxQty !== null && item.qty >= maxQty){
+            alert("Лимит достигнут");
+            return;
+        }
+
         item.qty++;
+
     } else {
-        cart.push({name, price, qty:1});
+
+        if(maxQty !== null && maxQty <= 0){
+            alert("Нет в наличии");
+            return;
+        }
+
+        cart.push({
+            name,
+            price,
+            qty: 1,
+            maxQty: maxQty
+        });
     }
 
     updateCart();
 }
-
-// UPDATE
 function updateCart(){
-
     let count = 0;
     let total = 0;
     let html = "";
 
-    cart.forEach((item, index) => {
-
+    cart.forEach((item,i)=>{
         count += item.qty;
         total += item.qty * item.price;
 
         html += `
         <div class="cart-item">
             <div>${item.name} x${item.qty}</div>
-
             <div>
-                <button class="qty-btn" onclick="minusItem(${index})">-</button>
-                <button class="qty-btn" onclick="plusItem(${index})">+</button>
-                <button class="qty-btn" onclick="removeItem(${index})">🗑</button>
+                <button class="qty-btn" onclick="minusItem(${i})">-</button>
+                <button class="qty-btn" onclick="plusItem(${i})">+</button>
             </div>
-        </div>
-        `;
+        </div>`;
     });
+
+    cartTotal = total; // 🔥 СОХРАНЯЕМ
 
     document.getElementById("count").innerText = count;
     document.getElementById("total").innerText = total;
@@ -193,80 +410,65 @@ function updateCart(){
     document.getElementById("cartItems").innerHTML = html;
 }
 
-// PLUS
-function plusItem(i){
-    cart[i].qty++;
-    updateCart();
-}
+function plusItem(i){cart[i].qty++;updateCart();}
+function minusItem(i){cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);updateCart();}
 
-// MINUS
-function minusItem(i){
-    cart[i].qty--;
-    if(cart[i].qty <= 0){
-        cart.splice(i,1);
-    }
-    updateCart();
-}
-
-// REMOVE
-function removeItem(i){
-    cart.splice(i,1);
-    updateCart();
-}
-
-// TOGGLE CART
 function toggleCart(){
     document.getElementById("cartPanel").classList.toggle("active");
 }
 
-// CHECKOUT (🔥 FIXED table_id)
+function openOffcanvas(){
+    document.getElementById("offcanvas").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+}
+
+function closeOffcanvas(){
+    document.getElementById("offcanvas").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+}
 function checkout(){
 
     if(cart.length === 0){
-        alert("Добавьте блюда!");
+        alert("Добавьте блюда");
         return;
     }
 
     fetch("/waitress/client/order/{{table_id}}/", {
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json",
+        method: "POST",
+        credentials: "same-origin",  // 🔥 ВАЖНО
+        headers: {
+            "Content-Type": "application/json",
             "X-CSRFToken": getCookie("csrftoken")
         },
         body: JSON.stringify({
             items: cart,
-            total: document.getElementById("cartTotal").innerText
+            is_addition: true
         })
     })
     .then(res => res.json())
     .then(data => {
-    console.log({{table_id}});
-
-        alert("Заказ отправлен ✅");
-
-        cart = [];
-        updateCart();
-        toggleCart();
-
+        alert("Заказ добавлен");
+        location.reload();
     });
 }
 
-// CSRF
+document.getElementById("close_cart").onclick = function(){
+document.getElementById("cartPanel").classList.remove("active");
+}
 function getCookie(name){
-    let cookieValue = null;
+    let cookieValue=null;
     if(document.cookie){
-        let cookies = document.cookie.split(';');
+        let cookies=document.cookie.split(';');
         for(let i=0;i<cookies.length;i++){
-            let c = cookies[i].trim();
-            if(c.startsWith(name + '=')){
-                cookieValue = decodeURIComponent(c.substring(name.length+1));
+            let c=cookies[i].trim();
+            if(c.startsWith(name+'=')){
+                cookieValue=decodeURIComponent(c.substring(name.length+1));
                 break;
             }
         }
     }
     return cookieValue;
 }
-
 </script>
 
 {% endblock %}

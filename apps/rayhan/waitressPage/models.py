@@ -123,6 +123,8 @@ class OrderMeal(models.Model):
     code_bill = models.PositiveIntegerField()
     printed = models.BooleanField(default=False)
     tax_sent = models.BooleanField(default=False)
+    online_order = models.BooleanField(default=False)
+
 
     class Meta:
         verbose_name = 'Заказ блюда'

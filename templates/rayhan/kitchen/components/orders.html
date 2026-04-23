@@ -46,10 +46,14 @@
                     {% endifchanged %}
 
                     <div class="body-order my-1 d-flex justify-content-between border border-2 rounded">
-                        {% if item.order_is_edited and not item.takeaway_food %}
+                        {% if item.order_is_edited and not item.takeaway_food and not item.online_order %}
                         <div class="name-meal p-1 w-50 bg-order-edited text-white">{{ item.name }}</div>
                         {% elif item.takeaway_food %}
                         <div class="bg-primary p-1 w-50 text-white">{{ item.name }}</div>
+                        {% elif item.online_order and  item.order_is_edited  %}
+                        <div class="bg-order-edited-online-order p-1 w-50 ">{{ item.name }}#</div>
+                        {% elif item.online_order %}
+                        <div class="bg-warning p-1 w-50 ">{{ item.name }}</div>
                         {% else %}
                         <div class="name-meal p-1 w-50">{{ item.name }}</div>
                         {% endif %}

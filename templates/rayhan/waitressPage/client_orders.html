@@ -104,14 +104,24 @@ body{
 <div class="order-card">
 
     <div class="order-header">
-        <div>
-            🪑 Стол <b>{{ order.table_id }}</b>
-        </div>
+            <div>
+                🪑 Стол <b>{{ order.table_id }}</b>
+            </div>
 
-        <div class="order-total">
-            {{ order.total }} сом
+            <div style="display:flex; gap:8px; align-items:center;">
+
+                <div class="order-total">
+                    {{ order.total }} сом
+                </div>
+
+                <!-- 🔥 DELETE BUTTON -->
+                <button class="btn btn-sm btn-danger"
+                        onclick="deleteOrder({{ order.id }})">
+                    ✕
+                </button>
+
+            </div>
         </div>
-    </div>
 
     <div class="order-items">
 
@@ -136,7 +146,43 @@ body{
     </div>
 
 </div>
+<script>
+function deleteOrder(id){
 
+    if(!confirm("Удалить заказ?")) return;
+
+    fetch(`/waitress/client/order/delete/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "ok"){
+            location.reload();
+        } else {
+            alert("Ошибка удаления");
+        }
+    });
+}
+
+function getCookie(name){
+    let cookieValue = null;
+    if(document.cookie){
+        let cookies = document.cookie.split(';');
+        for(let i=0;i<cookies.length;i++){
+            let c = cookies[i].trim();
+            if(c.startsWith(name + '=')){
+                cookieValue = decodeURIComponent(c.substring(name.length+1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endfor %}
 
 {% endblock content %}

@@ -75,7 +75,7 @@ VIEW_PERMISSIONS = {
     "UyghurKitchenView": ["chef", "administrator", "employee"],
     "NationalKitchenView": ["chef", "administrator", "employee"],
     "ControlKitchenOrders": ["chef", "administrator", "employee", "cake_maker"],
-    "DeleteOrderView": ["chef", "administrator", "employee", "samsishnik"],
+    "DeleteOrderView": ["chef", "administrator", "employee", "samsishnik", "cake_maker"],
     "ControlDeletedOrderView": ["chef", "administrator"],
     "HistoryBillIsPaidView": ["chef", "administrator"],
     "RecoveryDeletedMealView": ["chef", "administrator", "employee"],
